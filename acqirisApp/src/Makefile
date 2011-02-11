@@ -3,6 +3,11 @@ TOP=../..
 include $(TOP)/configure/CONFIG
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
+#Yong Hu: install header files and library, must add CFLAGS and CPPFLAGS
+INC += AcqirisD1Import.h AcqirisDataTypes.h AcqirisExDataTypes.h AcqirisExInterface.h AcqirisG4Interface.h AcqirisInterface.h AcqirisT3Interface.h visa.h vpptype.h AcqirisD1Interface.h AcqirisErrorCodes.h AcqirisExImport.h AcqirisG4Import.h AcqirisImport.h AcqirisT3Import.h ivi.h visatype.h
+LIB_INSTALLS_Linux += libAqDrv4.so
+USR_CFLAGS += -D_ACQIRIS -D_LINUX
+USR_CPPFLAGS += -D_ACQIRIS -D_LINUX
 
 #=============================
 # Build the IOC support library
@@ -39,6 +44,8 @@ acqiris_DBD += xxxSupport.dbd
 acqiris_DBD += dbSubExample.dbd
 acqiris_DBD += acqirisHello.dbd
 acqiris_DBD += initTrace.dbd
+#Yong Hu:include dbd file for acqiris device support
+acqiris_DBD += acqiris_support.dbd
 
 # acqiris_registerRecordDeviceDriver.cpp derives from acqiris.dbd
 acqiris_SRCS += acqiris_registerRecordDeviceDriver.cpp
@@ -46,6 +53,23 @@ acqiris_SRCS += acqiris_registerRecordDeviceDriver.cpp
 # Build the main IOC entry point on workstation OSs.
 acqiris_SRCS_DEFAULT += acqirisMain.cpp
 acqiris_SRCS_vxWorks += -nil-
+
+#Yong Hu: add acqiris driver/device codes
+acqiris_SRCS += acqiris_dev_li.cpp
+acqiris_SRCS += acqiris_dev_lo.cpp
+acqiris_SRCS += acqiris_dev_ai.cpp
+acqiris_SRCS += acqiris_dev_ao.cpp
+acqiris_SRCS += acqiris_dev_mbbo.cpp
+acqiris_SRCS += acqiris_dev_wf.cpp
+acqiris_SRCS += acqiris_dev_init.cpp
+acqiris_SRCS += acqiris_drv_li.cpp
+acqiris_SRCS += acqiris_drv_lo.cpp
+acqiris_SRCS += acqiris_drv_ai.cpp
+acqiris_SRCS += acqiris_drv_ao.cpp
+acqiris_SRCS += acqiris_drv_mbbo.cpp
+acqiris_SRCS += acqiris_drv_wf.cpp
+acqiris_SRCS += acqiris_daq.cpp
+acqiris_SRCS += acqiris_drv_init.cpp
 
 # Add support from base/src/vxWorks if needed
 #acqiris_OBJS_vxWorks += $(EPICS_BASE_BIN)/vxComLibrary
