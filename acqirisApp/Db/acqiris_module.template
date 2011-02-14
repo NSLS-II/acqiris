@@ -1,0 +1,266 @@
+#### Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer
+#### important settings: start/stop acquisition, number of converters per channel(interleaving), Sample interval/sampling frequency, sample length;
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:MDAQStatus")
+{
+   field(DESC,"DAQStatus")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MDQST")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Stopped")
+   field(ONVL,"1")
+   field(ONST,"Running")
+}
+
+record(longout,"${Psy}:${Ssy}:${Dev}:MNbrConvertersPerChannel")
+{
+   field(DESC,"nbrConvertersPerChannel")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNCPC")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+#Yong Hu
+   field(DOL, "2")
+}
+
+record(ao,"${Psy}:${Ssy}:${Dev}:MSampInterval")
+{
+   field(DESC,"sampInterval")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MSMIN")
+#Yong Hu: use autosave to restore MSampleInterval to 1.25e-10;
+#don't set PINI to YES
+   #field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"sec")
+#Yong Hu
+   #field(PREC,"13")
+   field(PREC,"2")
+#Wrong settings
+   #field(RVAL, "1.25e-10")
+   #field(RVAL, "0.000000000125")
+   field(FLNK, "${Psy}:${Ssy}:${Dev}:MSampFreq")
+}
+
+#Yong HU
+record(calc,"${Psy}:${Ssy}:${Dev}:MSampFreq")
+{
+   field(SCAN,"Passive")
+   field(DESC,"sampFreq")
+   #field(DTYP,"Soft Channel")
+   field(PINI,"YES")
+   field(INPA,"${Psy}:${Ssy}:${Dev}:MSampInterval")
+   field(CALC, "1.0/(A)")
+}
+
+record(longout,"${Psy}:${Ssy}:${Dev}:MNbrSamples")
+{
+   field(DESC,"nbrSamples")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNSMP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+#Yong Hu
+   #field(VAL, "2400")
+   field(DOL, "2400")
+
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MEventCount")
+{
+   field(DESC,"EventCount")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MEVCN")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MTriggerTimeouts")
+{
+   field(DESC,"TriggerTimeouts")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTRTM")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MCrateNb")
+{
+   field(DESC,"CrateNb")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MCRTN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ai,"${Psy}:${Ssy}:${Dev}:MDelayOffset")
+{
+   field(DESC,"DelayOffset")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MDLOF")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(ai,"${Psy}:${Ssy}:${Dev}:MDelayScale")
+{
+   field(DESC,"DelayScale")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MDLSC")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MIsPreTriggerRunning")
+{
+   field(DESC,"IsPreTriggerRunning")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MIPTR")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MMaxSamplesPerChannel")
+{
+   field(DESC,"MaxSamplesPerChannel")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MMSPC")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MNbrADCBits")
+{
+   field(DESC,"NbrADCBits")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MNADB")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MNbrModulesInInstrument")
+{
+   field(DESC,"NbrModulesInInstrument")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MNMII")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MPosInCrate")
+{
+   field(DESC,"PosInCrate")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MPICR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MTemperature_m")
+{
+   field(DESC,"Temperature_m")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTMPM")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+   field(EGU,"degC")
+}
+
+record(longout,"${Psy}:${Ssy}:${Dev}:MUsedChannels")
+{
+   field(DESC,"usedChannels")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MUSCH")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${Psy}:${Ssy}:${Dev}:MDelayNbrSamples")
+{
+   field(DESC,"delayNbrSamples")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MDLNS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ao,"${Psy}:${Ssy}:${Dev}:MDelayTime")
+{
+   field(DESC,"delayTime")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MDLTM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"sec")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:MTrigClass")
+{
+   field(DESC,"trigClass")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MTRCL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Edge")
+   field(ONVL,"1")
+   field(ONST,"TV_Trigger")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:MTriggerSource")
+{
+   field(DESC,"TriggerSource")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MTRSR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Channel1")
+   field(ONVL,"1")
+   field(ONST,"Channel2")
+   field(TWVL,"2")
+   field(TWST,"Channel3")
+   field(THVL,"3")
+   field(THST,"Channel4")
+   field(FRVL,"4")
+   field(FRST,"External")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MEventCount")
+{
+   field(DESC,"EventCount")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MEVCN")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MTriggerTimeouts")
+{
+   field(DESC,"TriggerTimeouts")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTRTM")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MReadErrors")
+{
+   field(DESC,"ReadErrors")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MRDER")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+}
+
+record(longin,"${Psy}:${Ssy}:${Dev}:MTruncated")
+{
+   field(DESC,"TruncatedEvents")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTREV")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+}
+

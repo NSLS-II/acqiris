@@ -1,0 +1,127 @@
+####Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer;
+
+record(ao,"${Psy}:${Ssy}:${Dev}:XTrigLevel1")
+{
+   field(DESC,"External TrigLevel1")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XTRL1")
+   field(SCAN,"Passive")
+   field(EGU,"mV")
+#Yong Hu
+   field(PINI, "YES")
+   field(RVAL, "1000")
+}
+
+record(ao,"${Psy}:${Ssy}:${Dev}:XFullScale")
+{
+   field(DESC,"External FullScale")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XFLSC")
+   field(SCAN,"Passive")
+   field(EGU,"V")
+#Yong Hu
+   field(PREC,"2")
+   field(PINI, "YES")
+   field(RVAL, "5")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:XTrigCoupling")
+{
+   field(DESC,"External TrigCoupling")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XTRCP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"DC")
+   field(ONVL,"1")
+   field(ONST,"AC")
+   field(TWVL,"2")
+   field(TWST,"HF_Reject")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:XTrigSlope")
+{
+   field(DESC,"External TrigSlope")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XTRSL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Positive")
+   field(ONVL,"1")
+   field(ONST,"Negative")
+   field(TWVL,"2")
+   field(TWST,"Out_of_Window")
+   field(THVL,"3")
+   field(THST,"Into_Window")
+   field(FRVL,"4")
+   field(FRST,"HF_Divide")
+   field(FVVL,"5")
+   field(FVST,"Spike_Stretcher")
+}
+
+record(ao,"${Psy}:${Ssy}:${Dev}:XTrigLevel2")
+{
+   field(DESC,"External TrigLevel2")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XTRL2")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"mV")
+}
+
+record(ao,"${Psy}:${Ssy}:${Dev}:XOffset")
+{
+   field(DESC,"External Offset")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XOFFS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"V")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:XCoupling")
+{
+   field(DESC,"crate Coupling?")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XCPLN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Ground")
+   field(ONVL,"1")
+   field(ONST,"DC")
+   field(TWVL,"2")
+   field(TWST,"AC")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:XBandwidth")
+{
+   field(DESC,"Bandwidth")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XBNDW")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"No_Limit")
+   field(ONVL,"1")
+   field(ONST,"25Mhz")
+   field(TWVL,"2")
+   field(TWST,"700MHz")
+   field(THVL,"3")
+   field(THST,"200Mhz")
+   field(FRVL,"4")
+   field(FRST,"20Mhz")
+   field(FVVL,"5")
+   field(FVST,"35Mhz")
+}
+

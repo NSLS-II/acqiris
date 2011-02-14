@@ -1,0 +1,7 @@
+#### this is for Acqiris DC252 (2-channel): MODULE "0" refers to the first digitizer(the most left)
+
+file "db/acqiris_trigger.template"
+{
+    pattern {Psy,    Ssy,    Dev,           MODULE}
+            {"LBT",  "BI",   "[FCT:1:2]",   "0"   }
+}

@@ -10,11 +10,20 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------------------
 # Create and install (or just install)
 # databases, templates, substitutions like this
-DB += dbExample1.db
-DB += dbExample2.db
-DB += dbSubExample.db
-DB += user.substitutions
-DB += userHost.substitutions
+#DB += dbExample1.db
+#DB += dbExample2.db
+#DB += dbSubExample.db
+#DB += user.substitutions
+#DB += userHost.substitutions
+
+#Yong Hu:db/template files
+DB += acqiris_channel.template
+DB += acqiris_channel.substitutions
+DB += acqiris_trigger.template
+DB += acqiris_trigger.substitutions
+DB += acqiris_module.template
+DB += acqiris_module.substitutions
+DB += iocStats.db
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

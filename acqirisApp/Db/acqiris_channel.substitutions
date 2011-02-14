@@ -1,0 +1,8 @@
+#### this is for Acqiris DC252 (2-channel): MODULE "0" refers to the first digitizer(the most left)
+
+file "db/acqiris_channel.template"
+{
+    pattern {Psy,     Ssy,     Dev,        MODULE,    CHANNEL,   NELM}
+            {"LBT",   "BI",   "[FCT:1]",   "0",      "0",        "5000"}
+            {"LBT",   "BI",   "[FCT:2]",   "0",      "1",        "5000"}
+}

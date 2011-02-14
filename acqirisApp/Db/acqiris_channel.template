@@ -1,0 +1,193 @@
+#### Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer
+#### important records: setup input range and offset, read back raw waveform data, processed data;
+
+record(ao,"${Psy}:${Ssy}:${Dev}:CFullScale")
+{
+   field(DESC,"Voltage Range: FullScale")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CFLSC")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"5.0")
+   field(DRVL,"-5.0")
+   field(EGU,"V")
+   field(PREC,"2")
+}
+
+record(ao,"${Psy}:${Ssy}:${Dev}:COffset")
+{
+   field(DESC,"Offset")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} COFFS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"5.0")
+   field(DRVL,"-5.0")
+   field(EGU,"V")
+   field(PREC,"2")
+}
+
+record(waveform,"${Psy}:${Ssy}:${Dev}:CRawData")
+{
+   field(SCAN,"I/O Intr")
+   field(DESC,"acqiris raw waveform")
+   field(DTYP,"acqiris")
+   field(NELM,"${NELM}")
+   field(FTVL,"SHORT")
+   #field(FTVL,"FLOAT")
+   field(INP,"@M${MODULE} C${CHANNEL} WRAW")
+   field(FLNK,"${Psy}:${Ssy}:${Dev}:CComputedVolt")
+}
+
+#Yong Hu
+record(waveform,"${Psy}:${Ssy}:${Dev}:CComputedVolt")
+{
+   field(SCAN,"Passive")
+   field(DESC,"acqiris voltage waveform")
+   field(DTYP,"acqiris")
+   field(NELM,"${NELM}")
+   field(FTVL,"FLOAT")
+   field(INP,"@M${MODULE} C${CHANNEL} WVOL")
+   field(PREC,"4")
+   field(FLNK,"${Psy}:${Ssy}:${Dev}:CRMSVolt")
+}
+
+record(waveform,"${Psy}:${Ssy}:${Dev}:CRMSVolt")
+{
+   field(SCAN,"Passive")
+   field(DESC,"acqiris RMS waveform")
+   field(DTYP,"acqiris")
+   field(NELM,"${NELM}")
+   field(FTVL,"FLOAT")
+   field(INP,"@M${MODULE} C${CHANNEL} WRMS")
+   field(PREC,"4")
+   field(FLNK,"${Psy}:${Ssy}:${Dev}:CMaxVolt")
+}
+
+record(waveform,"${Psy}:${Ssy}:${Dev}:CMaxVolt")
+{
+   field(SCAN,"Passive")
+   field(DESC,"acqiris Max voltage waveform")
+   field(DTYP,"acqiris")
+   field(NELM,"${NELM}")
+   field(FTVL,"FLOAT")
+   field(INP,"@M${MODULE} C${CHANNEL} WMAX")
+   field(PREC,"4")
+   field(FLNK,"${Psy}:${Ssy}:${Dev}:CRMSVolt0")
+}
+
+record(subArray,"${Psy}:${Ssy}:${Dev}:CRMSVolt0")
+{
+   field(SCAN,"Passive")
+   field(DESC,"acqiris RMS Data #0")
+   field(DTYP,"Soft Channel")
+   field(NELM,"1")
+   field(FTVL,"FLOAT")
+   field(INDX,"0")
+   field(INP,"${Psy}:${Ssy}:${Dev}:CRMSVolt")
+   field(PREC,"4")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:CTrigCoupling")
+{
+   field(DESC,"Channel TrigCoupling")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CTRCP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"DC")
+   field(ONVL,"1")
+   field(ONST,"AC")
+   field(TWVL,"2")
+   field(TWST,"HF_Reject")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:CTrigSlope")
+{
+   field(DESC,"Channel TrigSlope")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CTRSL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Positive")
+   field(ONVL,"1")
+   field(ONST,"Negative")
+   field(TWVL,"2")
+   field(TWST,"Out_of_Window")
+   field(THVL,"3")
+   field(THST,"Into_Window")
+   field(FRVL,"4")
+   field(FRST,"HF_Divide")
+   field(FVVL,"5")
+   field(FVST,"Spike_Stretcher")
+}
+
+record(ao,"${Psy}:${Ssy}:${Dev}:CTrigLevel1")
+{
+   field(DESC,"Channel TrigLevel1")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CTRL1")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"50")
+   field(DRVL,"0")
+   field(EGU,"%")
+}
+
+record(ao,"${Psy}:${Ssy}:${Dev}:CTrigLevel2")
+{
+   field(DESC,"Channel TrigLevel2")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CTRL2")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"50")
+   field(DRVL,"0")
+   field(EGU,"%")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:CCoupling")
+{
+   field(DESC,"Channel Coupling")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CCPLN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Ground")
+   field(ONVL,"1")
+   field(ONST,"DC")
+   field(TWVL,"2")
+   field(TWST,"AC")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+}
+
+record(mbbo,"${Psy}:${Ssy}:${Dev}:CBandwidth")
+{
+   field(DESC,"Bandwidth")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CBNDW")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"No_Limit")
+   field(ONVL,"1")
+   field(ONST,"25Mhz")
+   field(TWVL,"2")
+   field(TWST,"700MHz")
+   field(THVL,"3")
+   field(THST,"200Mhz")
+   field(FRVL,"4")
+   field(FRST,"20Mhz")
+   field(FVVL,"5")
+   field(FVST,"35Mhz")
+}
