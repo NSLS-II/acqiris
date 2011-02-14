@@ -32,10 +32,12 @@ struct acqiris_driver_t {
 };
 typedef struct acqiris_driver_t ad_t;
 
-extern acqiris_driver_t acqiris_drivers[];
-extern unsigned nbr_acqiris_drivers;
-extern epicsMutexId acqiris_dma_mutex;
-
+extern "C"
+{
+	extern acqiris_driver_t acqiris_drivers[];
+	extern unsigned nbr_acqiris_drivers;
+	extern epicsMutexId acqiris_dma_mutex;
+}
 #define SUCCESS(x) (((x)&0x80000000) == 0)
 
 #endif

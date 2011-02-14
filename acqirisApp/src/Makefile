@@ -3,11 +3,19 @@ TOP=../..
 include $(TOP)/configure/CONFIG
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
-#Yong Hu: install header files and library, must add CFLAGS and CPPFLAGS
-INC += AcqirisD1Import.h AcqirisDataTypes.h AcqirisExDataTypes.h AcqirisExInterface.h AcqirisG4Interface.h AcqirisInterface.h AcqirisT3Interface.h visa.h vpptype.h AcqirisD1Interface.h AcqirisErrorCodes.h AcqirisExImport.h AcqirisG4Import.h AcqirisImport.h AcqirisT3Import.h ivi.h visatype.h
-LIB_INSTALLS_Linux += libAqDrv4.so
-USR_CFLAGS += -D_ACQIRIS -D_LINUX
-USR_CPPFLAGS += -D_ACQIRIS -D_LINUX
+#Yong Hu:this method doesn't work well for dynamic/shared library: firstly don't add 'acqiris_LIBS += AqDrv4'
+#in order to install libAqDrv4.so, then add 'acqiris_LIBS += AqDrv4' as below
+#must add CFLAGS and CPPFLAGS
+#INC += AcqirisD1Import.h AcqirisDataTypes.h AcqirisExDataTypes.h AcqirisExInterface.h AcqirisG4Interface.h AcqirisInterface.h AcqirisT3Interface.h visa.h vpptype.h AcqirisD1Interface.h AcqirisErrorCodes.h AcqirisExImport.h AcqirisG4Import.h AcqirisImport.h AcqirisT3Import.h ivi.h visatype.h
+#LIB_INSTALLS_Linux += ../libAqDrv4.so
+#USR_CFLAGS += -D_ACQIRIS -D_LINUX
+#USR_CPPFLAGS += -D_ACQIRIS -D_LINUX
+
+#Yong Hu:static library libacqdrv.a is built by RTEMS, not applicable here. 
+#INC += AcqirisD1Import.h AcqirisDataTypes.h AcqirisExDataTypes.h AcqirisExInterface.h AcqirisG4Interface.h AcqirisInterface.h AcqirisT3Interface.h visa.h vpptype.h AcqirisD1Interface.h AcqirisErrorCodes.h AcqirisExImport.h AcqirisG4Import.h AcqirisImport.h AcqirisT3Import.h ivi.h visatype.h
+#LIB_INSTALLS_Linux += ../libacqdrv.a
+#USR_CFLAGS += -D_ACQIRIS -D_LINUX
+#USR_CPPFLAGS += -D_ACQIRIS -D_LINUX
 
 #=============================
 # Build the IOC support library
@@ -46,6 +54,10 @@ acqiris_DBD += acqirisHello.dbd
 acqiris_DBD += initTrace.dbd
 #Yong Hu:include dbd file for acqiris device support
 acqiris_DBD += acqiris_support.dbd
+#Yong Hu: include iocStatus and autosave which are installed by epics Debian package
+# /usr/lib/epics/dbd/
+acqiris_DBD += devIocStats.dbd
+acqiris_DBD += asSupport.dbd
 
 # acqiris_registerRecordDeviceDriver.cpp derives from acqiris.dbd
 acqiris_SRCS += acqiris_registerRecordDeviceDriver.cpp
@@ -70,6 +82,18 @@ acqiris_SRCS += acqiris_drv_mbbo.cpp
 acqiris_SRCS += acqiris_drv_wf.cpp
 acqiris_SRCS += acqiris_daq.cpp
 acqiris_SRCS += acqiris_drv_init.cpp
+
+USR_CFLAGS += -I/usr/include -D_ACQIRIS -D_LINUX
+USR_CPPFLAGS += -I/usr/include -D_ACQIRIS -D_LINUX
+acqiris_LDFLAGS += -L/usr/lib -lAqDrv4
+#Yong Hu:include autosave and devIocStats libraries which are installed by epics Debian
+#package: /usr/lib/epics/lib/linux-x86
+acqiris_LIBS += autosave
+acqiris_LIBS += devIocStats 
+
+#Yong Hu:this method doesn't work well for dynamic/shared library(libAqDrv4.so)
+#see notes above
+#acqiris_LIBS += acqdrv
 
 # Add support from base/src/vxWorks if needed
 #acqiris_OBJS_vxWorks += $(EPICS_BASE_BIN)/vxComLibrary
