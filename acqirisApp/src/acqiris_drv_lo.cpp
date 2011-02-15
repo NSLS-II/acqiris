@@ -2,6 +2,7 @@
 #include "acqiris_drv.hh"
 
 #include <AcqirisD1Import.h>
+#include <AcqirisImport.h>
 
 #include <longoutRecord.h>
 
@@ -20,6 +21,12 @@ static int wlo_MNbrConvertersPerCh(rec_t* rec, ad_t* ad, int32_t val) {
   if (SUCCESS(status)) {
     status = AcqrsD1_configChannelCombination(ad->id, val, used_channels);
   }
+//Yong Hu
+ //Acqrs_calibrateEx(ad->id, 4, 0, 0);
+  //Acqrs_calibrate(ad->id);
+  //printf("Calibrate the digitizer after combining 2 channels to 1 channel \n");
+ // Acqrs_calibrateCancel(ad->id);
+  
   return status;
 }
 

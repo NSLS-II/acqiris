@@ -1,3 +1,11 @@
+/* 
+    Original Author: Perazzo, Amedeo
+    Modified by Yong Hu: 10/29/2010
+*********************************************************
+    init_record --> acqiris_init_record()(acqiris_dev_init.cpp) 
+       --> acqiris_init_record_specialized()(acqiris_drv_ao.cpp)
+*/
+
 #include "acqiris_dev.hh"
 
 #include <devSup.h>

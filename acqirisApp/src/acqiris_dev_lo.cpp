@@ -10,7 +10,7 @@ extern "C" {
     longoutRecord* r = reinterpret_cast<longoutRecord*>(record);
     int status = acqiris_init_record(r, r->out);
     if (!status) {
-      acqiris_read_record(r);
+      //acqiris_read_record(r);
     }
     return status;
   }

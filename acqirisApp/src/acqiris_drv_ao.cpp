@@ -1,3 +1,8 @@
+/* 
+    Original Author: Perazzo, Amedeo
+    Modified by Yong Hu: 10/29/2010
+*/
+
 #include "acqiris_dev.hh"
 #include "acqiris_drv.hh"
 
@@ -7,6 +12,8 @@
 
 #include <stdio.h>
 #include <string.h>
+//Yong Hu
+#include <stdlib.h>
 
 static int rao_MInputThreshold(rec_t* rec, ad_t* ad, double* val) {
   ViInt32  clockType, delayNbrSamples;
@@ -377,6 +384,8 @@ static int wao_XFullScale(rec_t* rec, ad_t* ad, double val) {
                                     offset,
                                     coupling,
                                     bandwidth);
+  //Yong Hu
+  //printf("PINI=YES, Write %f to set XFullScale at record %s \n", val, rec->name);
   }
   return status;
 }
@@ -463,10 +472,14 @@ template<> int acqiris_write_record_specialized(aoRecord* pao)
   ad_t* ad = &acqiris_drivers[arc->module];
   acqiris_aorecord_t* rao = reinterpret_cast<acqiris_aorecord_t*>(arc->pvt);
   //  printf("pini ao %s %f\n", arc->name, pao->val);
+   //printf("PINI=YES, val  %f at record %s \n", pao->val, pao->name);
   int status = rao->wfunc(arc, ad, pao->val);
   if (SUCCESS(status)) {
     status = rao->rfunc(arc, ad, &pao->val);
   }
+  //Yong Hu
+ // printf("PINI=YES, Write %f to set XFullScale at record %s \n", pao->val, pao->name);
+  
   return SUCCESS(status) ? 0 : -1;
 }
 
@@ -477,5 +490,8 @@ template<> int acqiris_read_record_specialized(aoRecord* pao)
   acqiris_aorecord_t* rao = reinterpret_cast<acqiris_aorecord_t*>(arc->pvt);
   int status = rao->rfunc(arc, ad, &pao->val);
   //  printf("init ao %s %f\n", arc->name, pao->val);
+      //Yong Hu
+  //printf("PINI=YES, read %f for XFullScale at record %s \n", pao->val, pao->name);
+  
   return SUCCESS(status) ? 0 : -1;
 }

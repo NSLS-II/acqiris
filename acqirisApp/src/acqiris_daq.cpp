@@ -1,9 +1,18 @@
+/* 
+    Original Author: Perazzo, Amedeo
+    Modified by Yong Hu: 10/29/2010
+*/
+
 #include "acqiris_daq.hh"
 #include "acqiris_drv.hh"
 
 #include <AcqirisD1Import.h>
+#include <AcqirisImport.h>
 
 #include <stdio.h>
+
+/*Yong Hu*/
+#include <epicsTime.h>
 
 #define SUCCESSREAD(x) (((x)&0x80000000)==VI_SUCCESS)
 
@@ -11,6 +20,9 @@ extern "C"
 {
   void acqiris_daq_thread(void *arg)
   {
+//Yong Hu
+    epicsTimeStamp now;
+
     acqiris_driver_t* ad = reinterpret_cast<acqiris_driver_t*>(arg);
     int nchannels = ad->nchannels;
     int extra = ad->extra;
@@ -31,15 +43,33 @@ extern "C"
     readParams.segDescArraySize = nbrSegments*sizeof(AqSegmentDescriptor);
     readParams.nbrSamplesInSeg  = nbrSamples;
     readParams.dataArraySize    = (nbrSamples+extra)*nbrSegments*sizeof(short);
+//Yong Hu
+     //printf("ad->running = %d --yhu\n", ad->running);
+     //Acqrs_calibrateCancel(ad->id);
+     //printf("Cancel the calibration process after initialization--yhu\n");
 
     while (1) {
       epicsEventWait(ad->run_semaphore);
       do { 
+//Yong Hu: use shorter timeout for testing 120Hz: 10ms is too short, 20ms works well;
         const long timeout = 1000; /* ms */
+        //const long timeout = 10; /* ms */
+        //const long timeout = 20; /* ms */
         int id = ad->id;
-        AcqrsD1_acquire(id); 
-        ViStatus status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
+        //AcqrsD1_acquire(id); 
+//Yong Hu
+        ViStatus status = AcqrsD1_acquire(id); 
         if (status != VI_SUCCESS) {
+          printf("Can't start the acquisition --yhu\n");
+        }
+
+        status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
+        if (status != VI_SUCCESS) {
+//Yong Hu
+          printf("Timeout when waitForEndofAcquisition: status codeis %x, the time is:\n", (unsigned)status);
+          epicsTimeGetCurrent(&now);
+          epicsTimeShow(&now, 0);
+
           AcqrsD1_stopAcquisition(id);
           ad->timeouts++;
         } else {
