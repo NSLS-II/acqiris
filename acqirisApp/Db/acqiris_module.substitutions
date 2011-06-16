@@ -1,7 +1,18 @@
-#### this is for Acqiris DC252 (2-channel): MODULE "0" refers to the first digitizer(the most left)
+#### Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer
+#### functionality: configure the board for all channels: start/stop acquisition, converters per channel(interleaving),\\
+#### \\Sample interval/sampling frequency, sample length, trigger source, diagnostics info, etc.
+## Substitutions: see acqiris_module.substitutions
+## Psy		-	Primary system
+## Ssy		-	Secondary system
+## Dev		-	Device name
+## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
+                 \\For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+## NELM     -	number of samples per channel (initial value);
 
 file "db/acqiris_module.template"
 {
-    pattern {Psy,    Ssy,    Dev,           MODULE}
-            {"LBT",  "BI",   "[FCT:1:2]",   "0"   }
+    pattern {Psy,    Ssy,    Dev,    MODULE    NELM  }
+            {"LBT",  "BI",   "FCT",  "0"       "2200"}
+            {"BTS",  "BI",   "WCM",  "1"       "2200"} 
+            {"SR",   "BI",   "NBLM", "2"       "1600"}             
 }

@@ -1,8 +1,22 @@
-#### this is for Acqiris DC252 (2-channel): MODULE "0" refers to the first digitizer(the most left)
+#### Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer
+#### functionality: for individual channel, configure input range, offset, triggering, coupling and bandwidth, \\
+##### \\get raw waveform data, process data by subArray record;
+## Substitutions: see acqiris_channel.template
+## Psy		-	Primary system
+## Ssy		-	Secondary system
+## Dev		-	Device name
+## CHANNEL  -	device(Dev) instance and #channel of the board(MODULE)  
+## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
+                 \\For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+## NELM     -	number of elements of waveform record 
 
 file "db/acqiris_channel.template"
 {
-    pattern {Psy,     Ssy,     Dev,        MODULE,    CHANNEL,   NELM}
-            {"LBT",   "BI",   "[FCT:1]",   "0",      "0",        "5000"}
-            {"LBT",   "BI",   "[FCT:2]",   "0",      "1",        "5000"}
+    pattern {Psy,     Ssy,     Dev,        MODULE,    CHANNEL,   NELM  }
+            {"LTB",   "BI",    "FCT",      "0",       "0",       "2200"}
+            {"LTB",   "BI",    "FCT",      "0",       "1",       "2200"}
+            {"BTS",   "BI",    "WCM",      "1",       "0",       "2200"}
+            {"BTS",   "BI",    "WCM",      "1",       "1",       "2200"}
+            {"SR",    "BI",    "NBLM",     "2"        "0"        "1600"}
+            {"SR",    "BI",    "NBLM",     "2"        "1"        "1600"}            
 }

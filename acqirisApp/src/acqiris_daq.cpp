@@ -22,6 +22,7 @@ extern "C"
   {
 //Yong Hu
     epicsTimeStamp now;
+    char tsText[30];
 
     acqiris_driver_t* ad = reinterpret_cast<acqiris_driver_t*>(arg);
     int nchannels = ad->nchannels;
@@ -66,9 +67,11 @@ extern "C"
         status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
         if (status != VI_SUCCESS) {
 //Yong Hu
-          printf("Timeout when waitForEndofAcquisition: status codeis %x, the time is:\n", (unsigned)status);
+          printf("Timeout when waitForEndofAcquisition: status code is 0x%x, the time is: ", (unsigned)status);
           epicsTimeGetCurrent(&now);
-          epicsTimeShow(&now, 0);
+          epicsTimeToStrftime(tsText, sizeof(tsText), "%Y-%m-%d %H:%M:%S.%6f", &now);
+          printf("%s \n", tsText);
+          //epicsTimeShow(&now, 0);
 
           AcqrsD1_stopAcquisition(id);
           ad->timeouts++;

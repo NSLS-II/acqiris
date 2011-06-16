@@ -1,7 +1,16 @@
 #### Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer
-#### important records: setup input range and offset, read back raw waveform data, processed data;
+#### functionality: for individual channel, configure input range, offset, triggering, coupling and bandwidth, \\
+##### \\get raw waveform data, process data by subArray record;
+## Substitutions: see acqiris_channel.substitutions
+## Psy		-	Primary system
+## Ssy		-	Secondary system
+## Dev		-	Device name
+## CHANNEL  -	device(Dev) instance and #channel of the board(MODULE)  
+## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
+                 \\For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+## NELM     -	number of elements of waveform record 
 
-record(ao,"${Psy}:${Ssy}:${Dev}:CFullScale")
+record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CFullScale-SP")
 {
    field(DESC,"Voltage Range: FullScale")
    field(DTYP,"acqiris")
@@ -14,9 +23,9 @@ record(ao,"${Psy}:${Ssy}:${Dev}:CFullScale")
    field(PREC,"2")
 }
 
-record(ao,"${Psy}:${Ssy}:${Dev}:COffset")
+record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
 {
-   field(DESC,"Offset")
+   field(DESC,"DC Offset")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} C${CHANNEL} COFFS")
    field(PINI,"YES")
@@ -27,20 +36,19 @@ record(ao,"${Psy}:${Ssy}:${Dev}:COffset")
    field(PREC,"2")
 }
 
-record(waveform,"${Psy}:${Ssy}:${Dev}:CRawData")
+record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CRawData-I_")
 {
    field(SCAN,"I/O Intr")
    field(DESC,"acqiris raw waveform")
    field(DTYP,"acqiris")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
-   #field(FTVL,"FLOAT")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   field(FLNK,"${Psy}:${Ssy}:${Dev}:CComputedVolt")
+   field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
+   #field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
 }
 
-#Yong Hu
-record(waveform,"${Psy}:${Ssy}:${Dev}:CComputedVolt")
+record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
 {
    field(SCAN,"Passive")
    field(DESC,"acqiris voltage waveform")
@@ -49,10 +57,10 @@ record(waveform,"${Psy}:${Ssy}:${Dev}:CComputedVolt")
    field(FTVL,"FLOAT")
    field(INP,"@M${MODULE} C${CHANNEL} WVOL")
    field(PREC,"4")
-   field(FLNK,"${Psy}:${Ssy}:${Dev}:CRMSVolt")
+   field(FLNK,"${Psy}-${Ssy}{${Dev}}CRMSVolt:${CHANNEL}-I")
 }
 
-record(waveform,"${Psy}:${Ssy}:${Dev}:CRMSVolt")
+record(waveform,"${Psy}-${Ssy}{${Dev}}CRMSVolt:${CHANNEL}-I")
 {
    field(SCAN,"Passive")
    field(DESC,"acqiris RMS waveform")
@@ -61,10 +69,10 @@ record(waveform,"${Psy}:${Ssy}:${Dev}:CRMSVolt")
    field(FTVL,"FLOAT")
    field(INP,"@M${MODULE} C${CHANNEL} WRMS")
    field(PREC,"4")
-   field(FLNK,"${Psy}:${Ssy}:${Dev}:CMaxVolt")
+   field(FLNK,"${Psy}-${Ssy}{${Dev}}CMaxVolt:${CHANNEL}-I")
 }
 
-record(waveform,"${Psy}:${Ssy}:${Dev}:CMaxVolt")
+record(waveform,"${Psy}-${Ssy}{${Dev}}CMaxVolt:${CHANNEL}-I")
 {
    field(SCAN,"Passive")
    field(DESC,"acqiris Max voltage waveform")
@@ -73,10 +81,10 @@ record(waveform,"${Psy}:${Ssy}:${Dev}:CMaxVolt")
    field(FTVL,"FLOAT")
    field(INP,"@M${MODULE} C${CHANNEL} WMAX")
    field(PREC,"4")
-   field(FLNK,"${Psy}:${Ssy}:${Dev}:CRMSVolt0")
+   field(FLNK,"${Psy}-${Ssy}{${Dev}}CRMSVolt0:${CHANNEL}-I")
 }
 
-record(subArray,"${Psy}:${Ssy}:${Dev}:CRMSVolt0")
+record(subArray,"${Psy}-${Ssy}{${Dev}}CRMSVolt0:${CHANNEL}-I")
 {
    field(SCAN,"Passive")
    field(DESC,"acqiris RMS Data #0")
@@ -84,11 +92,11 @@ record(subArray,"${Psy}:${Ssy}:${Dev}:CRMSVolt0")
    field(NELM,"1")
    field(FTVL,"FLOAT")
    field(INDX,"0")
-   field(INP,"${Psy}:${Ssy}:${Dev}:CRMSVolt")
+   field(INP,"${Psy}-${Ssy}{${Dev}}CRMSVolt:${CHANNEL}-I")
    field(PREC,"4")
 }
 
-record(mbbo,"${Psy}:${Ssy}:${Dev}:CTrigCoupling")
+record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigCoupling-Sel")
 {
    field(DESC,"Channel TrigCoupling")
    field(DTYP,"acqiris")
@@ -107,7 +115,7 @@ record(mbbo,"${Psy}:${Ssy}:${Dev}:CTrigCoupling")
    field(FRST,"AC_50_Ohm")
 }
 
-record(mbbo,"${Psy}:${Ssy}:${Dev}:CTrigSlope")
+record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigSlope-Sel")
 {
    field(DESC,"Channel TrigSlope")
    field(DTYP,"acqiris")
@@ -128,7 +136,7 @@ record(mbbo,"${Psy}:${Ssy}:${Dev}:CTrigSlope")
    field(FVST,"Spike_Stretcher")
 }
 
-record(ao,"${Psy}:${Ssy}:${Dev}:CTrigLevel1")
+record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel1-SP")
 {
    field(DESC,"Channel TrigLevel1")
    field(DTYP,"acqiris")
@@ -140,7 +148,7 @@ record(ao,"${Psy}:${Ssy}:${Dev}:CTrigLevel1")
    field(EGU,"%")
 }
 
-record(ao,"${Psy}:${Ssy}:${Dev}:CTrigLevel2")
+record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel2-SP")
 {
    field(DESC,"Channel TrigLevel2")
    field(DTYP,"acqiris")
@@ -152,7 +160,7 @@ record(ao,"${Psy}:${Ssy}:${Dev}:CTrigLevel2")
    field(EGU,"%")
 }
 
-record(mbbo,"${Psy}:${Ssy}:${Dev}:CCoupling")
+record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CCoupling-Sel")
 {
    field(DESC,"Channel Coupling")
    field(DTYP,"acqiris")
@@ -171,7 +179,7 @@ record(mbbo,"${Psy}:${Ssy}:${Dev}:CCoupling")
    field(FRST,"AC_50_Ohm")
 }
 
-record(mbbo,"${Psy}:${Ssy}:${Dev}:CBandwidth")
+record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CBandwidth-Sel")
 {
    field(DESC,"Bandwidth")
    field(DTYP,"acqiris")

@@ -1,31 +1,37 @@
 ####Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer;
+#### functionality: configure external triggering: trigger level, full scale, coupling, etc.
+## Substitutions: see acqiris_trigger.substitutions
+## Psy		-	Primary system
+## Ssy		-	Secondary system
+## Dev		-	Device name
+## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
+                 \\For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 
-record(ao,"${Psy}:${Ssy}:${Dev}:XTrigLevel1")
+record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel1-SP")
 {
    field(DESC,"External TrigLevel1")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} XTRL1")
    field(SCAN,"Passive")
    field(EGU,"mV")
-#Yong Hu
    field(PINI, "YES")
    field(RVAL, "1000")
+   #field(RVAL, "500")
 }
 
-record(ao,"${Psy}:${Ssy}:${Dev}:XFullScale")
+record(ao,"${Psy}-${Ssy}{${Dev}}XFullScale-SP")
 {
    field(DESC,"External FullScale")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} XFLSC")
    field(SCAN,"Passive")
    field(EGU,"V")
-#Yong Hu
    field(PREC,"2")
    field(PINI, "YES")
    field(RVAL, "5")
 }
 
-record(mbbo,"${Psy}:${Ssy}:${Dev}:XTrigCoupling")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigCoupling-Sel")
 {
    field(DESC,"External TrigCoupling")
    field(DTYP,"acqiris")
@@ -44,7 +50,7 @@ record(mbbo,"${Psy}:${Ssy}:${Dev}:XTrigCoupling")
    field(FRST,"AC_50_Ohm")
 }
 
-record(mbbo,"${Psy}:${Ssy}:${Dev}:XTrigSlope")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigSlope-Sel")
 {
    field(DESC,"External TrigSlope")
    field(DTYP,"acqiris")
@@ -65,7 +71,7 @@ record(mbbo,"${Psy}:${Ssy}:${Dev}:XTrigSlope")
    field(FVST,"Spike_Stretcher")
 }
 
-record(ao,"${Psy}:${Ssy}:${Dev}:XTrigLevel2")
+record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel2-SP")
 {
    field(DESC,"External TrigLevel2")
    field(DTYP,"acqiris")
@@ -75,7 +81,7 @@ record(ao,"${Psy}:${Ssy}:${Dev}:XTrigLevel2")
    field(EGU,"mV")
 }
 
-record(ao,"${Psy}:${Ssy}:${Dev}:XOffset")
+record(ao,"${Psy}-${Ssy}{${Dev}}XOffset-SP")
 {
    field(DESC,"External Offset")
    field(DTYP,"acqiris")
@@ -85,7 +91,7 @@ record(ao,"${Psy}:${Ssy}:${Dev}:XOffset")
    field(EGU,"V")
 }
 
-record(mbbo,"${Psy}:${Ssy}:${Dev}:XCoupling")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}XCoupling-Sel")
 {
    field(DESC,"crate Coupling?")
    field(DTYP,"acqiris")
@@ -104,7 +110,7 @@ record(mbbo,"${Psy}:${Ssy}:${Dev}:XCoupling")
    field(FRST,"AC_50_Ohm")
 }
 
-record(mbbo,"${Psy}:${Ssy}:${Dev}:XBandwidth")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}XBandwidth-Sel")
 {
    field(DESC,"Bandwidth")
    field(DTYP,"acqiris")

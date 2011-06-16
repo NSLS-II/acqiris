@@ -66,27 +66,29 @@ extern "C" {
   {
     ViInt32 nbrInstruments;
     ViStatus status = Acqrs_getNbrInstruments(&nbrInstruments);
+    printf("%d modules found \n",(int)nbrInstruments);
     int module;
-    for (module=0; module<nbrInstruments; ) {
-      acqiris_driver_t* ad = &acqiris_drivers[module];
+
+    for (module = 0; module < nbrInstruments; )
+    {
+    	acqiris_driver_t* ad = &acqiris_drivers[module];
 //Yong Hu: pass calibration parameters
-     //ViString options = "cal=0 dma=1";
+      //ViString options = "";
+      //ViString options = "cal=0 dma=0";
       ViString options = "cal=1,dma=1";
      
       char name[20];
       sprintf(name, "PCI::INSTR%d", module);
-      status = Acqrs_InitWithOptions(name, 
-				     VI_FALSE, VI_FALSE, 
-				     options, 
-				     (ViSession*)&ad->id);
+      status = Acqrs_InitWithOptions(name, VI_FALSE, VI_FALSE, options, (ViSession*)&ad->id);
       //Yong Hu
-      printf("Initialize digitizer with calibration--yhu\n");
-     
-      if (status != VI_SUCCESS) {
-	fprintf(stderr, "*** Init failed (%x) for instrument %s\n", 
-		(unsigned)status, name);
-	continue;
+      if (status != VI_SUCCESS)
+      {
+    	  fprintf(stderr, "*** Init failed (%x) for instrument %s with options(%s) \n",(unsigned)status, name, options);
+    	  //continue;
+    	  return module;
       }
+      printf("Initialized module(%s) with options(%s) successfully(status:0x%x)\n",name,options,(unsigned)status);
+
 //Yong Hu
      // Acqrs_calibrate(ad->id);
      // Acqrs_calibrateEx(ad->id, 0, 0, 0);
@@ -105,7 +107,7 @@ extern "C" {
       //check_version_number(ad->id);
       ad->module = module;
       module++;
-    }
+    }//for (module=0; module<nbrInstruments; )
 
     return module;
   }   
@@ -179,7 +181,7 @@ extern "C" {
     acqiris_driver_t* ad;
     //printf("dbior: testing --yhu\n");
     printf("********************************************************\n");
-    printf("%d modules/digitizers are found:\n", nbr_acqiris_drivers);
+    printf("%d modules/digitizers are initialized successfully:\n", nbr_acqiris_drivers);
     for (module=0; module<nbr_acqiris_drivers; module++) 
     {
       ad = &acqiris_drivers[module];
@@ -200,14 +202,14 @@ extern "C" {
     acqiris_driver_t* ad;
     //printf("dbior: testing --yhu\n");
     printf("********************************************************\n");
-    printf("%d modules/digitizers are found:\n", nbr_acqiris_drivers);
+    printf("%d modules/digitizers are initialized successfully: \n", nbr_acqiris_drivers);
     for (module=0; module<nbr_acqiris_drivers; module++) 
     {
       ad = &acqiris_drivers[module];
       printf("digitizer #%d:\n", module);
 //must use "&ad->VersionUserDriver"
       printf("	User driver version: %s;\n", &ad->VersionUserDriver);
-      printf("	%d channels, %d samples(max.)/channel, resolution %d-bit;\n", ad->nchannels, ad->maxsamples, ad->NbrADCBits);
+      printf("	%d channels, %dK samples(max.)/channel, resolution %d-bit;\n", ad->nchannels, ad->maxsamples / 1024, ad->NbrADCBits);
       printf("	at slot %d, total %d slots in the crate;\n", ad->PosInCrate, ad->CrateNb);
       printf("********************************************************\n");
     }
