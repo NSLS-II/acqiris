@@ -58,6 +58,7 @@ acqiris_DBD += acqiris_support.dbd
 # /usr/lib/epics/dbd/
 acqiris_DBD += devIocStats.dbd
 acqiris_DBD += asSupport.dbd
+acqiris_DBD += system.dbd
 
 # acqiris_registerRecordDeviceDriver.cpp derives from acqiris.dbd
 acqiris_SRCS += acqiris_registerRecordDeviceDriver.cpp
@@ -88,7 +89,7 @@ acqiris_SRCS += acqiris_asub_process.cpp
 CXXFLAGS+=-fno-operator-names  
 USR_CFLAGS += -I/usr/include -D_ACQIRIS -D_LINUX
 USR_CPPFLAGS += -I/usr/include -D_ACQIRIS -D_LINUX
-acqiris_LDFLAGS += -L/usr/lib -lAqDrv4
+acqiris_SYS_LIBS += AqDrv4
 #Yong Hu:include autosave and devIocStats libraries which are installed by epics Debian
 #package: /usr/lib/epics/lib/linux-x86
 acqiris_LIBS += autosave

@@ -20,6 +20,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}MDAQStatus-Sel")
    field(ZRST,"Stopped")
    field(ONVL,"1")
    field(ONST,"Running")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(longout,"${Psy}-${Ssy}{${Dev}}MNbrConvertersPerChannel-SP")
@@ -30,6 +31,7 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MNbrConvertersPerChannel-SP")
    field(PINI,"YES")
    field(SCAN,"Passive")
    #field(DOL, "1")
+   info(autosaveFields_pass0, "VAL")
 }
 
 record(ao,"${Psy}-${Ssy}{${Dev}}MSampFreq-SP")
@@ -41,6 +43,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}MSampFreq-SP")
    field(DRVL,"0")
    field(EGU,"Hz")
    field(FLNK,"${Psy}-${Ssy}{${Dev}}MSampFreq-cal_")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(calcout,"${Psy}-${Ssy}{${Dev}}MSampFreq-cal_")
@@ -64,6 +67,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}MSampInterval-SP")
    field(SCAN,"Passive")
    field(EGU,"sec")
    field(PREC,"4")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(longout,"${Psy}-${Ssy}{${Dev}}MNbrSamples-SP")
@@ -74,6 +78,7 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MNbrSamples-SP")
    field(PINI,"YES")
    field(SCAN,"Passive")
    field(DOL, "${NELM}")
+   info(autosaveFields_pass0, "VAL")
 }
 
 record(longin,"${Psy}-${Ssy}{${Dev}}MEventCount-RB")
@@ -184,6 +189,7 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MUsedChannels-SP")
    field(OUT,"@M${MODULE} MUSCH")
    field(PINI,"YES")
    field(SCAN,"Passive")
+   info(autosaveFields_pass0, "VAL")
 }
 
 record(longout,"${Psy}-${Ssy}{${Dev}}MDelayNbrSamples-SP")
@@ -193,6 +199,7 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MDelayNbrSamples-SP")
    field(OUT,"@M${MODULE} MDLNS")
    field(PINI,"YES")
    field(SCAN,"Passive")
+   info(autosaveFields_pass0, "VAL")
 }
 
 record(ao,"${Psy}-${Ssy}{${Dev}}MDelayTime-SP")
@@ -203,6 +210,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}MDelayTime-SP")
    field(PINI,"YES")
    field(SCAN,"Passive")
    field(EGU,"sec")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}}MTrigClass-Sel")
@@ -216,6 +224,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}MTrigClass-Sel")
    field(ZRST,"Edge")
    field(ONVL,"1")
    field(ONST,"TV_Trigger")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}}MTriggerSource-Sel")
@@ -236,6 +245,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}MTriggerSource-Sel")
    field(FRVL,"4")
    field(FRST,"External")
    field(RVAL, "4")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(longin,"${Psy}-${Ssy}{${Dev}}MEventCount-RB")

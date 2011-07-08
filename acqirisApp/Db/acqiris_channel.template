@@ -21,6 +21,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CFullScale-SP")
    field(DRVL,"-5.0")
    field(EGU,"V")
    field(PREC,"2")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
@@ -34,6 +35,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
    field(DRVL,"-5.0")
    field(EGU,"V")
    field(PREC,"2")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CRawData-I_")
@@ -122,6 +124,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigCoupling-Sel")
    field(THST,"DC_50_Ohm")
    field(FRVL,"4")
    field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigSlope-Sel")
@@ -143,6 +146,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigSlope-Sel")
    field(FRST,"HF_Divide")
    field(FVVL,"5")
    field(FVST,"Spike_Stretcher")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel1-SP")
@@ -155,6 +159,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel1-SP")
    field(DRVH,"50")
    field(DRVL,"0")
    field(EGU,"%")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel2-SP")
@@ -167,6 +172,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel2-SP")
    field(DRVH,"50")
    field(DRVL,"0")
    field(EGU,"%")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CCoupling-Sel")
@@ -186,6 +192,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CCoupling-Sel")
    field(THST,"DC_50_Ohm")
    field(FRVL,"4")
    field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CBandwidth-Sel")
@@ -207,4 +214,5 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CBandwidth-Sel")
    field(FRST,"20Mhz")
    field(FVVL,"5")
    field(FVST,"35Mhz")
+   info(autosaveFields_pass0, "RVAL")
 }

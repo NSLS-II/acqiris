@@ -17,6 +17,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel1-SP")
    field(PINI, "YES")
    field(RVAL, "1000")
    #field(RVAL, "500")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(ao,"${Psy}-${Ssy}{${Dev}}XFullScale-SP")
@@ -29,6 +30,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}XFullScale-SP")
    field(PREC,"2")
    field(PINI, "YES")
    field(RVAL, "5")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigCoupling-Sel")
@@ -48,6 +50,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigCoupling-Sel")
    field(THST,"DC_50_Ohm")
    field(FRVL,"4")
    field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigSlope-Sel")
@@ -69,6 +72,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigSlope-Sel")
    field(FRST,"HF_Divide")
    field(FVVL,"5")
    field(FVST,"Spike_Stretcher")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel2-SP")
@@ -79,6 +83,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel2-SP")
    field(PINI,"YES")
    field(SCAN,"Passive")
    field(EGU,"mV")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(ao,"${Psy}-${Ssy}{${Dev}}XOffset-SP")
@@ -89,6 +94,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}XOffset-SP")
    field(PINI,"YES")
    field(SCAN,"Passive")
    field(EGU,"V")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}}XCoupling-Sel")
@@ -108,6 +114,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}XCoupling-Sel")
    field(THST,"DC_50_Ohm")
    field(FRVL,"4")
    field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}}XBandwidth-Sel")
@@ -129,5 +136,6 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}XBandwidth-Sel")
    field(FRST,"20Mhz")
    field(FVVL,"5")
    field(FVST,"35Mhz")
+   info(autosaveFields_pass0, "RVAL")
 }
 
