@@ -6,7 +6,7 @@
 ## Ssy		-	Secondary system
 ## Dev		-	Device name
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
-                 \\For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 ## NELM     -	number of samples per channel (initial value);
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}}MDAQStatus-Sel")

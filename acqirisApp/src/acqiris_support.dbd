@@ -6,4 +6,6 @@ device(mbbo,      INST_IO, acqiris_dev_mbbo_t,"acqiris")
 device(waveform,  INST_IO, acqiris_dev_wf_t,  "acqiris")
 registrar(acqirisRegistrar)
 driver(drvAcqiris)
+function(acqirisAsubInit)
+function(acqirisAsubProcess)
 

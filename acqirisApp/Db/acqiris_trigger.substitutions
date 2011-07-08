@@ -5,9 +5,9 @@
 ## Ssy		-	Secondary system
 ## Dev		-	Device name
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
-                 \\For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 
-file "db/acqiris_trigger.template"
+file "acqiris_trigger.template"
 {
     pattern {Psy,    Ssy,    Dev,    MODULE}
             {"LTB",  "BI",   "FCT",  "0"   }

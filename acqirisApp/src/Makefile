@@ -82,7 +82,10 @@ acqiris_SRCS += acqiris_drv_mbbo.cpp
 acqiris_SRCS += acqiris_drv_wf.cpp
 acqiris_SRCS += acqiris_daq.cpp
 acqiris_SRCS += acqiris_drv_init.cpp
+acqiris_SRCS += acqiris_asub_process.cpp
 
+#use aSubRecord.h(contains 'not') in .cpp file
+CXXFLAGS+=-fno-operator-names  
 USR_CFLAGS += -I/usr/include -D_ACQIRIS -D_LINUX
 USR_CPPFLAGS += -I/usr/include -D_ACQIRIS -D_LINUX
 acqiris_LDFLAGS += -L/usr/lib -lAqDrv4

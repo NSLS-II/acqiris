@@ -7,10 +7,10 @@
 ## Dev		-	Device name
 ## CHANNEL  -	device(Dev) instance and #channel of the board(MODULE)  
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
-                 \\For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 ## NELM     -	number of elements of waveform record 
 
-file "db/acqiris_channel.template"
+file "acqiris_channel.template"
 {
     pattern {Psy,     Ssy,     Dev,        MODULE,    CHANNEL,   NELM  }
             {"LTB",   "BI",    "FCT",      "0",       "0",       "2200"}

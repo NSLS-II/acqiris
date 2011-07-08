@@ -7,7 +7,7 @@
 ## Dev		-	Device name
 ## CHANNEL  -	device(Dev) instance and #channel of the board(MODULE)  
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
-                 \\For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 ## NELM     -	number of elements of waveform record 
 
 record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CFullScale-SP")
@@ -44,56 +44,65 @@ record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CRawData-I_")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
-   #field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
+   #field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
+   field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
+}
+
+#process the waveform record: voltage, peak, pulse integral, pulse count;
+record(aSub,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
+{
+    field(DESC,"process waveform")
+    field (INAM,"acqirisAsubInit")
+    field (SNAM,"acqirisAsubProcess")
+    #get raw data (integer) from the waveform record
+    field (INPA, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CRawData-I_")
+    field (FTA, "SHORT")
+    field (NOA, "${NELM}")
+    #get input range (Full scale)   
+    field (INPB, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CFullScale-SP")
+    field (FTB, "DOUBLE")
+    field (NOB, "1")
+    #get DC offset   
+    field (INPC, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
+    field (FTC, "DOUBLE")
+    field (NOC, "1")
+    #voltage waveform data              
+    field (OUTA, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I PP")
+    field (FTVA, "DOUBLE")
+    field (NOVA, "${NELM}")
+    #max & min voltages               
+    field (OUTB, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CMaxVolt-I PP")
+    field (FTVB, "DOUBLE")
+    field (NOVB, "1")
+    field (OUTC, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CMinVolt-I PP")
+    field (FTVC, "DOUBLE")
+    field (NOVC, "1")
 }
 
 record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
 {
    field(SCAN,"Passive")
    field(DESC,"acqiris voltage waveform")
-   field(DTYP,"acqiris")
    field(NELM,"${NELM}")
-   field(FTVL,"FLOAT")
-   field(INP,"@M${MODULE} C${CHANNEL} WVOL")
+   field(FTVL,"DOUBLE")
+   field(INP,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_.VALA")
    field(PREC,"4")
-   field(FLNK,"${Psy}-${Ssy}{${Dev}}CRMSVolt:${CHANNEL}-I")
 }
 
-record(waveform,"${Psy}-${Ssy}{${Dev}}CRMSVolt:${CHANNEL}-I")
+record(ai,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CMaxVolt-I")
 {
-   field(SCAN,"Passive")
-   field(DESC,"acqiris RMS waveform")
-   field(DTYP,"acqiris")
-   field(NELM,"${NELM}")
-   field(FTVL,"FLOAT")
-   field(INP,"@M${MODULE} C${CHANNEL} WRMS")
+   field(DESC,"Max value")
+   field(INP,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_.VALB")
    field(PREC,"4")
-   field(FLNK,"${Psy}-${Ssy}{${Dev}}CMaxVolt:${CHANNEL}-I")
+   field(EGU,"Volts")
 }
 
-record(waveform,"${Psy}-${Ssy}{${Dev}}CMaxVolt:${CHANNEL}-I")
+record(ai,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CMinVolt-I")
 {
-   field(SCAN,"Passive")
-   field(DESC,"acqiris Max voltage waveform")
-   field(DTYP,"acqiris")
-   field(NELM,"${NELM}")
-   field(FTVL,"FLOAT")
-   field(INP,"@M${MODULE} C${CHANNEL} WMAX")
+   field(DESC,"Min value")
+   field(INP,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_.VALC")
    field(PREC,"4")
-   field(FLNK,"${Psy}-${Ssy}{${Dev}}CRMSVolt0:${CHANNEL}-I")
-}
-
-record(subArray,"${Psy}-${Ssy}{${Dev}}CRMSVolt0:${CHANNEL}-I")
-{
-   field(SCAN,"Passive")
-   field(DESC,"acqiris RMS Data #0")
-   field(DTYP,"Soft Channel")
-   field(NELM,"1")
-   field(FTVL,"FLOAT")
-   field(INDX,"0")
-   field(INP,"${Psy}-${Ssy}{${Dev}}CRMSVolt:${CHANNEL}-I")
-   field(PREC,"4")
+   field(EGU,"Volts")
 }
 
 record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigCoupling-Sel")
