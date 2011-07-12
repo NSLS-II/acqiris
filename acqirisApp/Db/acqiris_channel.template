@@ -21,6 +21,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CFullScale-SP")
    field(DRVL,"-5.0")
    field(EGU,"V")
    field(PREC,"2")
+   #seems 'VAL' doesn't work well here. use 'RVAL'
    info(autosaveFields_pass0, "RVAL")
 }
 
@@ -35,7 +36,8 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
    field(DRVL,"-5.0")
    field(EGU,"V")
    field(PREC,"2")
-   info(autosaveFields_pass0, "RVAL")
+    #seems 'VAL' doesn't work well here. use 'RVAL'
+    info(autosaveFields_pass0, "RVAL")
 }
 
 #CVolt-I should have the same data as CVolt-I_

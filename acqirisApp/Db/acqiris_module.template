@@ -38,20 +38,20 @@ record(ao,"${Psy}-${Ssy}{${Dev}}MSampFreq-SP")
 {
    field(SCAN,"Passive")
    field(DESC,"sampFreq")
-   #field(PINI,"YES")
+   field(PINI,"YES")
    field(DRVH,"8000000000")
    field(DRVL,"0")
    field(EGU,"Hz")
    field(FLNK,"${Psy}-${Ssy}{${Dev}}MSampFreq-cal_")
-   info(autosaveFields_pass0, "RVAL")
+   #use 'VAL' instead of 'RVAL'
+   info(autosaveFields_pass0, "VAL")
 }
 
 record(calcout,"${Psy}-${Ssy}{${Dev}}MSampFreq-cal_")
 {
    field(SCAN,"Passive")
    field(DESC,"calc sampInterval")
-   #field(DTYP,"Soft Channel")
-   #field(PINI,"YES")
+   field(PINI,"YES")
    field(INPA,"${Psy}-${Ssy}{${Dev}}MSampFreq-SP")
    field(CALC, "1.0/(A)")
    field(OUT, "${Psy}-${Ssy}{${Dev}}MSampInterval-SP PP")
@@ -62,12 +62,12 @@ record(ao,"${Psy}-${Ssy}{${Dev}}MSampInterval-SP")
    field(DESC,"sampInterval")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} MSMIN")
-# use autosave to restore MSampleInterval to 1.25e-10; don't set PINI to YES
-   #field(PINI,"YES")
+   field(PINI,"YES")
    field(SCAN,"Passive")
    field(EGU,"sec")
    field(PREC,"4")
-   info(autosaveFields_pass0, "RVAL")
+   #use 'VAL' instead of 'RVAL'
+   info(autosaveFields_pass0, "VAL")
 }
 
 record(longout,"${Psy}-${Ssy}{${Dev}}MNbrSamples-SP")
@@ -77,7 +77,8 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MNbrSamples-SP")
    field(OUT,"@M${MODULE} MNSMP")
    field(PINI,"YES")
    field(SCAN,"Passive")
-   field(DOL, "${NELM}")
+   #don't need NELM if using autosave
+   #field(DOL, "${NELM}")
    info(autosaveFields_pass0, "VAL")
 }
 

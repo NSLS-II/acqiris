@@ -19,15 +19,19 @@ acqirisInit(1)
 dbLoadRecords "db/acqiris_channel.db"
 dbLoadRecords "db/acqiris_module.db"
 dbLoadRecords "db/acqiris_trigger.db"
-#dbLoadRecords "db/iocStats.db", "IOCNAME=LBT:BI:Acqiris"
+dbLoadRecords ("db/iocAdminSoft.db", "IOC=BTS-BI{WCM}")
+dbLoadRecords ("db/save_restoreStatus.db", "P=BTS-BI{WCM}")
 
-#set_savefile_path("./autosave")
-#set_requestfile_path("./autosave")
-#set_pass0_restoreFile("acqiris_settings.sav")
+save_restoreSet_status_prefix("BTS-BI{WCM}")
+set_savefile_path("./as", "/save")
+set_requestfile_path("./as", "/req")
+system("install -d ./as/save")
+system("install -d ./as/req")
+set_pass0_restoreFile("acqiris_settings.sav")
 #set_pass1_restoreFile("acqiris_settings.sav")
 
 iocInit
 
-#makeAutosaveFileFromDbInfo("acqiris_settings.req", "autosaveFields_pass0")
+makeAutosaveFileFromDbInfo("as/req/acqiris_settings.req", "autosaveFields_pass0")
 #makeAutosaveFileFromDbInfo("acqiris_settings.req", "autosaveFields_pass1")
-#create_monitor_set("acqiris_settings.req", 10 , "Psy=LBT, Ssy=BI, Dev=[FCT:1:2]")
+create_monitor_set("acqiris_settings.req", 10 , "")
