@@ -8,15 +8,18 @@
 ## CHANNEL  -	device(Dev) instance and #channel of the board(MODULE)  
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
 ##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
-## NELM     -	number of elements of waveform record 
+## NELM     -	max. number of elements of waveform record: Using NELM and FTVL space for the array is allocated 
+#  2011-July-11: reset NELM equal to nsamples in acqiris_drv_wf.cpp if nsamples > NELM
+#    set NELM to the biggest number so that resetting NELM doesn't cause memory crash(Segmentation fault)   
 
 file "acqiris_channel.template"
 {
     pattern {Psy,     Ssy,     Dev,        MODULE,    CHANNEL,   NELM  }
-            {"LTB",   "BI",    "FCT",      "0",       "0",       "2200"}
-            {"LTB",   "BI",    "FCT",      "0",       "1",       "2200"}
-            {"BTS",   "BI",    "WCM",      "1",       "0",       "2200"}
-            {"BTS",   "BI",    "WCM",      "1",       "1",       "2200"}
-            {"SR",    "BI",    "NBLM",     "2"        "0"        "1600"}
-            {"SR",    "BI",    "NBLM",     "2"        "1"        "1600"}            
+            {"LTB",   "BI",    "FCT",      "0",       "0",       "1000000"}
+            {"LTB",   "BI",    "FCT",      "0",       "1",       "1000000"}
+            {"BTS",   "BI",    "WCM",      "1",       "0",       "1000000"}
+#if using DC222, CHANNEL  has only one instance '0'
+#{"BTS",   "BI",    "WCM",      "1",       "1",       "1000000"}
+            {"SR",    "BI",    "NBLM",     "2"        "0"        "1000000"}
+            {"SR",    "BI",    "NBLM",     "2"        "1"        "1000000"}            
 }

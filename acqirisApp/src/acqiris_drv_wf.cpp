@@ -17,9 +17,10 @@
 #include <math.h>
 #include <AcqirisD1Import.h>
 
-#define RMS_NUM 16
-static double offSet; 
+static double offSet;
+static double fullScale;
 
+//July-11-2011: raw Data and voltages are calculated here; others are implemented using asub (acqiris_asub_process.cpp)
 //static void rwf_short(void* dst, const void* src, unsigned nsamples)
 static void rwf_rawData(void* dst, const void* src, unsigned nsamples)
 {
@@ -30,92 +31,20 @@ static void rwf_rawData(void* dst, const void* src, unsigned nsamples)
 static void rwf_computedVolt(void* dst, const void* src, unsigned nsamples)
 //static void rwf_float(void* dst, void* src, unsigned nsamples)
 {
- 
   int i = 0;
   float* fdst = static_cast<float*>(dst);
   const short* ssrc = static_cast<const short*>(src);
  
   for(i=0; i<nsamples; i++)
   {
-  	fdst[i] = (ssrc[i]+32768.0)/(32704.0+32768.0) + (-(float)offSet-0.5); 
+  	  //fdst[i] = (ssrc[i]+32768.0)/(32704.0+32768.0) + (-0.5);
+	  fdst[i] = ((ssrc[i]+32768.0)/(32704.0+32768.0))*fullScale + (-offSet - fullScale/2.0);
   }
 }
-
-//static void rwf_double(void* dst, const void* src, unsigned nsamples)
-static void rwf_RMSVolt(void* dst, const void* src, unsigned nsamples)
-{    
-  int i = 0;
-  int j = 0;
-  float fsrc[5000];
- 
-  float* fdst = static_cast<float*>(dst);
-  const short* ssrc = static_cast<const short*>(src);
-  
-  while(i < nsamples)
-  {
-  	fdst[i] = 0;
-  	while(j < nsamples*RMS_NUM)
-  	{
-  		fsrc[j] = (ssrc[j]+32768.0)/(32704.0+32768.0) + (-(float)offSet-0.5);
-  		fsrc[j] = fsrc[j] * fsrc[j];
-  		if(0 != (j+1) % RMS_NUM)
-  		{
-  			fdst[i] += fsrc[j];
-  			j++;
-  		}
-  		else
-  		{
-  			fdst[i] += fsrc[j];
-  			fdst[i] /= RMS_NUM;
-  			fdst[i] = sqrt(fdst[i]);
-  			j++;
-  			i++;
-  			break;
-  		}
-  	} 
-  }
-  
-}
-
-static void rwf_MaxVolt(void* dst, const void* src, unsigned nsamples)
-{    
-  int i = 0;
-  int j = 0;
-  float max = 0.0;
-  float fsrc[5000];
-  float* fdst = static_cast<float*>(dst);
-  const short* ssrc = static_cast<const short*>(src);
-  
-  fsrc[0] = (ssrc[0]+32768.0)/(32704.0+32768.0) + (-(float)offSet-0.5);
-  max = fsrc[0];
-  
-  //while(i < nsamples)
-  while((i < nsamples) && (j < nsamples*RMS_NUM))
-  {
-  	//printf("i is: %d; j is: %d; nsamples is: %d\n", i, j, nsamples);
-  	fsrc[j] = (ssrc[j]+32768.0)/(32704.0+32768.0) + (-(float)offSet-0.5);
-  	//while(j < nsamples*RMS_NUM)
-	if(0 != (j+1) % RMS_NUM)
-	{
-        if(max < fsrc[j]) max = fsrc[j];
-		j++;
-	}
-	else
-	{
-		if(max < fsrc[j]) max = fsrc[j];
-	    j++;
-		fdst[i] = max;
-		i++;
-		//break;
-	}
-  
-  }
-  
-}
-
 
 /* 
  * Add functionalities of data analysis: RMS, Sum, etc.--Yong Hu
+ * July-11-2011: raw Data and voltages are calculated here; others are implemented using asub (acqiris_asub_process.cpp)
  */
 typedef void (*acqiris_parwf_rfunc)(void* dst, const void* src, unsigned nsamples);
 //typedef int (*acqiris_parwf_rfunc)(rec_t* rec, ad_t* ad, float* val);
@@ -127,7 +56,8 @@ struct acqiris_wfrecord_t
   //acqiris_parao_wfunc wfunc;
 };
 
-#define MaxParwfFuncs 4
+//July-11-2011: rwf_*, only rwf_rawData is used/called; others are implemented using asub (acqiris_asub_process.cpp)
+#define MaxParwfFuncs 2
 static struct _parwf_t {
   const char* name;
   acqiris_parwf_rfunc rfunc;
@@ -135,8 +65,6 @@ static struct _parwf_t {
 } _parwf[MaxParwfFuncs] = {
   {"WRAW", rwf_rawData},
   {"WVOL", rwf_computedVolt},
-  {"WRMS", rwf_RMSVolt},
-  {"WMAX", rwf_MaxVolt},
 };
 
 template<> int acqiris_init_record_specialized(waveformRecord* pwf)
@@ -153,6 +81,8 @@ template<> int acqiris_init_record_specialized(waveformRecord* pwf)
       return 0;
      }
    }
+
+  printf("can't initialize waveform record(%s) \n", pwf->name);
   return -1;
  
 }
@@ -161,7 +91,7 @@ template<> int acqiris_read_record_specialized(waveformRecord* pwf)
 {
 //Yong Hu
   ViInt32 coupling, bandwidth;
-  double fullScale;
+  //double fullScale, offSet;
   ViStatus status;
   
   acqiris_record_t* arc = reinterpret_cast<acqiris_record_t*>(pwf->dpvt);
@@ -169,32 +99,32 @@ template<> int acqiris_read_record_specialized(waveformRecord* pwf)
   ad_t* ad = &acqiris_drivers[arc->module];
   acqiris_wfrecord_t* rwf = reinterpret_cast<acqiris_wfrecord_t*>(arc->pvt);
   
-  //Yong Hu 
-  if( 0 != AcqrsD1_getVertical(ad->id, arc->channel+1,&fullScale,&offSet,&coupling,&bandwidth))
+  //2011-July-11: for DC222(1-ch, 8GS/s), if 'CHANNEL' in the substitution has 2 instances '0' and '1', will get error 0xBFFC0002
+  if( VI_SUCCESS != (status = AcqrsD1_getVertical(ad->id, arc->channel+1, &fullScale,&offSet,&coupling,&bandwidth)))
   {
-  	printf("Can't get vertical offSet value --YHU \n");
-  	return -1;
+  	printf("error occurred in the waveform record %s! status: 0x%X; fullScale: %f; offSet: %f \n", pwf->name, status, fullScale, offSet);
+  	//return -1;
   }
-                          
+
   const void* buffer = ad->data[arc->channel].buffer;
   //void* buffer = ad->data[arc->channel].buffer;
   unsigned nsamples = ad->data[arc->channel].nsamples;
-  if (nsamples > pwf->nelm) {
+  //reset NELM equal to nsamples/ch
+  pwf->nelm =  nsamples;
+  /*
+  if (nsamples > pwf->nelm)
+  {
     nsamples = pwf->nelm;
-    ad->truncated++;
+	  ad->truncated++;
   }
+  */
   //Yong Hu
   //printf("arc_name is:%s, nsamples is: %d\n", arc->name, nsamples);
-  if ((strcmp(arc->name, "WRMS") == 0) || (strcmp(arc->name, "WMAX") == 0)) 
-  //if (strcmp(arc->name, "WRMS") == 0) 
-  {
-  	nsamples /= RMS_NUM;
-  	//printf("arc_name is:%s, nsamples is: %d\n", arc->name, nsamples);
-  }
-  
+
   epicsMutexLock(ad->daq_mutex);
   //printf("record: %s got daq_mutex \n", arc->name);
   rwf->rfunc(pwf->bptr, buffer, nsamples);
+  //memcpy((short *)pwf->bptr, (short *)buffer, nsamples * sizeof(short));//works for raw data copying
   //printf("Volt of the second sample: %f\n", *(buffer+1));
   //printf("record: %s completed waveform memory copy\n", arc->name);
   epicsMutexUnlock(ad->daq_mutex);

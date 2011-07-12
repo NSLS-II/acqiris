@@ -26,7 +26,7 @@ include $(TOP)/configure/CONFIG
 DB += acqiris_channel.db
 DB += acqiris_trigger.db
 DB += acqiris_module.db
-DB += iocStats.db
+#DB += iocStats.db
 
 DB_INSTALLS += $(EPICS_BASE)/db/iocAdminSoft.db
 DB_INSTALLS += $(EPICS_BASE)/db/save_restoreStatus.db

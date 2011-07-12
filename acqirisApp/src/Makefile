@@ -3,6 +3,8 @@ TOP=../..
 include $(TOP)/configure/CONFIG
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
+#July-11-2011: _SYS_LIBS does the trick for shared library: see below acqiris_SYS_LIBS += AqDrv4
+
 #Yong Hu:this method doesn't work well for dynamic/shared library: firstly don't add 'acqiris_LIBS += AqDrv4'
 #in order to install libAqDrv4.so, then add 'acqiris_LIBS += AqDrv4' as below
 #must add CFLAGS and CPPFLAGS

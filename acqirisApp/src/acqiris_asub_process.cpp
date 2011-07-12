@@ -13,6 +13,7 @@
 #include "dbAddr.h"
 #include "dbCommon.h" /* precord: now = paddr->precord->time;*/
 #include "epicsTime.h"
+#include "waveformRecord.h"
 
 int acqirisAsubDebug = 0;
 static bool acqirisAsubInitialized = FALSE;
@@ -44,7 +45,10 @@ static long acqirisAsubProcess(aSubRecord *precord)
 {
 	double dcOffset = 0.0;
 	double fullScale = 0.0;
-	int i = 0;
+	unsigned i = 0;
+	DBLINK *plink;
+	DBADDR *paddr;
+	waveformRecord *pwf;
 	double max;
 	double min;
 
@@ -59,10 +63,20 @@ static long acqirisAsubProcess(aSubRecord *precord)
     }
 	memcpy((double *)precord->vala, pvoltData, precord->nova * sizeof(double));
 
+//using effective number of samples(samples/channel or 'NELM') in the waveform instead of 'NOA' for data analysis
+	plink = &precord->inpa;
+	if (DB_LINK != plink->type) return -1;
+	//plink->value.pv_link.precord->name;
+	//printf("This aSub record name is: %s, %s \n", precord->name, plink->value.pv_link.precord->name);
+	paddr = (DBADDR *)plink->value.pv_link.pvt;
+	pwf = (waveformRecord *)paddr->precord;
+	//printf("number of effective samples(samples/ch): %d \n", pwf->nelm);
+
 //Max. & Min values
     max = pvoltData[0];
     min = pvoltData[0];
-    for (i= 0; i < precord->noa; i++)
+    //for (i= 0; i < precord->noa; i++)
+    for (i= 0; i < pwf->nelm; i++)
     {
     	if (pvoltData[i] > max)
     		max = pvoltData[i];
@@ -82,65 +96,6 @@ static long acqirisAsubProcess(aSubRecord *precord)
     	printf("	Max: %fV; Min: %fV \n",max, min);
     }
 
-/*    short temp[MAX_SAMPLE];
-    //char buf[30];
-    //epicsTimeStamp now;
-    unsigned i = 0;
-    char * pch;
-    int card = 0;
-    int channel = 0;
-    DBADDR *paddr;
-    ics710RecPrivate *pics710RecPrivate;
-    double ave[MAX_CHANNEL]  = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    double max[MAX_CHANNEL]  = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    double min[MAX_CHANNEL]  = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    double sum[MAX_CHANNEL]  = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    double std[MAX_CHANNEL]  = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-
-    //copy the waveform data: must use sizeof(short)
-	//memcpy(&temp, (double *)precord->a, precord->noa * sizeof(precord->fta));
-	memcpy(&temp, (double *)precord->a, precord->noa * sizeof(short));
-    if (acqirisAsubDebug)
-    	printf("Record %s called and INPA value is: #100: %f #1000: %f\n",precord->name, temp[100], temp[1000]);//works
-
-    struct link *plink = &precord->inpa;
-    if (DB_LINK != plink->type) return -1;
-    paddr = (DBADDR *)plink->value.pv_link.pvt;
-    pics710RecPrivate = (ics710RecPrivate *)paddr->precord->dpvt;
-    card =  pics710RecPrivate->card;
-    channel = pics710RecPrivate->channel;
-	//printf("Record %s called and INPA value is: #100: %f #1000: %f\n",precord->name, temp[100], temp[1000]);//works
-
-	ics710Driver* pics710Driver = &ics710Drivers[card];
-
-    max[channel] = pics710Driver->chData[channel][0];
-    min[channel] = pics710Driver->chData[channel][0];
-    for (i= 0; i < pics710Driver->nSamples; i++)
-    {
-    	sum[channel] += pics710Driver->chData[channel][i];
-
-    	if (pics710Driver->chData[channel][i] > max[channel])
-    		max[channel] = pics710Driver->chData[channel][i];
-
-    	if (pics710Driver->chData[channel][i] < min[channel])
-    		min[channel] = pics710Driver->chData[channel][i];
-    }
-    ave[channel] = sum[channel] / pics710Driver->nSamples;
-
-    for(i = 0; i < pics710Driver->nSamples; i++)
-    {
-    	std[channel] += (pics710Driver->chData[channel][i] - ave[channel]) * (pics710Driver->chData[channel][i] - ave[channel]);
-    }
-    std[channel] = sqrt(std[channel] / pics710Driver->nSamples);
-
-    // put the calculated results into ai records
-    *(double *)precord->vala = ave[channel];
-    *(double *)precord->valb = max[channel];
-    *(double *)precord->valc = min[channel];
-    *(double *)precord->vald = sum[channel];
-    *(double *)precord->vale = std[channel];
-    //printf("channel #%d: #0: %f; #16001:%f; mean: %f; max: %f, min: %f, sum: %f \n",channel, pics710Driver->chData[channel][0], pics710Driver->chData[channel][16001], ave[channel], max[channel], min[channel], sum[channel]);
-*/
 	return(0);
 }
 

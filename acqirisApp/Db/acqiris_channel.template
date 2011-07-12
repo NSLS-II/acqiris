@@ -38,6 +38,17 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
+#CVolt-I should have the same data as CVolt-I_
+record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
+{
+   field(SCAN,"I/O Intr")
+   field(DESC,"acqiris voltage waveform")
+   field(DTYP,"acqiris")
+   field(NELM,"${NELM}")
+   field(FTVL,"FLOAT")
+   field(INP,"@M${MODULE} C${CHANNEL} WVOL")
+}
+
 record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CRawData-I_")
 {
    field(SCAN,"I/O Intr")
@@ -46,7 +57,6 @@ record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CRawData-I_")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   #field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
    field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
 }
 
@@ -68,8 +78,8 @@ record(aSub,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
     field (INPC, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
     field (FTC, "DOUBLE")
     field (NOC, "1")
-    #voltage waveform data              
-    field (OUTA, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I PP")
+    #voltage waveform data: should have the same values as CVolt-I               
+    field (OUTA, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I_ PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")
     #max & min voltages               
@@ -81,7 +91,7 @@ record(aSub,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
     field (NOVC, "1")
 }
 
-record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
+record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I_")
 {
    field(SCAN,"Passive")
    field(DESC,"acqiris voltage waveform")
