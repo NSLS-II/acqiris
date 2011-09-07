@@ -7,9 +7,8 @@
 ## Dev		-	Device name
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
 ##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
-## NELM     -	number of samples per channel (initial value);
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}MDAQStatus-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}DAQStatus-Sel")
 {
    field(DESC,"DAQStatus")
    field(DTYP,"acqiris")
@@ -23,7 +22,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}MDAQStatus-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(longout,"${Psy}-${Ssy}{${Dev}}MNbrConvertersPerChannel-SP")
+record(longout,"${Psy}-${Ssy}{${Dev}}NbrConvertersPerChannel-SP")
 {
    field(DESC,"nbrConvertersPerChannel")
    field(DTYP,"acqiris")
@@ -34,7 +33,7 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MNbrConvertersPerChannel-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}MSampFreq-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}SampFreq-SP")
 {
    field(SCAN,"Passive")
    field(DESC,"sampFreq")
@@ -42,22 +41,22 @@ record(ao,"${Psy}-${Ssy}{${Dev}}MSampFreq-SP")
    field(DRVH,"8000000000")
    field(DRVL,"0")
    field(EGU,"Hz")
-   field(FLNK,"${Psy}-${Ssy}{${Dev}}MSampFreq-cal_")
+   field(FLNK,"${Psy}-${Ssy}{${Dev}}SampFreq-cal_")
    #use 'VAL' instead of 'RVAL'
    info(autosaveFields_pass0, "VAL")
 }
 
-record(calcout,"${Psy}-${Ssy}{${Dev}}MSampFreq-cal_")
+record(calcout,"${Psy}-${Ssy}{${Dev}}SampFreq-cal_")
 {
    field(SCAN,"Passive")
    field(DESC,"calc sampInterval")
    field(PINI,"YES")
-   field(INPA,"${Psy}-${Ssy}{${Dev}}MSampFreq-SP")
+   field(INPA,"${Psy}-${Ssy}{${Dev}}SampFreq-SP")
    field(CALC, "1.0/(A)")
-   field(OUT, "${Psy}-${Ssy}{${Dev}}MSampInterval-SP PP")
+   field(OUT, "${Psy}-${Ssy}{${Dev}}SampInterval-SP PP")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}MSampInterval-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}SampInterval-SP")
 {
    field(DESC,"sampInterval")
    field(DTYP,"acqiris")
@@ -70,7 +69,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}MSampInterval-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(longout,"${Psy}-${Ssy}{${Dev}}MNbrSamples-SP")
+record(longout,"${Psy}-${Ssy}{${Dev}}NbrSamples-SP")
 {
    field(DESC,"nbrSamples")
    field(DTYP,"acqiris")
@@ -82,7 +81,7 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MNbrSamples-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MEventCount-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}EventCount-RB")
 {
    field(DESC,"EventCount")
    field(DTYP,"acqiris")
@@ -91,7 +90,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MEventCount-RB")
    field(SCAN,"1 second")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MTriggerTimeouts-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}TriggerTimeouts-RB")
 {
    field(DESC,"TriggerTimeouts")
    field(DTYP,"acqiris")
@@ -100,7 +99,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MTriggerTimeouts-RB")
    field(SCAN,"1 second")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MCrateNb-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}CrateNb-RB")
 {
    field(DESC,"CrateNb")
    field(DTYP,"acqiris")
@@ -109,7 +108,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MCrateNb-RB")
    field(SCAN,"Passive")
 }
 
-record(ai,"${Psy}-${Ssy}{${Dev}}MDelayOffset-RB")
+record(ai,"${Psy}-${Ssy}{${Dev}}DelayOffset-RB")
 {
    field(DESC,"DelayOffset")
    field(DTYP,"acqiris")
@@ -118,7 +117,7 @@ record(ai,"${Psy}-${Ssy}{${Dev}}MDelayOffset-RB")
    field(SCAN,"2 second")
 }
 
-record(ai,"${Psy}-${Ssy}{${Dev}}MDelayScale-RB")
+record(ai,"${Psy}-${Ssy}{${Dev}}DelayScale-RB")
 {
    field(DESC,"DelayScale")
    field(DTYP,"acqiris")
@@ -127,7 +126,7 @@ record(ai,"${Psy}-${Ssy}{${Dev}}MDelayScale-RB")
    field(SCAN,"2 second")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MIsPreTriggerRunning-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}IsPreTriggerRunning-RB")
 {
    field(DESC,"IsPreTriggerRunning")
    field(DTYP,"acqiris")
@@ -136,7 +135,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MIsPreTriggerRunning-RB")
    field(SCAN,"2 second")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MMaxSamplesPerChannel-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}MaxSamplesPerChannel-RB")
 {
    field(DESC,"MaxSamplesPerChannel")
    field(DTYP,"acqiris")
@@ -145,7 +144,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MMaxSamplesPerChannel-RB")
    field(SCAN,"Passive")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MNbrADCBits-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}NbrADCBits-RB")
 {
    field(DESC,"NbrADCBits")
    field(DTYP,"acqiris")
@@ -155,7 +154,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MNbrADCBits-RB")
    field(EGU, "bit")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MNbrModulesInInstrument-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}NbrModulesInInstrument-RB")
 {
    field(DESC,"NbrModulesInInstrument")
    field(DTYP,"acqiris")
@@ -164,7 +163,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MNbrModulesInInstrument-RB")
    field(SCAN,"Passive")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MPosInCrate-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}PosInCrate-RB")
 {
    field(DESC,"PosInCrate")
    field(DTYP,"acqiris")
@@ -173,7 +172,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MPosInCrate-RB")
    field(SCAN,"Passive")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MTemperature_m-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}Temperature_m-RB")
 {
    field(DESC,"Temperature_m")
    field(DTYP,"acqiris")
@@ -183,7 +182,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MTemperature_m-RB")
    field(EGU,"degC")
 }
 
-record(longout,"${Psy}-${Ssy}{${Dev}}MUsedChannels-SP")
+record(longout,"${Psy}-${Ssy}{${Dev}}UsedChannels-SP")
 {
    field(DESC,"usedChannels")
    field(DTYP,"acqiris")
@@ -193,7 +192,7 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MUsedChannels-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(longout,"${Psy}-${Ssy}{${Dev}}MDelayNbrSamples-SP")
+record(longout,"${Psy}-${Ssy}{${Dev}}DelayNbrSamples-SP")
 {
    field(DESC,"delayNbrSamples")
    field(DTYP,"acqiris")
@@ -203,7 +202,7 @@ record(longout,"${Psy}-${Ssy}{${Dev}}MDelayNbrSamples-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}MDelayTime-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}DelayTime-SP")
 {
    field(DESC,"delayTime")
    field(DTYP,"acqiris")
@@ -214,7 +213,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}MDelayTime-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}MTrigClass-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigClass-Sel")
 {
    field(DESC,"trigClass")
    field(DTYP,"acqiris")
@@ -228,7 +227,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}MTrigClass-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}MTriggerSource-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}TriggerSource-Sel")
 {
    field(DESC,"TriggerSource")
    field(DTYP,"acqiris")
@@ -249,7 +248,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}MTriggerSource-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MEventCount-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}EventCount-RB")
 {
    field(DESC,"EventCount")
    field(DTYP,"acqiris")
@@ -258,7 +257,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MEventCount-RB")
    field(SCAN,"1 second")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MTriggerTimeouts-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}TriggerTimeouts-RB")
 {
    field(DESC,"TriggerTimeouts")
    field(DTYP,"acqiris")
@@ -267,7 +266,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MTriggerTimeouts-RB")
    field(SCAN,"1 second")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MReadErrors-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}ReadErrors-RB")
 {
    field(DESC,"ReadErrors")
    field(DTYP,"acqiris")
@@ -276,7 +275,7 @@ record(longin,"${Psy}-${Ssy}{${Dev}}MReadErrors-RB")
    field(SCAN,"1 second")
 }
 
-record(longin,"${Psy}-${Ssy}{${Dev}}MTruncated-RB")
+record(longin,"${Psy}-${Ssy}{${Dev}}Truncated-RB")
 {
    field(DESC,"TruncatedEvents")
    field(DTYP,"acqiris")

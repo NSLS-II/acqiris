@@ -17,11 +17,11 @@ include $(TOP)/configure/CONFIG
 #DB += userHost.substitutions
 
 #Yong Hu:db/template files
-#DB += acqiris_channel.template
+DB += acqiris_channel.template
 #DB += acqiris_channel.substitutions
-#DB += acqiris_trigger.template
+DB += acqiris_trigger.template
 #DB += acqiris_trigger.substitutions
-#DB += acqiris_module.template
+DB += acqiris_module.template
 #DB += acqiris_module.substitutions
 DB += acqiris_channel.db
 DB += acqiris_trigger.db

@@ -7,7 +7,7 @@
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
 ##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 
-record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel1-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}TrigLevel1-SP")
 {
    field(DESC,"External TrigLevel1")
    field(DTYP,"acqiris")
@@ -20,7 +20,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel1-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}XFullScale-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}FullScale-SP")
 {
    field(DESC,"External FullScale")
    field(DTYP,"acqiris")
@@ -33,7 +33,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}XFullScale-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigCoupling-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigCoupling-Sel")
 {
    field(DESC,"External TrigCoupling")
    field(DTYP,"acqiris")
@@ -53,7 +53,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigCoupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigSlope-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigSlope-Sel")
 {
    field(DESC,"External TrigSlope")
    field(DTYP,"acqiris")
@@ -75,7 +75,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}XTrigSlope-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel2-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}TrigLevel2-SP")
 {
    field(DESC,"External TrigLevel2")
    field(DTYP,"acqiris")
@@ -86,7 +86,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}XTrigLevel2-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}XOffset-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}Offset-SP")
 {
    field(DESC,"External Offset")
    field(DTYP,"acqiris")
@@ -97,7 +97,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}XOffset-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}XCoupling-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}Coupling-Sel")
 {
    field(DESC,"crate Coupling?")
    field(DTYP,"acqiris")
@@ -117,7 +117,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}XCoupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}XBandwidth-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}Bandwidth-Sel")
 {
    field(DESC,"Bandwidth")
    field(DTYP,"acqiris")

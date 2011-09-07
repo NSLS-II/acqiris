@@ -5,14 +5,14 @@
 ## Psy		-	Primary system
 ## Ssy		-	Secondary system
 ## Dev		-	Device name
-## CHANNEL  -	device(Dev) instance and #channel of the board(MODULE)  
+## CHANNEL  -	#channel of the board(MODULE); "0" refers to the first channel  
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
 ##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 ## NELM     -	number of elements of waveform record 
 
-record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CFullScale-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}FullScale-SP")
 {
-   field(DESC,"Voltage Range: FullScale")
+   field(DESC,"Input Voltage Range")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} C${CHANNEL} CFLSC")
    field(PINI,"YES")
@@ -25,7 +25,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CFullScale-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}Offset-SP")
 {
    field(DESC,"DC Offset")
    field(DTYP,"acqiris")
@@ -40,86 +40,247 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
     info(autosaveFields_pass0, "RVAL")
 }
 
-#CVolt-I should have the same data as CVolt-I_
-record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I")
+#get voltage waveform data in acqiris_drv_wf.cpp; 
+#doesn't subtract noise
+#Sept.06, 2011: subtracting noise doesn't help
+record(waveform,"${Psy}-${Ssy}{${Dev}}VoltWf-I_")
 {
    field(SCAN,"I/O Intr")
-   field(DESC,"acqiris voltage waveform")
+   field(DESC,"voltage waveform data")
    field(DTYP,"acqiris")
    field(NELM,"${NELM}")
    field(FTVL,"FLOAT")
    field(INP,"@M${MODULE} C${CHANNEL} WVOL")
+   field(PREC,"4")
+   field(EGU,"V")
 }
 
-record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CRawData-I_")
+#get background and max. noise by control of bo record 
+#Sept.06, 2011: subtracting background noise makes data worse
+#Max. background noise is used for peak searching threshold
+record(bo,"${Psy}-${Ssy}{${Dev}}GetBkGround-Cmd")
+{
+   field(DESC,"Get or reset background")
+   field(SCAN,"Passive")
+   field(ZNAM,"ResetBkGround")
+   field(ONAM,"getBkGround")	
+   field(FLNK,"${Psy}-${Ssy}{${Dev}}BkGround-I")
+}
+
+record(waveform,"${Psy}-${Ssy}{${Dev}}BkGround-I")
+{
+   field(DESC,"Background noise")
+   field(NELM,"${NELM}")
+   field(FTVL,"FLOAT")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-I_")
+   field(PREC,"4")
+   field(EGU,"V")
+   #FLNK doesn't work here, use CP in the compress record below
+   #field(FLNK,"${Psy}-${Ssy}{${Dev}}MaxNoise-I")
+}
+
+record(compress,"${Psy}-${Ssy}{${Dev}}MaxNoise-I")
+{
+	field(DESC,"Max background noise")
+	field(INP,"${Psy}-${Ssy}{${Dev}}BkGround-I CP NMS")
+	field(ALG,"N to 1 High Value")
+	field(NSAM,"1")
+	field(N,"${NELM}")
+	field(PREC,"4")
+	field(EGU,"V")
+	#field(FLNK,"${Psy}-${Ssy}{${Dev}}PeakThrd-SP")
+}
+
+#threshold for peak detect: 2 times MaxNoise by default 
+record(calc,"${Psy}-${Ssy}{${Dev}}PeakThrd-calc_")
+{
+    field(DESC,"Threshold for searching peak")  
+    field(INPA,"${Psy}-${Ssy}{${Dev}}MaxNoise-I CP NMS") 
+    field(CALC,"A*2")
+    field(PREC,"4")
+	field(EGU,"V")
+    field(FLNK,"${Psy}-${Ssy}{${Dev}}PeakThrd-SP")
+}
+
+record(ao,"${Psy}-${Ssy}{${Dev}}PeakThrd-SP")
+{
+   field(DESC,"Threshold for searching peak")
+   field(DOL,"${Psy}-${Ssy}{${Dev}}PeakThrd-calc_")
+   field(DRVH,"5.0")
+   field(DRVL,"-5.0")
+   field(EGU,"V")
+   field(PREC,"4")
+   info(autosaveFields_pass0, "VAL")
+}
+
+#raw waveform data: 16-bit integer
+record(waveform,"${Psy}-${Ssy}{${Dev}}RawWf-I_")
 {
    field(SCAN,"I/O Intr")
-   field(DESC,"acqiris raw waveform")
+   field(DESC,"Raw waveform data")
    field(DTYP,"acqiris")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   field(FLNK,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
+   field(FLNK,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_")
+   field(PREC,"4")
+   field(EGU,"Volts")
 }
 
-#process the waveform record: voltage, peak, pulse integral, pulse count;
-record(aSub,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_")
+#see acqiris_asub_process.cpp: process the waveform record: voltage, max, min, ave, std, 
+#number of bunches(peaks/pulse counts), filling pattern(pulse integral, normalization, etc.), individual bunch charge calibrated against ICT;
+record(aSub,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_")
 {
-    field(DESC,"process waveform")
+    field(DESC,"process raw waveform data")
     field (INAM,"acqirisAsubInit")
     field (SNAM,"acqirisAsubProcess")
-    #get raw data (integer) from the waveform record
-    field (INPA, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CRawData-I_")
+    #get raw data (integer) from the waveform record above
+    field (INPA, "${Psy}-${Ssy}{${Dev}}RawWf-I_")
     field (FTA, "SHORT")
     field (NOA, "${NELM}")
     #get input range (Full scale)   
-    field (INPB, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CFullScale-SP")
+    field (INPB, "${Psy}-${Ssy}{${Dev}}FullScale-SP")
     field (FTB, "DOUBLE")
     field (NOB, "1")
     #get DC offset   
-    field (INPC, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}COffset-SP")
+    field (INPC, "${Psy}-${Ssy}{${Dev}}Offset-SP")
     field (FTC, "DOUBLE")
     field (NOC, "1")
-    #voltage waveform data: should have the same values as CVolt-I               
-    field (OUTA, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I_ PP")
+    #get background noise waveform data   
+    field (INPD, "${Psy}-${Ssy}{${Dev}}BkGround-I")
+    field (FTD, "DOUBLE")
+    field (NOD, "${NELM}")
+    #get peak threshold   
+    field (INPE, "${Psy}-${Ssy}{${Dev}}PeakThrd-SP")
+    field (FTE, "DOUBLE")
+    field (NOE, "1")
+    #get bo record to reset background or get bkground  
+    field (INPF, "${Psy}-${Ssy}{${Dev}}GetBkGround-Cmd")
+    field (FTF, "USHORT")
+    field (NOF, "1")
+    #voltage waveform data: should have the same data as ${Psy}-${Ssy}{${Dev}}VoltWf-I_
+    # if no subtracting background noise               
+    field (OUTA, "${Psy}-${Ssy}{${Dev}}VoltWf-I PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")
     #max & min voltages               
-    field (OUTB, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CMaxVolt-I PP")
+    field (OUTB, "${Psy}-${Ssy}{${Dev}}MaxVolt-I PP")
     field (FTVB, "DOUBLE")
     field (NOVB, "1")
-    field (OUTC, "${Psy}-${Ssy}{${Dev}:${CHANNEL}}CMinVolt-I PP")
+    field (OUTC, "${Psy}-${Ssy}{${Dev}}MinVolt-I PP")
     field (FTVC, "DOUBLE")
     field (NOVC, "1")
+    #average value (Sum is not DC component), standard deviation/RMS noise
+    field (OUTD, "${Psy}-${Ssy}{${Dev}}AveVolt-I PP")
+    field (FTVD, "DOUBLE")
+    field (NOVD, "1")
+    field (OUTE, "${Psy}-${Ssy}{${Dev}}StdVolt-I PP")
+    field (FTVE, "DOUBLE")
+    field (NOVE, "1")
+    #Number of bunches
+    field (OUTF, "${Psy}-${Ssy}{${Dev}}NumBunch-I PP")
+    field (FTVF, "LONG")
+    field (NOVF, "1")
+    #normalized Filling pattern(max. 150 bunches for NSLS2): 0.85, 0.90, 1.00, ... 
+    field (OUTG, "${Psy}-${Ssy}{${Dev}}FillPn-I PP")
+    field (FTVG, "DOUBLE")
+    field (NOVG, "150")
+    #Max. bunch-to-bunch charge variation < 20%
+    field (OUTH, "${Psy}-${Ssy}{${Dev}}B2BMaxVar-I PP")
+    field (FTVH, "DOUBLE")
+    field (NOVH, "1")
+    #individual bunch charge calibrated against nearby ICT
+    #field (OUTI, "${Psy}-${Ssy}{${Dev}}BunchQ-I PP")
+    #field (FTVI, "DOUBLE")
+    #field (NOVI, "150")
+    #Which bunch has the highest/max. charge
+    field (OUTJ, "${Psy}-${Ssy}{${Dev}}MaxQBunchNum-I PP")
+    field (FTVJ, "LONG")
+    field (NOVJ, "1")
+    #Which bunch has the lowest/min. charge
+    field (OUTK, "${Psy}-${Ssy}{${Dev}}MinQBunchNum-I PP")
+    field (FTVK, "LONG")
+    field (NOVK, "1")
 }
 
-record(waveform,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-I_")
+record(waveform,"${Psy}-${Ssy}{${Dev}}VoltWf-I")
 {
    field(SCAN,"Passive")
-   field(DESC,"acqiris voltage waveform")
+   field(DESC,"voltage waveform data by aSub")
    field(NELM,"${NELM}")
    field(FTVL,"DOUBLE")
-   field(INP,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_.VALA")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALA")
    field(PREC,"4")
+   field(EGU,"V")
 }
 
-record(ai,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CMaxVolt-I")
+record(ai,"${Psy}-${Ssy}{${Dev}}MaxVolt-I")
 {
    field(DESC,"Max value")
-   field(INP,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_.VALB")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALB")
    field(PREC,"4")
-   field(EGU,"Volts")
+   field(EGU,"V")
 }
 
-record(ai,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CMinVolt-I")
+record(ai,"${Psy}-${Ssy}{${Dev}}MinVolt-I")
 {
    field(DESC,"Min value")
-   field(INP,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CVolt-aSub_.VALC")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALC")
+   field(PREC,"4")
+   field(EGU,"V")
+}
+
+record(ai,"${Psy}-${Ssy}{${Dev}}AveVolt-I")
+{
+   field(DESC,"Averaged DC")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALD")
    field(PREC,"4")
    field(EGU,"Volts")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigCoupling-Sel")
+record(ai,"${Psy}-${Ssy}{${Dev}}StdVolt-I")
+{
+   field(DESC,"RMS noise")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALE")
+   field(PREC,"4")
+   field(EGU,"V")
+}
+
+record(longin,"${Psy}-${Ssy}{${Dev}}NumBunch-I")
+{
+   field(DESC,"Number of bunches")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALF")
+}
+
+record(waveform,"${Psy}-${Ssy}{${Dev}}FillPn-I")
+{
+   field(DESC,"normalized filling pattern")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALG")
+   field(NELM,"150")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+}
+
+record(ai,"${Psy}-${Ssy}{${Dev}}B2BMaxVar-I")
+{
+   field(DESC,"bunch-to-bunch max. variation")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALH")
+   field(PREC,"4")
+}
+
+record(longin,"${Psy}-${Ssy}{${Dev}}MaxQBunchNum-I")
+{
+   field(DESC,"No# highest charge")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALJ")
+}
+
+record(longin,"${Psy}-${Ssy}{${Dev}}MinQBunchNum-I")
+{
+   field(DESC,"No# lowest charge")
+   field(INP,"${Psy}-${Ssy}{${Dev}}VoltWf-aSub_.VALK")
+}
+
+record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigCoupling-Sel")
 {
    field(DESC,"Channel TrigCoupling")
    field(DTYP,"acqiris")
@@ -139,7 +300,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigCoupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigSlope-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigSlope-Sel")
 {
    field(DESC,"Channel TrigSlope")
    field(DTYP,"acqiris")
@@ -161,7 +322,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigSlope-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel1-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}TrigLevel1-SP")
 {
    field(DESC,"Channel TrigLevel1")
    field(DTYP,"acqiris")
@@ -174,7 +335,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel1-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel2-SP")
+record(ao,"${Psy}-${Ssy}{${Dev}}TrigLevel2-SP")
 {
    field(DESC,"Channel TrigLevel2")
    field(DTYP,"acqiris")
@@ -187,7 +348,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CTrigLevel2-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CCoupling-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}Coupling-Sel")
 {
    field(DESC,"Channel Coupling")
    field(DTYP,"acqiris")
@@ -207,7 +368,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CCoupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}:${CHANNEL}}CBandwidth-Sel")
+record(mbbo,"${Psy}-${Ssy}{${Dev}}Bandwidth-Sel")
 {
    field(DESC,"Bandwidth")
    field(DTYP,"acqiris")

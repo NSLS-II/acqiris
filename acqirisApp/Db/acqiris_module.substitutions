@@ -2,17 +2,14 @@
 #### functionality: configure the board for all channels: start/stop acquisition, converters per channel(interleaving),\\
 #### \\Sample interval/sampling frequency, sample length, trigger source, diagnostics info, etc.
 ## Substitutions: see acqiris_module.substitutions
-## Psy		-	Primary system
-## Ssy		-	Secondary system
-## Dev		-	Device name
+## Psy		-	Primary system; LTB -- Linac-to-Booster transferline
+## Ssy		-	Secondary system; BI -- Beam Instrumentation
+## Dev		-	Device name; ACQ:1 -- the first digitizer ACQiris (acqiris) 
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
 ##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
-## NELM     -	number of samples per channel (initial value);
 
-file "acqiris_module.template"
+file "db/acqiris_module.template"
 {
-    pattern {Psy,    Ssy,    Dev,    MODULE    NELM  }
-            {"LBT",  "BI",   "FCT",  "0"       "2200"}
-            {"BTS",  "BI",   "WCM",  "1"       "2200"} 
-            {"SR",   "BI",   "NBLM", "2"       "1600"}             
+    pattern {Psy,    Ssy,    Dev,    	MODULE }
+            {"LTB",  "BI",   "ACQ:1",   "0"    }            
 }

@@ -2,24 +2,19 @@
 #### functionality: for individual channel, configure input range, offset, triggering, coupling and bandwidth, \\
 ##### \\get raw waveform data, process data by subArray record;
 ## Substitutions: see acqiris_channel.template
-## Psy		-	Primary system
-## Ssy		-	Secondary system
-## Dev		-	Device name
-## CHANNEL  -	device(Dev) instance and #channel of the board(MODULE)  
+## Psy		-	Primary system; LTB -- Linac-to-Booster transferline
+## Ssy		-	Secondary system; BI -- Beam Instrumentation
+## Dev		-	Device name; FCT:1 -- the first Fast Current Transformer
+## CHANNEL  -	#channel of the board(MODULE); "0" refers to the first channel  
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
 ##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 ## NELM     -	max. number of elements of waveform record: Using NELM and FTVL space for the array is allocated 
 #  2011-July-11: reset NELM equal to nsamples in acqiris_drv_wf.cpp if nsamples > NELM
 #    set NELM to the biggest number so that resetting NELM doesn't cause memory crash(Segmentation fault)   
 
-file "acqiris_channel.template"
+file "db/acqiris_channel.template"
 {
     pattern {Psy,     Ssy,     Dev,        MODULE,    CHANNEL,   NELM  }
-            {"LTB",   "BI",    "FCT",      "0",       "0",       "1000000"}
-            {"LTB",   "BI",    "FCT",      "0",       "1",       "1000000"}
-            {"BTS",   "BI",    "WCM",      "1",       "0",       "1000000"}
-#if using DC222, CHANNEL  has only one instance '0'
-#{"BTS",   "BI",    "WCM",      "1",       "1",       "1000000"}
-            {"SR",    "BI",    "NBLM",     "2"        "0"        "1000000"}
-            {"SR",    "BI",    "NBLM",     "2"        "1"        "1000000"}            
+            {"LTB",   "BI",    "FCT:1",    "0",       "0",       "1000000"}
+            {"LTB",   "BI",    "FCT:2",    "0",       "1",       "1000000"}           
 }

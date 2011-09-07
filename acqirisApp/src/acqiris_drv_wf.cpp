@@ -17,6 +17,7 @@
 #include <math.h>
 #include <AcqirisD1Import.h>
 
+//use AcqrsD1_getVertical() get offSet and fullScale
 static double offSet;
 static double fullScale;
 
