@@ -1,13 +1,13 @@
-####Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer;
-#### functionality: configure external triggering: trigger level, full scale, coupling, etc.
-## Substitutions: see acqiris_trigger.substitutions
-## Psy		-	Primary system
-## Ssy		-	Secondary system
-## Dev		-	Device name
+## Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer;
+## functionality: configure external triggering: trigger level, full scale, coupling, etc.
+## PREFIX	- follows NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+#### Psy	-	Primary system
+#### Ssy	-	Secondary system
+#### Dev	-	Device name
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
 ##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 
-record(ao,"${Psy}-${Ssy}{${Dev}}TrigLevel1-SP")
+record(ao,"${PREFIX}TrigLevel1-SP")
 {
    field(DESC,"External TrigLevel1")
    field(DTYP,"acqiris")
@@ -20,7 +20,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}TrigLevel1-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}FullScale-SP")
+record(ao,"${PREFIX}FullScale-SP")
 {
    field(DESC,"External FullScale")
    field(DTYP,"acqiris")
@@ -33,7 +33,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}FullScale-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigCoupling-Sel")
+record(mbbo,"${PREFIX}TrigCoupling-Sel")
 {
    field(DESC,"External TrigCoupling")
    field(DTYP,"acqiris")
@@ -53,7 +53,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigCoupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigSlope-Sel")
+record(mbbo,"${PREFIX}TrigSlope-Sel")
 {
    field(DESC,"External TrigSlope")
    field(DTYP,"acqiris")
@@ -75,7 +75,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}TrigSlope-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}TrigLevel2-SP")
+record(ao,"${PREFIX}TrigLevel2-SP")
 {
    field(DESC,"External TrigLevel2")
    field(DTYP,"acqiris")
@@ -86,7 +86,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}TrigLevel2-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${Psy}-${Ssy}{${Dev}}Offset-SP")
+record(ao,"${PREFIX}Offset-SP")
 {
    field(DESC,"External Offset")
    field(DTYP,"acqiris")
@@ -97,7 +97,7 @@ record(ao,"${Psy}-${Ssy}{${Dev}}Offset-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}Coupling-Sel")
+record(mbbo,"${PREFIX}Coupling-Sel")
 {
    field(DESC,"crate Coupling?")
    field(DTYP,"acqiris")
@@ -117,7 +117,7 @@ record(mbbo,"${Psy}-${Ssy}{${Dev}}Coupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${Psy}-${Ssy}{${Dev}}Bandwidth-Sel")
+record(mbbo,"${PREFIX}Bandwidth-Sel")
 {
    field(DESC,"Bandwidth")
    field(DTYP,"acqiris")
