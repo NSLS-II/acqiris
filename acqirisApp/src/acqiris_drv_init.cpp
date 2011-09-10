@@ -67,6 +67,7 @@ extern "C" {
     ViInt32 nbrInstruments;
     ViStatus status = Acqrs_getNbrInstruments(&nbrInstruments);
     printf("%d modules found \n",(int)nbrInstruments);
+    printf("Calibration in progress, Wait... \n");
     int module;
 
     for (module = 0; module < nbrInstruments; )

@@ -55,59 +55,11 @@ record(waveform,"${PREFIX}VoltWf-I_")
    field(EGU,"V")
 }
 
-#get background and max. noise by control of bo record 
-#Sept.06, 2011: subtracting background noise makes data worse
-#Max. background noise is used for peak searching threshold
-record(bo,"${PREFIX}GetBkGround-Cmd")
-{
-   field(DESC,"Get or reset background")
-   field(SCAN,"Passive")
-   field(ZNAM,"ResetBkGround")
-   field(ONAM,"getBkGround")	
-   field(FLNK,"${PREFIX}BkGround-I")
-}
-
-record(waveform,"${PREFIX}BkGround-I")
-{
-   field(DESC,"Background noise")
-   field(NELM,"${NELM}")
-   field(FTVL,"FLOAT")
-   field(INP,"${PREFIX}VoltWf-I_")
-   field(PREC,"4")
-   field(EGU,"V")
-   #FLNK doesn't work here, use CP in the compress record below
-   #field(FLNK,"${PREFIX}MaxNoise-I")
-}
-
-record(compress,"${PREFIX}MaxNoise-I")
-{
-	field(DESC,"Max background noise")
-	field(INP,"${PREFIX}BkGround-I CP NMS")
-	field(ALG,"N to 1 High Value")
-	field(NSAM,"1")
-	field(N,"${NELM}")
-	field(PREC,"4")
-	field(EGU,"V")
-	#field(FLNK,"${PREFIX}PeakThrd-SP")
-}
-
-#threshold for peak detect: 2 times MaxNoise by default 
-record(calc,"${PREFIX}PeakThrd-calc_")
-{
-    field(DESC,"Threshold for searching peak")  
-    field(INPA,"${PREFIX}MaxNoise-I CP NMS") 
-    field(CALC,"A*2")
-    field(PREC,"4")
-	field(EGU,"V")
-    field(FLNK,"${PREFIX}PeakThrd-SP")
-}
-
-record(ao,"${PREFIX}PeakThrd-SP")
+record(ao,"${PREFIX}PeakThreshold-SP")
 {
    field(DESC,"Threshold for searching peak")
-   field(DOL,"${PREFIX}PeakThrd-calc_")
    field(DRVH,"5.0")
-   field(DRVL,"-5.0")
+   field(DRVL,"0.0")
    field(EGU,"V")
    field(PREC,"4")
    info(autosaveFields_pass0, "VAL")
@@ -122,9 +74,9 @@ record(waveform,"${PREFIX}RawWf-I_")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   field(FLNK,"${PREFIX}VoltWf-aSub_")
    field(PREC,"4")
    field(EGU,"Volts")
+   field(FLNK,"${PREFIX}VoltWf-aSub_")
 }
 
 #see acqiris_asub_process.cpp: process the waveform record: voltage, max, min, ave, std, 
@@ -146,18 +98,10 @@ record(aSub,"${PREFIX}VoltWf-aSub_")
     field (INPC, "${PREFIX}Offset-SP")
     field (FTC, "DOUBLE")
     field (NOC, "1")
-    #get background noise waveform data   
-    field (INPD, "${PREFIX}BkGround-I")
-    field (FTD, "DOUBLE")
-    field (NOD, "${NELM}")
     #get peak threshold   
-    field (INPE, "${PREFIX}PeakThrd-SP")
-    field (FTE, "DOUBLE")
-    field (NOE, "1")
-    #get bo record to reset background or get bkground  
-    field (INPF, "${PREFIX}GetBkGround-Cmd")
-    field (FTF, "USHORT")
-    field (NOF, "1")
+    field (INPD, "${PREFIX}PeakThreshold-SP")
+    field (FTD, "DOUBLE")
+    field (NOD, "1")
     #voltage waveform data: should have the same data as ${PREFIX}VoltWf-I_
     # if no subtracting background noise               
     field (OUTA, "${PREFIX}VoltWf-I PP")
@@ -182,7 +126,7 @@ record(aSub,"${PREFIX}VoltWf-aSub_")
     field (FTVF, "LONG")
     field (NOVF, "1")
     #normalized Filling pattern(max. 150 bunches for NSLS2): 0.85, 0.90, 1.00, ... 
-    field (OUTG, "${PREFIX}FillPn-I PP")
+    field (OUTG, "${PREFIX}FillPattern-I PP")
     field (FTVG, "DOUBLE")
     field (NOVG, "150")
     #Max. bunch-to-bunch charge variation < 20%
@@ -250,9 +194,10 @@ record(longin,"${PREFIX}NumBunch-I")
 {
    field(DESC,"Number of bunches")
    field(INP,"${PREFIX}VoltWf-aSub_.VALF")
+   field(EGU,"bunches")
 }
 
-record(waveform,"${PREFIX}FillPn-I")
+record(waveform,"${PREFIX}FillPattern-I")
 {
    field(DESC,"normalized filling pattern")
    field(INP,"${PREFIX}VoltWf-aSub_.VALG")

@@ -52,7 +52,9 @@ record(calcout,"${PREFIX}SampFreq-cal_")
    field(DESC,"calc sampInterval")
    field(PINI,"YES")
    field(INPA,"${PREFIX}SampFreq-SP")
-   field(CALC, "1.0/(A)")
+   field(CALC, "(A = 0)?0:(1.0/A)")
+   #the expression below seems OK
+   #field(CALC, "1.0/A")
    field(OUT, "${PREFIX}SampInterval-SP PP")
 }
 
@@ -63,7 +65,7 @@ record(ao,"${PREFIX}SampInterval-SP")
    field(OUT,"@M${MODULE} MSMIN")
    field(PINI,"YES")
    field(SCAN,"Passive")
-   field(EGU,"sec")
+   field(EGU,"Sec")
    field(PREC,"4")
    #use 'VAL' instead of 'RVAL'
    info(autosaveFields_pass0, "VAL")
@@ -71,14 +73,60 @@ record(ao,"${PREFIX}SampInterval-SP")
 
 record(longout,"${PREFIX}NbrSamples-SP")
 {
-   field(DESC,"nbrSamples")
+   field(DESC,"Number of Samples")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} MNSMP")
    field(PINI,"YES")
    field(SCAN,"Passive")
-   #don't need NELM if using autosave
-   #field(DOL, "${NELM}")
+   #Max. number of samples <= NELM of waveform in acqiris_channel.db
+   field(DRVH,"${NELM}")
+   field(DRVL,"1")
+   field(EGU,"Samples")
    info(autosaveFields_pass0, "VAL")
+   field(FLNK,"${PREFIX}TimeAxis-aSub_")
+ }
+
+record(calc,"${PREFIX}SampLength-I")
+{
+   field(DESC,"Sample length:ns")
+   field(SCAN,"Passive")
+   field(INPA,"${PREFIX}SampInterval-SP CP")
+   field(INPB,"${PREFIX}NbrSamples-SP CP")
+   field(CALC, "A*B*(1e+09)")  
+   field(EGU,"ns")
+   field(FLNK,"${PREFIX}TimeAxis-aSub_")
+}
+
+record(aSub,"${PREFIX}TimeAxis-aSub_")
+{
+    field(DESC,"construct time axis")
+    field(INAM,"timeAxisAsubInit")
+    field(SNAM,"timeAxisAsubProcess")
+    #get samples/data points
+    field (INPA, "${PREFIX}NbrSamples-SP")
+    field (FTA, "ULONG")
+    field (NOA, "1")
+    #get sample length (ns) 
+    #no error message even when typing wrong PV '${PREFIX}SampLength-SP'
+    field (INPB, "${PREFIX}SampLength-I")
+    field (FTB, "DOUBLE")
+    field (NOB, "1")
+    #waveform data for time axis             
+    field (OUTA, "${PREFIX}TimeAxis-I PP")
+    field (FTVA, "DOUBLE")
+    field (NOVA, "4000")
+}
+
+record(waveform,"${PREFIX}TimeAxis-I")
+{
+   field(SCAN,"Passive")
+   field(DESC,"Time axis: ns unit")
+   field(PINI,"YES")
+   field(NELM,"4000")
+   field(FTVL,"DOUBLE")
+   field(INP,"${PREFIX}TimeAxis-aSub_.VALA")
+   field(PREC,"4")
+   field(EGU,"ns")
 }
 
 record(longin,"${PREFIX}EventCount-RB")
@@ -88,6 +136,25 @@ record(longin,"${PREFIX}EventCount-RB")
    field(INP,"@M${MODULE} MEVCN")
    field(PINI,"YES")
    field(SCAN,"1 second")
+   field(FLNK,"${PREFIX}TrigRate-I")
+}
+
+record(calc,"${PREFIX}TrigRate-I")
+{
+   field(SCAN,"Passive")
+   field(DESC,"calc trigger rate")
+   field(INPA,"${PREFIX}EventCount-RB")
+   field(INPB,"${PREFIX}PreEventCount-I_")
+   field(CALC, "A-B")
+   field(EGU,"Hz")
+   field(FLNK,"${PREFIX}PreEventCount-I_")
+}
+
+record(ai,"${PREFIX}PreEventCount-I_")
+{
+   field(SCAN,"Passive")
+   field(DESC,"old/previous count")
+   field(INP,"${PREFIX}TrigRate-I")
 }
 
 record(longin,"${PREFIX}TriggerTimeouts-RB")
@@ -246,24 +313,6 @@ record(mbbo,"${PREFIX}TriggerSource-Sel")
    field(FRST,"External")
    field(RVAL, "4")
    info(autosaveFields_pass0, "RVAL")
-}
-
-record(longin,"${PREFIX}EventCount-RB")
-{
-   field(DESC,"EventCount")
-   field(DTYP,"acqiris")
-   field(INP,"@M${MODULE} MEVCN")
-   field(PINI,"YES")
-   field(SCAN,"1 second")
-}
-
-record(longin,"${PREFIX}TriggerTimeouts-RB")
-{
-   field(DESC,"TriggerTimeouts")
-   field(DTYP,"acqiris")
-   field(INP,"@M${MODULE} MTRTM")
-   field(PINI,"YES")
-   field(SCAN,"1 second")
 }
 
 record(longin,"${PREFIX}ReadErrors-RB")

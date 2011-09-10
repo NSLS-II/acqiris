@@ -8,4 +8,6 @@ registrar(acqirisRegistrar)
 driver(drvAcqiris)
 function(acqirisAsubInit)
 function(acqirisAsubProcess)
+function(timeAxisAsubInit)
+function(timeAxisAsubProcess)
 

@@ -20,10 +20,12 @@
 #define MAX_NUM_BUNCH 150
 int acqirisAsubDebug = 0;
 static bool acqirisAsubInitialized = FALSE;
+static bool timeAxisAsubInitialized =  FALSE;
 static short *prawData;
 static double *pvoltData;
-static double *pbkGroundData;
+//static double *pbkGroundData;
 static double *pfillPattern;
+static double *ptimeAxis;
 /*global variable*/
 
 typedef long (*processMethod)(aSubRecord *precord);
@@ -33,7 +35,6 @@ static long acqirisAsubInit(aSubRecord *precord,processMethod process)
 	if (acqirisAsubInitialized)
 		return (0);
     if (NULL == (prawData = (short *)malloc(precord->noa * sizeof(short)))
-    		|| NULL == (pbkGroundData = (double *)malloc(precord->noa * sizeof(double)))
     		|| NULL == (pfillPattern = (double *)malloc(precord->noa * sizeof(double)))
     		|| NULL == (pvoltData = (double *)malloc(precord->nova * sizeof(double))))
     {
@@ -53,7 +54,7 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	double dcOffset = 0.0;
 	double fullScale = 0.0;
 	double peakThreshold = 0.0;
-	unsigned short getbkGround = 0;
+	//unsigned short getbkGround = 0;
 	unsigned i = 0;
 	DBLINK *plink;
 	DBADDR *paddr;
@@ -75,9 +76,9 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	memcpy(prawData, (short *)precord->a, precord->noa * sizeof(short));
 	memcpy(&fullScale, (double *)precord->b, precord->nob * sizeof(double));
 	memcpy(&dcOffset, (double *)precord->c, precord->noc * sizeof(double));
-	memcpy(pbkGroundData, (double *)precord->d, precord->nod * sizeof(double));
-	memcpy(&peakThreshold, (double *)precord->e, precord->noe * sizeof(double));
-	memcpy(&getbkGround, (unsigned short *)precord->f, precord->nof * sizeof(unsigned short));
+	//memcpy(pbkGroundData, (double *)precord->d, precord->nod * sizeof(double));
+	memcpy(&peakThreshold, (double *)precord->d, precord->nod * sizeof(double));
+	//memcpy(&getbkGround, (unsigned short *)precord->f, precord->nof * sizeof(unsigned short));
 	//printf("get all input links values:  peakThreshold %f; getbkGround %d \n", peakThreshold, getbkGround);
 
 //using effective number of samples(samples/channel or 'NELM') in the waveform instead of 'NOA'(max. samples/ch) for data analysis
@@ -90,11 +91,12 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	//printf("number of effective samples(samples/ch): %d \n", pwf->nelm);
 
 //reset background noise: all zero
-	if (0 == getbkGround)
+/*	if (0 == getbkGround)
 	{
 		memset(pbkGroundData, 0, precord->nod * sizeof(double));
 		//printf("reset background noise: all zero \n");
 	}
+*/
 	//printf("threshold for peak searching is %f \n", peakThreshold);
 
 //convert raw data(16-bit integer) to voltages;
@@ -125,14 +127,16 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	//printf("RMS noise is: %f \n", std);
  //search positive pulse peak: number of bunches,Fill pattern, Max variation, individual bunch charge, etc.
     // find peak and then sum values of 5 points
-    memset(pfillPattern, 0, precord->noa * sizeof(double));
+ //The IOC will consume 100% CPU (2 cores) if using noa=1000000
+    //memset(pfillPattern, 0, precord->noa * sizeof(double));
+    memset(pfillPattern, 0, pwf->nelm * sizeof(double));
 	for (i = 2; i < (pwf->nelm -2); i++)
 	{
 		if (pvoltData[i] > peakThreshold)
 		{
 			//printf("#%d data: %f > threshold %f \n", i, pvoltData[i], peakThreshold);
-			if ((pvoltData[i-1] <= pvoltData[i]) && (pvoltData[i-2] < pvoltData[i])
-					&& (pvoltData[i] >= pvoltData[i+1]) && (pvoltData[i] > pvoltData[i+2]))
+			if ((pvoltData[i-1] < pvoltData[i]) && (pvoltData[i-2] < pvoltData[i]) \
+					&& (pvoltData[i] > pvoltData[i+1]) && (pvoltData[i] > pvoltData[i+2]))
 			{
 				pfillPattern[numBunch] = pvoltData[i-2] + pvoltData[i-1] + pvoltData[i] + pvoltData[i+1] + pvoltData[i+2];
 				numBunch++;
@@ -163,10 +167,13 @@ static long acqirisAsubProcess(aSubRecord *precord)
     		minQBunchNum = i;
     	}
 	}
-	b2BMaxVar = ((maxSum - minSum) / maxSum) * 100.0;
-	for (i = 0; i < numBunch; i++)
+	if (maxSum > 0)
 	{
-		pfillPattern[i] /= maxSum;
+		b2BMaxVar = ((maxSum - minSum) / maxSum) * 100.0;
+		for (i = 0; i < numBunch; i++)
+		{
+			pfillPattern[i] /= maxSum;
+		}
 	}
 
 //output links: voltage wf data, max, min, ave, std, NumBunch, FillPn, B2BMaxVar, BunchQ, MaxQBunchNum, MinQBunchNum
@@ -191,6 +198,61 @@ static long acqirisAsubProcess(aSubRecord *precord)
     	printf("	DC offset: %fV; Full scale: %fV \n",dcOffset, fullScale);
     	printf("	Max: %fV; Min: %fV \n",max, min);
     }
+
+	return(0);
+}
+
+
+static long timeAxisAsubInit(aSubRecord *precord,processMethod process)
+{
+	if (timeAxisAsubInitialized)
+		return (0);
+    if (NULL == (ptimeAxis = (double *)malloc(precord->nova * sizeof(double))))
+    {
+    	printf("out of memory: timeAxisAsubInit \n");
+    	return -1;
+    }
+    else
+    {
+    	timeAxisAsubInitialized = TRUE;
+    	//printf("allocate memory in timeAxisAsubInit successfully\n");
+    }
+
+    return(0);
+}
+
+static long timeAxisAsubProcess(aSubRecord *precord)
+{
+	unsigned long nSample;
+	double sampleLength;
+	unsigned int i = 0;
+	DBLINK *plink;
+	DBADDR *paddr;
+	waveformRecord *pwf;
+
+//input links: number of samples(data points), sample length (N ns)
+	memcpy(&nSample, (unsigned long *)precord->a, precord->noa * sizeof(unsigned long));
+	memcpy(&sampleLength, (double *)precord->b, precord->nob * sizeof(double));
+
+//using effective number of samples(samples/channel or 'NELM') in the waveform instead of 'NOA'(max. samples/ch) for data analysis
+	plink = &precord->outa;
+	if (DB_LINK != plink->type) return -1;
+	//plink->value.pv_link.precord->name;
+	//printf("This aSub record name is: %s, %s \n", precord->name, plink->value.pv_link.precord->name);
+	paddr = (DBADDR *)plink->value.pv_link.pvt;
+	pwf = (waveformRecord *)paddr->precord;
+	pwf->nelm = nSample;
+	//printf("number of effective samples(samples/ch): %d \n", pwf->nelm);
+
+	for (i = 0; i < pwf->nelm; i++)
+	{
+		ptimeAxis[i] = i * (sampleLength/nSample);
+	}
+	//printf("ptimeAxis-1: %f;  ptimeAxis-max: %f;\n", ptimeAxis[1], ptimeAxis[pwf->nelm-1]);
+
+//output links: waveform
+	memcpy((double *)precord->vala, ptimeAxis, pwf->nelm * sizeof(double));
+	//printf("put all output links values \n");
 
 	return(0);
 }
@@ -230,5 +292,7 @@ static long acqirisAsubProcess(aSubRecord *precord)
 //epicsExportAddress(int, ics710AsubDebug);
 epicsRegisterFunction(acqirisAsubInit);
 epicsRegisterFunction(acqirisAsubProcess);
+epicsRegisterFunction(timeAxisAsubInit);
+epicsRegisterFunction(timeAxisAsubProcess);
 //epicsRegisterFunction(ics710ProcessCirBuffer);
 
