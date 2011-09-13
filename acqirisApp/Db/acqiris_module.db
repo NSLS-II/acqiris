@@ -114,7 +114,7 @@ record(aSub,"${PREFIX}TimeAxis-aSub_")
     #waveform data for time axis             
     field (OUTA, "${PREFIX}TimeAxis-I PP")
     field (FTVA, "DOUBLE")
-    field (NOVA, "4000")
+    field (NOVA, "${NELM}")
 }
 
 record(waveform,"${PREFIX}TimeAxis-I")
@@ -122,10 +122,10 @@ record(waveform,"${PREFIX}TimeAxis-I")
    field(SCAN,"Passive")
    field(DESC,"Time axis: ns unit")
    field(PINI,"YES")
-   field(NELM,"4000")
+   field(NELM,"${NELM}")
    field(FTVL,"DOUBLE")
    field(INP,"${PREFIX}TimeAxis-aSub_.VALA")
-   field(PREC,"4")
+   field(PREC,"3")
    field(EGU,"ns")
 }
 
@@ -143,11 +143,13 @@ record(calc,"${PREFIX}TrigRate-I")
 {
    field(SCAN,"Passive")
    field(DESC,"calc trigger rate")
-   field(INPA,"${PREFIX}EventCount-RB")
-   field(INPB,"${PREFIX}PreEventCount-I_")
-   field(CALC, "A-B")
+   #field(INPA,"${PREFIX}EventCount-RB")
+   #field(INPB,"${PREFIX}PreEventCount-I_")
+   field(INPA,"${PREFIX}TrigRate-I.B")
+   field(INPB,"${PREFIX}EventCount-RB")
+   field(CALC, "B-A")
    field(EGU,"Hz")
-   field(FLNK,"${PREFIX}PreEventCount-I_")
+   #field(FLNK,"${PREFIX}PreEventCount-I_")
 }
 
 record(ai,"${PREFIX}PreEventCount-I_")

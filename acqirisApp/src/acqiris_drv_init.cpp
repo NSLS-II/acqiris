@@ -62,21 +62,31 @@ extern "C" {
     }
   }
 
-  static int acqiris_find_devices()
+  static int acqiris_find_devices(int calibration)
   {
     ViInt32 nbrInstruments;
+    ViString options;
     ViStatus status = Acqrs_getNbrInstruments(&nbrInstruments);
     printf("%d modules found \n",(int)nbrInstruments);
-    printf("Calibration in progress, Wait... \n");
-    int module;
+    if (0 ==  calibration)
+    {
+    	options = "cal=0 dma=0";
+        printf("No calibration during power-up \n");;
+    }
+    else
+    {
+    	options = "cal=1 dma=0";
+        printf("Calibration in progress, Wait... \n");;
+    }
 
+    int module;
     for (module = 0; module < nbrInstruments; )
     {
     	acqiris_driver_t* ad = &acqiris_drivers[module];
 //Yong Hu: pass calibration parameters
       //ViString options = "";
       //ViString options = "cal=0 dma=0";
-      ViString options = "cal=1,dma=1";
+      //ViString options = "cal=1,dma=1";
      
       char name[20];
       sprintf(name, "PCI::INSTR%d", module);
@@ -114,12 +124,12 @@ extern "C" {
   }   
 
   //static int acqirisInit(int order)
-  static int acqirisInit(int order)
+  static int acqirisInit(int calibration)
   {
 //Yong Hu
     acqiris_driver_t* ad;
 
-    nbr_acqiris_drivers = acqiris_find_devices();
+    nbr_acqiris_drivers = acqiris_find_devices(calibration);
     if (!nbr_acqiris_drivers) {
       fprintf(stderr, "*** Could not find any acqiris device\n");
       return -1;
@@ -157,7 +167,7 @@ extern "C" {
     return 0;
   }
 
-  static const iocshArg acqirisInitArg0 = {"nSamples",iocshArgInt};
+  static const iocshArg acqirisInitArg0 = {"calibration",iocshArgInt};
   static const iocshArg * const acqirisInitArgs[1] = {&acqirisInitArg0};
   static const iocshFuncDef acqirisInitFuncDef =
     {"acqirisInit",1,acqirisInitArgs};
