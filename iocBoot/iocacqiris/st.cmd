@@ -1,4 +1,5 @@
 #!../acqiris/bin/linux-x86/acqiris
+#This startup script file is specifically for NSLS-II Linac Front-end test stand. You should modify this file to make it work for your setup
 #the directory '../acqiris' contains the binary file, dbd file and db files
 
 #acqiris at LFE (Linac Front-end) for WCMs (Wall Current Monitor) and Faraday Cup(FC).
