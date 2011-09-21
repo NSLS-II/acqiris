@@ -125,14 +125,14 @@ static long acqirisAsubProcess(aSubRecord *precord)
     }
     std = sqrt(std/pwf->nelm);
 	//printf("RMS noise is: %f \n", std);
- //search positive pulse peak: number of bunches,Fill pattern, Max variation, individual bunch charge, etc.
-    // find peak and then sum values of 5 points
+ //search positive or negative pulse peaks: number of bunches,Fill pattern, Max variation, individual bunch charge, etc.
+    // find peaks and then sum values of 5 points
  //The IOC will consume 100% CPU (2 cores) if using noa=1000000
     //memset(pfillPattern, 0, precord->noa * sizeof(double));
     memset(pfillPattern, 0, pwf->nelm * sizeof(double));
 	for (i = 2; i < (pwf->nelm -2); i++)
 	{
-		if (pvoltData[i] > peakThreshold)
+		if (fabs(pvoltData[i]) > fabs(peakThreshold))
 		{
 			//printf("#%d data: %f > threshold %f \n", i, pvoltData[i], peakThreshold);
 			if ((pvoltData[i-1] < pvoltData[i]) && (pvoltData[i-2] < pvoltData[i]) \

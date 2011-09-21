@@ -59,7 +59,7 @@ record(ao,"${PREFIX}PeakThreshold-SP")
 {
    field(DESC,"Threshold for searching peak")
    field(DRVH,"5.0")
-   field(DRVL,"0.0")
+   field(DRVL,"-5.0")
    field(EGU,"V")
    field(PREC,"4")
    info(autosaveFields_pass0, "VAL")
