@@ -22,24 +22,24 @@ include $(TOP)/configure/CONFIG
 #=============================
 # Build the IOC support library
 
-LIBRARY_IOC += acqirisSupport
+#LIBRARY_IOC += acqirisSupport
 
 # xxxRecord.h will be created from xxxRecord.dbd
-DBDINC += xxxRecord
+#DBDINC += xxxRecord
 # Install devXxxSoft.dbd into <top>/dbd
-DBD += xxxSupport.dbd
+#DBD += xxxSupport.dbd
 
 # Compile and add the code to the support library
-acqirisSupport_SRCS += xxxRecord.c
-acqirisSupport_SRCS += devXxxSoft.c
+#acqirisSupport_SRCS += xxxRecord.c
+#acqirisSupport_SRCS += devXxxSoft.c
 
 # Link locally-provided code into the support library,
 # rather than directly into the IOC application.
-acqirisSupport_SRCS += dbSubExample.c
-acqirisSupport_SRCS += acqirisHello.c
-acqirisSupport_SRCS += initTrace.c
+#acqirisSupport_SRCS += dbSubExample.c
+#acqirisSupport_SRCS += acqirisHello.c
+#acqirisSupport_SRCS += initTrace.c
 
-acqirisSupport_LIBS += $(EPICS_BASE_IOC_LIBS)
+#acqirisSupport_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 #=============================
 # Build the IOC application
@@ -50,10 +50,10 @@ DBD += acqiris.dbd
 
 # acqiris.dbd will be made up from these files:
 acqiris_DBD += base.dbd
-acqiris_DBD += xxxSupport.dbd
-acqiris_DBD += dbSubExample.dbd
-acqiris_DBD += acqirisHello.dbd
-acqiris_DBD += initTrace.dbd
+#acqiris_DBD += xxxSupport.dbd
+#acqiris_DBD += dbSubExample.dbd
+#acqiris_DBD += acqirisHello.dbd
+#acqiris_DBD += initTrace.dbd
 #Yong Hu:include dbd file for acqiris device support
 acqiris_DBD += acqiris_support.dbd
 #Yong Hu: include iocStatus and autosave which are installed by epics Debian package
@@ -105,26 +105,26 @@ acqiris_LIBS += devIocStats
 #acqiris_OBJS_vxWorks += $(EPICS_BASE_BIN)/vxComLibrary
 
 # Link in the code from the support library
-acqiris_LIBS += acqirisSupport
+#acqiris_LIBS += acqirisSupport
 
 # NOTE: To build SNL programs, SNCSEQ must be defined
 # in the <top>/configure/RELEASE file
 
-ifneq ($(SNCSEQ),)
+#ifneq ($(SNCSEQ),)
     # Build sncExample into acqirisSupport
-    sncExample_SNCFLAGS += +r
-    acqiris_DBD += sncExample.dbd
-    acqirisSupport_SRCS += sncExample.stt
-    acqirisSupport_LIBS += seq pv
-    acqiris_LIBS += seq pv
+#    sncExample_SNCFLAGS += +r
+#    acqiris_DBD += sncExample.dbd
+#    acqirisSupport_SRCS += sncExample.stt
+#    acqirisSupport_LIBS += seq pv
+#    acqiris_LIBS += seq pv
 
     # Build sncProgram as a standalone program
-    PROD_HOST += sncProgram
-    sncProgram_SNCFLAGS += +m
-    sncProgram_SRCS += sncProgram.st
-    sncProgram_LIBS += seq pv
-    sncProgram_LIBS += $(EPICS_BASE_HOST_LIBS)
-endif
+#    PROD_HOST += sncProgram
+#    sncProgram_SNCFLAGS += +m
+#    sncProgram_SRCS += sncProgram.st
+#    sncProgram_LIBS += seq pv
+#    sncProgram_LIBS += $(EPICS_BASE_HOST_LIBS)
+#endif
 
 # Finally link to the EPICS Base libraries
 acqiris_LIBS += $(EPICS_BASE_IOC_LIBS)
