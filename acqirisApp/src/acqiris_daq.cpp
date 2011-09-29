@@ -1,6 +1,6 @@
 /* 
     Original Author: Perazzo, Amedeo
-    Modified by Yong Hu: 10/29/2010
+    Modified/modified by Yong Hu: 09/29/2011
 */
 
 #include "acqiris_daq.hh"
@@ -23,13 +23,16 @@ extern "C"
 //Yong Hu
     epicsTimeStamp now;
     char tsText[30];
+    //short *buffer;
 
     acqiris_driver_t* ad = reinterpret_cast<acqiris_driver_t*>(arg);
     int nchannels = ad->nchannels;
-    int extra = ad->extra;
-
+    int extra = ad->extra;//extra=208
+    //int extra = 32;
     const int nbrSegments = 1;
-    int nbrSamples = ad->maxsamples;
+    int nbrSamples = ad->maxsamples;//512K for stardard DC252
+    //int nbrSamples = 4000;
+    //printf("extra: %d;nbrSamples: %d \n", ad->extra, ad->maxsamples );
 
     AqReadParameters    readParams;
     AqDataDescriptor    wfDesc;
@@ -44,6 +47,11 @@ extern "C"
     readParams.segDescArraySize = nbrSegments*sizeof(AqSegmentDescriptor);
     readParams.nbrSamplesInSeg  = nbrSamples;
     readParams.dataArraySize    = (nbrSamples+extra)*nbrSegments*sizeof(short);
+    //yhu: bug fix: AqReadDataFlags is default to 5; must set readParams.flags=0 to display waveform data stably/correctly
+    readParams.flags = 0;
+    readParams.reserved = 0;
+    readParams.reserved2 = 0.0;
+    readParams.reserved3 = 0.0;
 //Yong Hu
      //printf("ad->running = %d --yhu\n", ad->running);
      //Acqrs_calibrateCancel(ad->id);
@@ -53,7 +61,7 @@ extern "C"
       epicsEventWait(ad->run_semaphore);
       do { 
 //Yong Hu: use shorter timeout for testing 120Hz: 10ms is too short, 20ms works well;
-        const long timeout = 1000; /* ms */
+        const long timeout = 2000; /* ms */
         //const long timeout = 10; /* ms */
         //const long timeout = 20; /* ms */
         int id = ad->id;
@@ -72,7 +80,6 @@ extern "C"
           epicsTimeToStrftime(tsText, sizeof(tsText), "%Y-%m-%d %H:%M:%S.%6f", &now);
           printf("%s \n", tsText);
           //epicsTimeShow(&now, 0);
-
           AcqrsD1_stopAcquisition(id);
           ad->timeouts++;
         } else {
@@ -83,12 +90,16 @@ extern "C"
             status = AcqrsD1_readData(id, 
                                       channel+1, 
                                       &readParams, 
-                                      buffer, 
+                                      buffer,
                                       &wfDesc, 
                                       &segDesc);
             epicsMutexUnlock(acqiris_dma_mutex);
             if (SUCCESSREAD(status)) {
               ad->data[channel].nsamples = wfDesc.returnedSamplesPerSeg;
+              //yhu: bug fix: DataArray[indexFirstPoint]... DataArray[indexFirstPoint+ returnedSamplesPerSeg-1]
+              ad->data[channel].buffer = (void *)((short *)buffer + wfDesc.indexFirstPoint);
+              //printf("indexFirstPoint(the first valid point): %d; number of actual acquired samples: %d \n", wfDesc.indexFirstPoint, wfDesc.returnedSamplesPerSeg);
+              //printf("Horizontal position of first data point: %f;  readParams.flags: %d \n", segDesc[nbrSegments].horPos, readParams.flags);
             } else {
               ad->data[channel].nsamples = 0;
               ad->readerrors++;
