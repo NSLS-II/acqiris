@@ -95,6 +95,8 @@ record(waveform,"${PREFIX}VoltWf-I_")
    field(INP,"@M${MODULE} C${CHANNEL} WVOL")
    field(PREC,"4")
    field(EGU,"V")
+   #save waveform data only if Numbunches >= 1
+   field(FLNK,"${PREFIX}VoltWf-Saved_")
 }
 
 record(ao,"${PREFIX}PeakThreshold-SP")
@@ -237,6 +239,39 @@ record(longin,"${PREFIX}NumBunch-I")
    field(DESC,"Number of bunches")
    field(INP,"${PREFIX}VoltWf-aSub_.VALF")
    field(EGU,"bunches")
+   field(FLNK,"${PREFIX}SaveWf-calc_")
+}
+
+record(calc, "${PREFIX}SaveWf-calc_")
+{
+	field(DESC,"saveWaveformIfHaveBeam")
+	field(INPA,"${PREFIX}NumBunch-I")
+	#disable scanning ${PREFIX}VoltWf-Saved_ if A<1(no beam)
+	field(CALC,"(A>=1) ? 0:1")
+}
+
+#record(calcout, "${PREFIX}SaveWf-calcout_")
+#{
+	#field(DESC,"saveWaveformIfHaveBeam")
+	#field(INPA,"${PREFIX}NumBunch-I")
+	#field(CALC,"(A>=1) ? 1:0")
+	#field(OOPT,"When Non-zero")
+	#field(DOPT,"Use CALC")
+	#It seems OUT doesn't take PV, only take record?
+	#filed(OUT,"${PREFIX}VoltWf-Saved_.PROC")
+	#filed(OUT,"${PREFIX}VoltWf-Saved_.SDIS")
+#}
+
+record(waveform,"${PREFIX}VoltWf-Saved_")
+{
+   field(DESC,"saved waveform data")
+   #DISV is 1 by default
+   field(SDIS,"${PREFIX}SaveWf-calc_")
+   field(NELM,"${NELM}")
+   field(FTVL,"FLOAT")
+   field(INP,"${PREFIX}VoltWf-I_")
+   field(PREC,"4")
+   field(EGU,"V")
 }
 
 record(waveform,"${PREFIX}FillPattern-I")
@@ -344,7 +379,7 @@ record(ao,"${PREFIX}TrigLevel2-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-ecord(longin,"${PREFIX}OverloadStatus")
+record(longin,"${PREFIX}OverloadStatus")
 {
    field(DESC,"OverloadStatus")
    field(DTYP,"acqiris")
