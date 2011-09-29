@@ -296,7 +296,7 @@ record(mbbo,"${PREFIX}TrigClass-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}TriggerSource-Sel")
+record(mbbo,"${PREFIX}TrigSource-Sel")
 {
    field(DESC,"TriggerSource")
    field(DTYP,"acqiris")
@@ -335,3 +335,305 @@ record(longin,"${PREFIX}Truncated-RB")
    field(SCAN,"1 second")
 }
 
+record(longin,"${PREFIX}ASBusBusNb")
+{
+   field(DESC,"ASBusBusNb")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABBN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${PREFIX}ASBusIsMaster")
+{
+   field(DESC,"ASBusIsMaster")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABIM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${PREFIX}ASBusPosInCrate")
+{
+   field(DESC,"ASBusPosInCrate")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABPI")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${PREFIX}ASBusSerialNb")
+{
+   field(DESC,"ASBusSerialNb")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABSR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${PREFIX}ASBusSlotNb")
+{
+   field(DESC,"ASBusSlotNb")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABSN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ai,"${PREFIX}ExtCkRatio")
+{
+   field(DESC,"ExtCkRatio")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MEXCR")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${PREFIX}HasTrigVeto")
+{
+   field(DESC,"HasTrigVeto")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MHHTV")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${PREFIX}LogDevDataLinks")
+{
+   field(DESC,"LogDevDataLinks")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MLDDL")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${PREFIX}NbrExternalTriggers")
+{
+   field(DESC,"NbrExternalTriggers")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MNEXT")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${PREFIX}NbrInternalTriggers")
+{
+   field(DESC,"NbrInternalTriggers")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MNINT")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ai,"${PREFIX}SSRTimeStamp")
+{
+   field(DESC,"SSRTimeStamp")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MSSTS")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${PREFIX}TbSegmentPad")
+{
+   field(DESC,"TbSegmentPad")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTBSP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}Signal")
+{
+   field(DESC,"signal")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MSIGN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${PREFIX}ClockType")
+{
+   field(DESC,"clockType")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MCLTP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Internal")
+   field(ONVL,"1")
+   field(ONST,"ExtCont")
+   field(TWVL,"2")
+   field(TWST,"Ext10Mhz")
+   field(THVL,"3")
+   field(THST,"ExtStartStop ")
+}
+
+record(ao,"${PREFIX}InputThreshold")
+{
+   field(DESC,"inputThreshold")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MINTH")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ao,"${PREFIX}InputFrequency")
+{
+   field(DESC,"inputFrequency")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MINFR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"Hz")
+}
+
+record(ao,"${PREFIX}SampFrequency")
+{
+   field(DESC,"sampFrequency")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MSMFR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"Hz")
+}
+
+record(longout,"${PREFIX}FcntChannel")
+{
+   field(DESC,"fcntChannel")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MFCCH")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${PREFIX}Type")
+{
+   field(DESC,"type")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MTYPE")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Frequency")
+   field(ONVL,"1")
+   field(ONST,"Period")
+   field(TWVL,"2")
+   field(TWST,"TotByTime")
+   field(THVL,"3")
+   field(THST,"TotByGate")
+}
+
+record(ao,"${PREFIX}TargetValue")
+{
+   field(DESC,"targetValue")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MTRVL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ao,"${PREFIX}ApertureTime")
+{
+   field(DESC,"apertureTime")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MAPTM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}FcntFlags")
+{
+   field(DESC,"fcntFlags")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MFCFL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}NbrMemSegments")
+{
+   field(DESC,"nbrMemSegments")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNMMS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}NbrSegments")
+{
+   field(DESC,"nbrSegments")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNSGM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}NbrBanks")
+{
+   field(DESC,"nbrBanks")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNBNK")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${PREFIX}Memflags")
+{
+   field(DESC,"memflags")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MMMFL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Default")
+   field(ONVL,"1")
+   field(ONST,"ForceInternal ")
+}
+
+record(mbbo,"${PREFIX}Mode")
+{
+   field(DESC,"mode")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MMODE")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Normal_DAQ")
+   field(ONVL,"1")
+   field(ONST,"AC/SC")
+   field(TWVL,"2")
+   field(TWST,"Averaging")
+   field(THVL,"3")
+   field(THST,"Buffered_DAQ")
+   field(FVVL,"5")
+   field(FVST,"Peak_TDC")
+   field(SXVL,"6")
+   field(SXST,"FreqCounter")
+   field(SVVL,"7")
+   field(SVST,"SSR")
+}
+
+record(longout,"${PREFIX}Modifier")
+{
+   field(DESC,"modifier")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MMDFR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${PREFIX}ModeFlags")
+{
+   field(DESC,"modeFlags")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MMDFL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Normal")
+   field(ONVL,"1")
+   field(ONST,"StartOnTrig")
+   field(TWVL,"2")
+   field(TWST,"Sequence_Wrap")
+}

@@ -40,6 +40,48 @@ record(ao,"${PREFIX}Offset-SP")
     info(autosaveFields_pass0, "RVAL")
 }
 
+record(mbbo,"${PREFIX}Coupling-Sel")
+{
+   field(DESC,"Channel Coupling")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CCPLN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Ground")
+   field(ONVL,"1")
+   field(ONST,"DC")
+   field(TWVL,"2")
+   field(TWST,"AC")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${PREFIX}Bandwidth-Sel")
+{
+   field(DESC,"Bandwidth")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CBNDW")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"No_Limit")
+   field(ONVL,"1")
+   field(ONST,"25Mhz")
+   field(TWVL,"2")
+   field(TWST,"700MHz")
+   field(THVL,"3")
+   field(THST,"200Mhz")
+   field(FRVL,"4")
+   field(FRST,"20Mhz")
+   field(FVVL,"5")
+   field(FVST,"35Mhz")
+   info(autosaveFields_pass0, "RVAL")
+}
+
 #get voltage waveform data in acqiris_drv_wf.cpp; 
 #doesn't subtract noise
 #Sept.06, 2011: subtracting noise doesn't help
@@ -225,6 +267,15 @@ record(longin,"${PREFIX}MinQBunchNum-I")
    field(INP,"${PREFIX}VoltWf-aSub_.VALK")
 }
 
+record(ai,"${PREFIX}TrigLevelRange")
+{
+   field(DESC,"TrigLevelRange")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} C${CHANNEL} CTLRG")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
 record(mbbo,"${PREFIX}TrigCoupling-Sel")
 {
    field(DESC,"Channel TrigCoupling")
@@ -282,7 +333,7 @@ record(ao,"${PREFIX}TrigLevel1-SP")
 
 record(ao,"${PREFIX}TrigLevel2-SP")
 {
-   field(DESC,"Channel TrigLevel2")
+   field(DESC,"Channel TrigLevel2 for Window TrigSlope")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} C${CHANNEL} CTRL2")
    field(PINI,"YES")
@@ -293,44 +344,133 @@ record(ao,"${PREFIX}TrigLevel2-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}Coupling-Sel")
+ecord(longin,"${PREFIX}OverloadStatus")
 {
-   field(DESC,"Channel Coupling")
+   field(DESC,"OverloadStatus")
    field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CCPLN")
+   field(INP,"@M${MODULE} C${CHANNEL} COVST")
    field(PINI,"YES")
    field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"Ground")
-   field(ONVL,"1")
-   field(ONST,"DC")
-   field(TWVL,"2")
-   field(TWST,"AC")
-   field(THVL,"3")
-   field(THST,"DC_50_Ohm")
-   field(FRVL,"4")
-   field(FRST,"AC_50_Ohm")
-   info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}Bandwidth-Sel")
+record(longout,"${PREFIX}DitherRange")
 {
-   field(DESC,"Bandwidth")
+   field(DESC,"DitherRange")
    field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CBNDW")
+   field(OUT,"@M${MODULE} C${CHANNEL} CDTRN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}FixedSamples")
+{
+   field(DESC,"FixedSamples")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CFXSM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${PREFIX}GateType")
+{
+   field(DESC,"GateType")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CGTTP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ONVL,"1")
+   field(ONST,"User_Gates")
+   field(TWVL,"2")
+   field(TWST,"Threshold_Gates")
+}
+
+record(mbbo,"${PREFIX}HistoTDCEnable")
+{
+   field(DESC,"HistoTDCEnable")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CHTDE")
    field(PINI,"YES")
    field(SCAN,"Passive")
    field(ZRVL,"0")
-   field(ZRST,"No_Limit")
+   field(ZRST,"Disabled")
    field(ONVL,"1")
-   field(ONST,"25Mhz")
-   field(TWVL,"2")
-   field(TWST,"700MHz")
-   field(THVL,"3")
-   field(THST,"200Mhz")
-   field(FRVL,"4")
-   field(FRST,"20Mhz")
-   field(FVVL,"5")
-   field(FVST,"35Mhz")
-   info(autosaveFields_pass0, "RVAL")
+   field(ONST,"Enabled")
 }
+
+record(mbbo,"${PREFIX}InvertData")
+{
+   field(DESC,"InvertData")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CINDT")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"No_Inversion")
+   field(ONVL,"1")
+   field(ONST,"Inversion")
+}
+
+record(longout,"${PREFIX}NbrMaxGates")
+{
+   field(DESC,"NbrMaxGates")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNMXG")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}NbrSamples")
+{
+   field(DESC,"NbrSamples")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNSML")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}NbrSegments")
+{
+   field(DESC,"NbrSegments")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNSGM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}NbrWaveforms")
+{
+   field(DESC,"NbrWaveforms")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNWVF")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}NbrRoundRobins")
+{
+   field(DESC,"NbrRoundRobins")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNRRB")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${PREFIX}NoiseBaseEnable")
+{
+   field(DESC,"NoiseBaseEnable")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNBEN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ao,"${PREFIX}NoiseBase")
+{
+   field(DESC,"NoiseBase")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNSBS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+

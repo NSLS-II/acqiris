@@ -7,7 +7,7 @@
 ## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
 ##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
 
-record(ao,"${PREFIX}TrigLevel1-SP")
+record(ao,"${PREFIX}ExTrigLevel1-SP")
 {
    field(DESC,"External TrigLevel1")
    field(DTYP,"acqiris")
@@ -20,7 +20,7 @@ record(ao,"${PREFIX}TrigLevel1-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${PREFIX}FullScale-SP")
+record(ao,"${PREFIX}ExTrigFullScale-SP")
 {
    field(DESC,"External FullScale")
    field(DTYP,"acqiris")
@@ -33,7 +33,7 @@ record(ao,"${PREFIX}FullScale-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}TrigCoupling-Sel")
+record(mbbo,"${PREFIX}ExTrigCoupling-Sel")
 {
    field(DESC,"External TrigCoupling")
    field(DTYP,"acqiris")
@@ -53,7 +53,7 @@ record(mbbo,"${PREFIX}TrigCoupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}TrigSlope-Sel")
+record(mbbo,"${PREFIX}ExTrigSlope-Sel")
 {
    field(DESC,"External TrigSlope")
    field(DTYP,"acqiris")
@@ -75,9 +75,9 @@ record(mbbo,"${PREFIX}TrigSlope-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${PREFIX}TrigLevel2-SP")
+record(ao,"${PREFIX}ExTrigLevel2-SP")
 {
-   field(DESC,"External TrigLevel2")
+   field(DESC,"ExTrigLevel2 for Window TrigSlope")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} XTRL2")
    field(PINI,"YES")
@@ -86,7 +86,7 @@ record(ao,"${PREFIX}TrigLevel2-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${PREFIX}Offset-SP")
+record(ao,"${PREFIX}ExTrigOffset-SP")
 {
    field(DESC,"External Offset")
    field(DTYP,"acqiris")
@@ -97,27 +97,7 @@ record(ao,"${PREFIX}Offset-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}Coupling-Sel")
-{
-   field(DESC,"crate Coupling?")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} XCPLN")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"Ground")
-   field(ONVL,"1")
-   field(ONST,"DC")
-   field(TWVL,"2")
-   field(TWST,"AC")
-   field(THVL,"3")
-   field(THST,"DC_50_Ohm")
-   field(FRVL,"4")
-   field(FRST,"AC_50_Ohm")
-   info(autosaveFields_pass0, "RVAL")
-}
-
-record(mbbo,"${PREFIX}Bandwidth-Sel")
+record(mbbo,"${PREFIX}ExTrigBandwidth-Sel")
 {
    field(DESC,"Bandwidth")
    field(DTYP,"acqiris")
@@ -136,6 +116,26 @@ record(mbbo,"${PREFIX}Bandwidth-Sel")
    field(FRST,"20Mhz")
    field(FVVL,"5")
    field(FVST,"35Mhz")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${PREFIX}CrateCoupling-Sel")
+{
+   field(DESC,"crate Coupling?")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XCPLN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Ground")
+   field(ONVL,"1")
+   field(ONST,"DC")
+   field(TWVL,"2")
+   field(TWST,"AC")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
    info(autosaveFields_pass0, "RVAL")
 }
 
