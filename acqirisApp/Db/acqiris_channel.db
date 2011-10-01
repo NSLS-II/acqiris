@@ -85,7 +85,7 @@ record(mbbo,"${PREFIX}Bandwidth-Sel")
 #get voltage waveform data in acqiris_drv_wf.cpp; 
 #doesn't subtract noise
 #Sept.06, 2011: subtracting noise doesn't help
-record(waveform,"${PREFIX}VoltWf-I_")
+record(waveform,"${PREFIX}VoltData-Wf_")
 {
    field(SCAN,"I/O Intr")
    field(DESC,"voltage waveform data")
@@ -95,8 +95,8 @@ record(waveform,"${PREFIX}VoltWf-I_")
    field(INP,"@M${MODULE} C${CHANNEL} WVOL")
    field(PREC,"4")
    field(EGU,"V")
-   #save waveform data only if Numbunches >= 1
-   field(FLNK,"${PREFIX}VoltWf-Saved_")
+   #save waveform data only if Nbrbunches >= 1
+   #field(FLNK,"${PREFIX}VoltDataSaved-Wf_")
 }
 
 record(ao,"${PREFIX}PeakThreshold-SP")
@@ -109,8 +109,37 @@ record(ao,"${PREFIX}PeakThreshold-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
+#coefficient for calculation of absolute bunch charge of wall current monitor  
+record(ao,"${PREFIX}CoefBunchQ-SP")
+{
+   field(DESC,"Coefficient")
+   field(PINI,"YES")
+   field(VAL, "1.0")
+   field(PREC,"4")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(longout,"${PREFIX}NbrSamplesForSum-SP")
+{
+   field(DESC,"NumberOfSamplesForIntegral")
+   field(PINI,"YES")
+   field(DRVH,"${NELM}")
+   field(DRVL,"5")
+   field(EGU,"Samples")
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK,"${PREFIX}NbrSamplesForSum-Calc_")
+ }
+
+record(calc,"${PREFIX}NbrSamplesForSum-Calc_")
+{
+   field(DESC,"NumberShouldBeOdd")
+   field(INPA,"${PREFIX}NbrSamplesForSum-SP")
+   field(CALC,"(A%2 = 0) ? (A+1):A")
+   info(autosaveFields_pass0, "VAL")
+}
+
 #raw waveform data: 16-bit integer
-record(waveform,"${PREFIX}RawWf-I_")
+record(waveform,"${PREFIX}RawData-Wf_")
 {
    field(SCAN,"I/O Intr")
    field(DESC,"Raw waveform data")
@@ -120,18 +149,18 @@ record(waveform,"${PREFIX}RawWf-I_")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
    field(PREC,"4")
    field(EGU,"Volts")
-   field(FLNK,"${PREFIX}VoltWf-aSub_")
+   field(FLNK,"${PREFIX}VoltWf-ASub_")
 }
 
 #see acqiris_asub_process.cpp: process the waveform record: voltage, max, min, ave, std, 
 #number of bunches(peaks/pulse counts), filling pattern(pulse integral, normalization, etc.), individual bunch charge calibrated against ICT;
-record(aSub,"${PREFIX}VoltWf-aSub_")
+record(aSub,"${PREFIX}VoltWf-ASub_")
 {
     field(DESC,"process raw waveform data")
     field (INAM,"acqirisAsubInit")
     field (SNAM,"acqirisAsubProcess")
     #get raw data (integer) from the waveform record above
-    field (INPA, "${PREFIX}RawWf-I_")
+    field (INPA, "${PREFIX}RawData-Wf_")
     field (FTA, "SHORT")
     field (NOA, "${NELM}")
     #get input range (Full scale)   
@@ -146,9 +175,18 @@ record(aSub,"${PREFIX}VoltWf-aSub_")
     field (INPD, "${PREFIX}PeakThreshold-SP")
     field (FTD, "DOUBLE")
     field (NOD, "1")
-    #voltage waveform data: should have the same data as ${PREFIX}VoltWf-I_
+    #number of samples for integral value(individual bunch charge)   
+    field (INPE, "${PREFIX}NbrSamplesForSum-Calc_")
+    #${PREFIX}NbrSamplesForSum-calc_.VAL seems double, but it works here
+    field (FTE, "LONG")
+    field (NOE, "1")
+    #coefficient for calculation of absolute bunch charge of wall current monitor  
+    field (INPF, "${PREFIX}CoefBunchQ-SP")
+    field (FTF, "DOUBLE")
+    field (NOF, "1")
+    #voltage waveform data: should have the same data as ${PREFIX}VoltData-Wf_
     # if no subtracting background noise               
-    field (OUTA, "${PREFIX}VoltWf-I PP")
+    field (OUTA, "${PREFIX}VoltData-Wf PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")
     #max & min voltages               
@@ -166,38 +204,43 @@ record(aSub,"${PREFIX}VoltWf-aSub_")
     field (FTVE, "DOUBLE")
     field (NOVE, "1")
     #Number of bunches
-    field (OUTF, "${PREFIX}NumBunch-I PP")
+    field (OUTF, "${PREFIX}NbrBunches-I PP")
     field (FTVF, "LONG")
     field (NOVF, "1")
     #normalized Filling pattern(max. 150 bunches for NSLS2): 0.85, 0.90, 1.00, ... 
-    field (OUTG, "${PREFIX}FillPattern-I PP")
+    field (OUTG, "${PREFIX}FillPattern-Wf PP")
     field (FTVG, "DOUBLE")
     field (NOVG, "150")
     #Max. bunch-to-bunch charge variation < 20%
     field (OUTH, "${PREFIX}B2BMaxVar-I PP")
     field (FTVH, "DOUBLE")
     field (NOVH, "1")
-    #individual bunch charge calibrated against nearby ICT
-    #field (OUTI, "${PREFIX}BunchQ-I PP")
-    #field (FTVI, "DOUBLE")
-    #field (NOVI, "150")
+    #individual bunch charge (Q) calibrated against nearby ICT
+    field (OUTI, "${PREFIX}BunchQCalib-Wf PP")
+    field (FTVI, "DOUBLE")
+    field (NOVI, "150")
     #Which bunch has the highest/max. charge
-    field (OUTJ, "${PREFIX}MaxQBunchNum-I PP")
+    field (OUTJ, "${PREFIX}MaxQBunchNbr-I PP")
     field (FTVJ, "LONG")
     field (NOVJ, "1")
     #Which bunch has the lowest/min. charge
-    field (OUTK, "${PREFIX}MinQBunchNum-I PP")
+    field (OUTK, "${PREFIX}MinQBunchNbr-I PP")
     field (FTVK, "LONG")
     field (NOVK, "1")
+    #integral value of individual bunch(max. 150 bunches for NSLS2) 
+    ##calculate bunch charge by integrating samples: wall current monitor 
+    field (OUTL, "${PREFIX}BunchQ-Wf PP")
+    field (FTVL, "DOUBLE")
+    field (NOVL, "150")
 }
 
-record(waveform,"${PREFIX}VoltWf-I")
+record(waveform,"${PREFIX}VoltData-Wf")
 {
    field(SCAN,"Passive")
    field(DESC,"voltage waveform data by aSub")
    field(NELM,"${NELM}")
    field(FTVL,"DOUBLE")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALA")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALA")
    field(PREC,"4")
    field(EGU,"V")
 }
@@ -205,7 +248,7 @@ record(waveform,"${PREFIX}VoltWf-I")
 record(ai,"${PREFIX}MaxVolt-I")
 {
    field(DESC,"Max value")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALB")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALB")
    field(PREC,"4")
    field(EGU,"V")
 }
@@ -213,7 +256,7 @@ record(ai,"${PREFIX}MaxVolt-I")
 record(ai,"${PREFIX}MinVolt-I")
 {
    field(DESC,"Min value")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALC")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALC")
    field(PREC,"4")
    field(EGU,"V")
 }
@@ -221,7 +264,7 @@ record(ai,"${PREFIX}MinVolt-I")
 record(ai,"${PREFIX}AveVolt-I")
 {
    field(DESC,"Averaged DC")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALD")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALD")
    field(PREC,"4")
    field(EGU,"Volts")
 }
@@ -229,31 +272,23 @@ record(ai,"${PREFIX}AveVolt-I")
 record(ai,"${PREFIX}StdVolt-I")
 {
    field(DESC,"RMS noise")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALE")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALE")
    field(PREC,"4")
    field(EGU,"V")
 }
 
-record(longin,"${PREFIX}NumBunch-I")
+record(longin,"${PREFIX}NbrBunches-I")
 {
    field(DESC,"Number of bunches")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALF")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALF")
    field(EGU,"bunches")
-   field(FLNK,"${PREFIX}SaveWf-calc_")
-}
-
-record(calc, "${PREFIX}SaveWf-calc_")
-{
-	field(DESC,"saveWaveformIfHaveBeam")
-	field(INPA,"${PREFIX}NumBunch-I")
-	#disable scanning ${PREFIX}VoltWf-Saved_ if A<1(no beam)
-	field(CALC,"(A>=1) ? 0:1")
+   field(FLNK,"${PREFIX}SaveWf-Calc_")
 }
 
 #record(calcout, "${PREFIX}SaveWf-calcout_")
 #{
 	#field(DESC,"saveWaveformIfHaveBeam")
-	#field(INPA,"${PREFIX}NumBunch-I")
+	#field(INPA,"${PREFIX}NbrBunch-I")
 	#field(CALC,"(A>=1) ? 1:0")
 	#field(OOPT,"When Non-zero")
 	#field(DOPT,"Use CALC")
@@ -262,22 +297,31 @@ record(calc, "${PREFIX}SaveWf-calc_")
 	#filed(OUT,"${PREFIX}VoltWf-Saved_.SDIS")
 #}
 
-record(waveform,"${PREFIX}VoltWf-Saved_")
+record(calc, "${PREFIX}SaveWf-Calc_")
+{
+	field(DESC,"saveWaveformIfHaveBeam")
+	field(INPA,"${PREFIX}NbrBunch-I")
+	#disable scanning ${PREFIX}VoltWf-Saved_ if A<1(no beam)
+	field(CALC,"(A>=1) ? 0:1")
+	field(FLNK,"${PREFIX}VoltDataSaved-Wf_")
+}
+
+record(waveform,"${PREFIX}VoltDataSaved-Wf_")
 {
    field(DESC,"saved waveform data")
    #DISV is 1 by default
-   field(SDIS,"${PREFIX}SaveWf-calc_")
+   field(SDIS,"${PREFIX}SaveWf-Calc_")
    field(NELM,"${NELM}")
    field(FTVL,"FLOAT")
-   field(INP,"${PREFIX}VoltWf-I_")
+   field(INP,"${PREFIX}VoltData-Wf")
    field(PREC,"4")
    field(EGU,"V")
 }
 
-record(waveform,"${PREFIX}FillPattern-I")
+record(waveform,"${PREFIX}FillPattern-Wf")
 {
    field(DESC,"normalized filling pattern")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALG")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALG")
    field(NELM,"150")
    field(FTVL,"DOUBLE")
    field(PREC,"4")
@@ -286,20 +330,63 @@ record(waveform,"${PREFIX}FillPattern-I")
 record(ai,"${PREFIX}B2BMaxVar-I")
 {
    field(DESC,"bunch-to-bunch max. variation")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALH")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALH")
    field(PREC,"4")
 }
 
-record(longin,"${PREFIX}MaxQBunchNum-I")
+#individual bunch charge (Q) calibrated against nearby ICT
+record(waveform,"${PREFIX}BunchQCalib-Wf")
 {
-   field(DESC,"No# highest charge")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALJ")
+   field(DESC,"Calibrated bunch charge")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALI")
+   field(NELM,"150")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+   field(EGU,"nC")
 }
 
-record(longin,"${PREFIX}MinQBunchNum-I")
+record(longin,"${PREFIX}MaxQBunchNbr-I")
+{
+   field(DESC,"No# highest charge")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALJ")
+}
+
+record(longin,"${PREFIX}MinQBunchNbr-I")
 {
    field(DESC,"No# lowest charge")
-   field(INP,"${PREFIX}VoltWf-aSub_.VALK")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALK")
+}
+
+#calculate bunch charge by integrating samples: wall current monitor 
+record(waveform,"${PREFIX}BunchQ-Wf")
+{
+   #field(DESC,"IntegralValueOfEachBunch")
+   field(DESC,"ChargeOfEachBunch")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALL")
+   field(NELM,"150")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+   field(EGU,"nC")
+}
+
+record(subArray,"${PREFIX}Bunch1Q-SubAr")
+{
+   field(DESC,"ChargeOfTheFirstBunch-subArray")
+   field(INP,"${PREFIX}BunchQ-Wf CPP")
+   field(MALM,"150")
+   field(INDX,"0")
+   field(NELM,"1")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+   field(EGU,"nC")
+}
+
+record(ai,"${PREFIX}Bunch1Q-I")
+{
+   field(DESC,"ChargeOfTheFirstBunch")
+   field(INP,"${PREFIX}Bunch1Q-SubAr CPP")
+   field(PREC,"4")
+   field(EGU,"nC")
 }
 
 record(ai,"${PREFIX}TrigLevelRange")

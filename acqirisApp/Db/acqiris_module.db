@@ -97,6 +97,18 @@ record(calc,"${PREFIX}SampLength-I")
    field(FLNK,"${PREFIX}TimeAxis-aSub_")
 }
 
+record(longout,"${PREFIX}AcqTimeout-SP")
+{
+   #AcqrsD1_waitForEndOfAcquisition(id, timeout);
+   field(DESC,"AcquisitionTimeout(ms)")
+   field(PINI,"YES")
+   field(DRVH,"60000")
+   field(DRVL,"1000")
+   field(EGU,"ms")
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK,"${PREFIX}TimeAxis-aSub_")
+ }
+ 
 record(aSub,"${PREFIX}TimeAxis-aSub_")
 {
     field(DESC,"construct time axis")
@@ -111,6 +123,10 @@ record(aSub,"${PREFIX}TimeAxis-aSub_")
     field (INPB, "${PREFIX}SampLength-I")
     field (FTB, "DOUBLE")
     field (NOB, "1")
+    #acquisition time out(ms): AcqrsD1_waitForEndOfAcquisition(id, timeout);
+    field (INPC, "${PREFIX}AcqTimeout-SP")
+    field (FTC, "LONG")
+    field (NOC, "1")
     #waveform data for time axis             
     field (OUTA, "${PREFIX}TimeAxis-I PP")
     field (FTVA, "DOUBLE")

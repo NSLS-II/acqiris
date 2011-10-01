@@ -40,6 +40,10 @@ extern "C" {
   acqiris_driver_t acqiris_drivers[MAX_DEV];
   unsigned nbr_acqiris_drivers = 0;
   epicsMutexId acqiris_dma_mutex;
+  //static char modelName[32];
+  //static ViInt32 serialNbr;
+  //static ViInt32 busNbr;
+  //static ViInt32 slotNbr;
 
 //Yong Hu: our DC252 version is 0x7, igore check_version_number 
   static void check_version_number(ViInt32 id)
@@ -113,7 +117,11 @@ extern "C" {
       Acqrs_getInstrumentInfo(ad->id, "PosInCrate", &ad->PosInCrate);
       Acqrs_getInstrumentInfo(ad->id, "VersionUserDriver", &ad->VersionUserDriver);
       //printf("digitizer version: %s\n", &ad->VersionUserDriver);
-
+      //if char* modelName, ad->modelName gives Segmentation fault; &ad->modelName gives compilation error
+     Acqrs_getInstrumentData(ad->id, ad->modelName, &ad->serialNbr, &ad->busNbr, &ad->slotNbr);
+      //status = Acqrs_getInstrumentData(ad->id, modelName, &serialNbr, &busNbr, &slotNbr);
+      //Acqrs_getInstrumentData(ViSession instrumentID,ViChar name[], ViInt32* serialNbr, ViInt32* busNbr, ViInt32* slotNbr);
+      //printf("model name: %s\n", ad->modelName);
 //Yong Hu: our DC252 version is 0x7, igore check_version_number 
       //check_version_number(ad->id);
       ad->module = module;
@@ -201,6 +209,7 @@ extern "C" {
       printf("	User driver version: %s;\n", &ad->VersionUserDriver);
       printf("	%d channels, %d samples(max.)/channel, resolution %d-bit;\n", ad->nchannels, ad->maxsamples, ad->NbrADCBits);
       printf("	at slot %d, total %d slots in the crate;\n", ad->PosInCrate, ad->CrateNb);
+      printf("	model: %s; serial number: %d; bus number: %d; slot number: %d; \n", ad->modelName, ad->serialNbr, ad->busNbr, ad->slotNbr);
       printf("********************************************************\n");
     }
 
@@ -222,6 +231,8 @@ extern "C" {
       printf("	User driver version: %s;\n", &ad->VersionUserDriver);
       printf("	%d channels, %dK samples(max.)/channel, resolution %d-bit;\n", ad->nchannels, ad->maxsamples / 1024, ad->NbrADCBits);
       printf("	at slot %d, total %d slots in the crate;\n", ad->PosInCrate, ad->CrateNb);
+      //printf("	model: %s; serial number: %d; bus number: %d; slot number: %d; \n", modelName, serialNbr, busNbr, slotNbr);
+      printf("	model: %s; serial number: %d; bus number: %d; slot number: %d; \n", ad->modelName, ad->serialNbr, ad->busNbr, ad->slotNbr);
       printf("********************************************************\n");
     }
     return 0;

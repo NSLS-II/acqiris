@@ -14,6 +14,9 @@
 #include <epicsEvent.h>
 #include <epicsThread.h>
 
+//#include <AcqirisD1Import.h>
+//#include <AcqirisImport.h>
+
 struct acqiris_data_t {
   unsigned nsamples;
   void* buffer;
@@ -39,6 +42,11 @@ struct acqiris_driver_t {
   int NbrADCBits;
   int PosInCrate;
   char *VersionUserDriver;
+  //char *modelName;
+  char modelName[32];
+  long serialNbr;
+  long busNbr;
+  long slotNbr;
 };
 typedef struct acqiris_driver_t ad_t;
 
@@ -65,6 +73,7 @@ extern unsigned nbr_acqiris_drivers;
 //unsigned nbr_acqiris_drivers;
 extern epicsMutexId acqiris_dma_mutex;
 //epicsMutexId acqiris_dma_mutex;
+extern long timeout;//yhu: acquisition timeout
 }
 
 /*

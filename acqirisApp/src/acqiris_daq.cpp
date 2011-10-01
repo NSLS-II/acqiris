@@ -18,6 +18,8 @@
 
 extern "C"
 {
+  long timeout = 2000;//acquisition timeout declared in acqiris_drv.hh
+
   void acqiris_daq_thread(void *arg)
   {
 //Yong Hu
@@ -61,7 +63,7 @@ extern "C"
       epicsEventWait(ad->run_semaphore);
       do { 
 //Yong Hu: use shorter timeout for testing 120Hz: 10ms is too short, 20ms works well;
-        const long timeout = 2000; /* ms */
+        //const long timeout = 2000; /* ms */
         //const long timeout = 10; /* ms */
         //const long timeout = 20; /* ms */
         int id = ad->id;
@@ -72,6 +74,7 @@ extern "C"
           printf("Can't start the acquisition --yhu\n");
         }
 
+        //printf("Acquisition timout is set to: %d ms \n",timeout);
         status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
         if (status != VI_SUCCESS) {
 //Yong Hu

@@ -17,6 +17,8 @@
 #include "epicsTime.h"
 #include "waveformRecord.h"
 
+#include "acqiris_drv.hh" // extern long timeout;//yhu: acquisition timeout
+
 #define MAX_NUM_BUNCH 150
 int acqirisAsubDebug = 0;
 static bool acqirisAsubInitialized = FALSE;
@@ -26,6 +28,7 @@ static double *pvoltData;
 //static double *pbkGroundData;
 static double *pfillPattern;
 static double *ptimeAxis;
+static double sampleInterval;
 /*global variable*/
 
 typedef long (*processMethod)(aSubRecord *precord);
@@ -54,8 +57,11 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	double dcOffset = 0.0;
 	double fullScale = 0.0;
 	double peakThreshold = 0.0;
+	long nbrSampleForSum = 5; //number of samples for integral is odd number
+	double coefBunchQ = 1.0; //coefficient for calculation of absolute bunch charge of wall current monitor
 	//unsigned short getbkGround = 0;
 	unsigned i = 0;
+	long j = 0; //must be signed
 	DBLINK *plink;
 	DBADDR *paddr;
 	waveformRecord *pwf;
@@ -78,6 +84,9 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	memcpy(&dcOffset, (double *)precord->c, precord->noc * sizeof(double));
 	//memcpy(pbkGroundData, (double *)precord->d, precord->nod * sizeof(double));
 	memcpy(&peakThreshold, (double *)precord->d, precord->nod * sizeof(double));
+	memcpy(&nbrSampleForSum, (long *)precord->e, precord->noe * sizeof(long));
+	memcpy(&coefBunchQ, (double *)precord->f, precord->nof * sizeof(double));
+	//printf("nbrSampleForSum: %d \n", nbrSampleForSum);
 	//memcpy(&getbkGround, (unsigned short *)precord->f, precord->nof * sizeof(unsigned short));
 	//printf("get all input links values:  peakThreshold %f; getbkGround %d \n", peakThreshold, getbkGround);
 
@@ -125,12 +134,13 @@ static long acqirisAsubProcess(aSubRecord *precord)
     }
     std = sqrt(std/pwf->nelm);
 	//printf("RMS noise is: %f \n", std);
- //search positive or negative pulse peaks: number of bunches,Fill pattern, Max variation, individual bunch charge, etc.
+ //search positive or negative pulse peaks: number of bunches,normalized fill pattern, Max variation, individual bunch charge (integral), etc.
     // find peaks and then sum values of 5 points
- //The IOC will consume 100% CPU (2 cores) if using noa=1000000
+ //memset consumes lots of CPU load: the IOC will consume 100% CPU (2 cores) if using noa=1000000
     //memset(pfillPattern, 0, precord->noa * sizeof(double));
     memset(pfillPattern, 0, pwf->nelm * sizeof(double));
-	for (i = 2; i < (pwf->nelm -2); i++)
+	//for (i = 2; i < (pwf->nelm -2); i++)
+	for (i=(nbrSampleForSum-1)/2; i<(pwf->nelm -(nbrSampleForSum-1)/2); i++)
 	{
 		if (fabs(pvoltData[i]) > fabs(peakThreshold))
 		{
@@ -138,11 +148,20 @@ static long acqirisAsubProcess(aSubRecord *precord)
 			if ((pvoltData[i-1] < pvoltData[i]) && (pvoltData[i-2] < pvoltData[i]) \
 					&& (pvoltData[i] > pvoltData[i+1]) && (pvoltData[i] > pvoltData[i+2]))
 			{
-				pfillPattern[numBunch] = pvoltData[i-2] + pvoltData[i-1] + pvoltData[i] + pvoltData[i+1] + pvoltData[i+2];
+				//pfillPattern[numBunch] = pvoltData[i-2] + pvoltData[i-1] + pvoltData[i] + pvoltData[i+1] + pvoltData[i+2];
+				for (j=-(nbrSampleForSum-1)/2; j<=(nbrSampleForSum-1)/2; j++)
+				{
+					pfillPattern[numBunch] += pvoltData[i+j]; //integral voltage value of each bunch
+					//printf("integral value of bunch#%d: %f \n", numBunch, pfillPattern[numBunch]);
+				}
+				pfillPattern[numBunch] *= (coefBunchQ * sampleInterval); // charge of each bunch
 				numBunch++;
 			}
 		}
 	}
+	//put integral values (individual bunch charge) into out link (waveform record)
+    memcpy((double *)precord->vall, &pfillPattern[0], MAX_NUM_BUNCH * sizeof(double));
+
 /*
 	if (numBunch > MAX_NUM_BUNCH)
 	{
@@ -184,7 +203,7 @@ static long acqirisAsubProcess(aSubRecord *precord)
     memcpy((double *)precord->vale, &std, precord->nove * sizeof(double));
     memcpy((long *)precord->valf, &numBunch, precord->novf * sizeof(long));
     //memcpy((double *)precord->valg, &pfillPattern[0], precord->novg * sizeof(double));
-    memcpy((double *)precord->valg, &pfillPattern[0], 150 * sizeof(double));
+    memcpy((double *)precord->valg, &pfillPattern[0], MAX_NUM_BUNCH * sizeof(double));
     memcpy((double *)precord->valh, &b2BMaxVar, precord->novh * sizeof(double));
   //memcpy((double *)precord->vali, &bunchQ, precord->novi * sizeof(double));
     memcpy((long *)precord->valj, &maxQBunchNum, precord->novj * sizeof(long));
@@ -233,7 +252,8 @@ static long timeAxisAsubProcess(aSubRecord *precord)
 //input links: number of samples(data points), sample length (N ns)
 	memcpy(&nSample, (unsigned long *)precord->a, precord->noa * sizeof(unsigned long));
 	memcpy(&sampleLength, (double *)precord->b, precord->nob * sizeof(double));
-
+	memcpy(&timeout, (long *)precord->c, precord->noc * sizeof(long)); //AcqrsD1_waitForEndOfAcquisition(id, timeout);
+	sampleInterval = sampleLength / nSample; //sampleInterval is used for beam charge calculation in acqirisAsubProcess()
 //using effective number of samples(samples/channel or 'NELM') in the waveform instead of 'NOA'(max. samples/ch) for data analysis
 	plink = &precord->outa;
 	if (DB_LINK != plink->type) return -1;
