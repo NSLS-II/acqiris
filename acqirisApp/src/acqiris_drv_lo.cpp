@@ -20,6 +20,9 @@ static int wlo_MNbrConvertersPerCh(rec_t* rec, ad_t* ad, int32_t val) {
   int status = AcqrsD1_getChannelCombination(ad->id, &tmp, &used_channels);
   if (SUCCESS(status)) {
     status = AcqrsD1_configChannelCombination(ad->id, val, used_channels);
+    //yhu:bug fix: channel combination; ad->effectiveChs is used in acqiris_daq.cpp
+    ad->effectiveChs = ad->nchannels / val;
+    //printf("effective channels: %d \n",ad->effectiveChs);
   }
 //Yong Hu
  //Acqrs_calibrateEx(ad->id, 4, 0, 0);

@@ -24,7 +24,8 @@ struct acqiris_data_t {
 
 struct acqiris_driver_t {
   int module;
-  int nchannels;
+  int nchannels; //max. number of channels of that board (usable channels will be less if interleaving)
+  int effectiveChs; //effective channels when combining channels (interleaving), set in acqiris_drv_lo.cp
   int id;
   IOSCANPVT ioscanpvt;
   epicsEventId run_semaphore;

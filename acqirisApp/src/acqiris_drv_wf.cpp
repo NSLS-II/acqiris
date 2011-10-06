@@ -100,6 +100,17 @@ template<> int acqiris_read_record_specialized(waveformRecord* pwf)
   ad_t* ad = &acqiris_drivers[arc->module];
   acqiris_wfrecord_t* rwf = reinterpret_cast<acqiris_wfrecord_t*>(arc->pvt);
   
+  unsigned nsamples = ad->data[arc->channel].nsamples;
+  //printf("record name is: %s, arc_name is:%s, nsamples is: %d\n", pwf->name, arc->name, nsamples);
+  //yhu: bug fix: the following if() is required when combining channels and initial nsamples is 0
+  if (0 == nsamples)
+  {
+	  nsamples = 1;
+	  pwf->nord = nsamples;
+	  //printf("pwf->nord is: %d\n", nsamples);
+	  return 0;
+  }
+
   //2011-July-11: for DC222(1-ch, 8GS/s), if 'CHANNEL' in the substitution has 2 instances '0' and '1', will get error 0xBFFC0002
   if( VI_SUCCESS != (status = AcqrsD1_getVertical(ad->id, arc->channel+1, &fullScale,&offSet,&coupling,&bandwidth)))
   {
@@ -109,7 +120,8 @@ template<> int acqiris_read_record_specialized(waveformRecord* pwf)
 
   const void* buffer = ad->data[arc->channel].buffer;
   //void* buffer = ad->data[arc->channel].buffer;
-  unsigned nsamples = ad->data[arc->channel].nsamples;
+  //unsigned nsamples = ad->data[arc->channel].nsamples;
+  //if (0 == nsamples) nsamples = 1;
   //reset NELM equal to nsamples/ch
   pwf->nelm =  nsamples;
   /*
@@ -120,7 +132,7 @@ template<> int acqiris_read_record_specialized(waveformRecord* pwf)
   }
   */
   //Yong Hu
-  //printf("arc_name is:%s, nsamples is: %d\n", arc->name, nsamples);
+  //printf("record name is: %s, arc_name is:%s, nsamples is: %d\n", pwf->name, arc->name, nsamples);
 
   epicsMutexLock(ad->daq_mutex);
   //printf("record: %s got daq_mutex \n", arc->name);

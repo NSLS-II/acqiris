@@ -28,7 +28,7 @@ extern "C"
     //short *buffer;
 
     acqiris_driver_t* ad = reinterpret_cast<acqiris_driver_t*>(arg);
-    int nchannels = ad->nchannels;
+    int nchannels = ad->nchannels;//max. number of channels (no combination/interleaving)
     int extra = ad->extra;//extra=208
     //int extra = 32;
     const int nbrSegments = 1;
@@ -87,7 +87,11 @@ extern "C"
           ad->timeouts++;
         } else {
           epicsMutexLock(ad->daq_mutex);
-          for (int channel=0; channel<nchannels; channel++) {
+          //yhu: bug fix: nchannels is the max. number of channels. Should use actual effective channels,
+          //otherwise, AcqrsD1_readData will return without success
+          //for (int channel=0; channel<nchannels; channel++) {
+          //ad->effectiveChs is set in acqiris_drv_lo.cpp
+          for (int channel=0; channel < ad->effectiveChs; channel++) {
             void* buffer = ad->data[channel].buffer;
             epicsMutexLock(acqiris_dma_mutex);
             status = AcqrsD1_readData(id, 
@@ -105,9 +109,10 @@ extern "C"
               //printf("Horizontal position of first data point: %f;  readParams.flags: %d \n", segDesc[nbrSegments].horPos, readParams.flags);
             } else {
               ad->data[channel].nsamples = 0;
+              printf(" AcqrsD1_readData() error, error status: 0x%X \n", status);
               ad->readerrors++;
             }
-          }
+          }//for (int channel=0; channel<nchannels; channel++)
           epicsMutexUnlock(ad->daq_mutex);
           scanIoRequest(ad->ioscanpvt);
           ad->count++;
