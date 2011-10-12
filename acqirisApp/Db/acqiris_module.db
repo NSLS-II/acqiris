@@ -83,7 +83,7 @@ record(longout,"${PREFIX}NbrSamples-SP")
    field(DRVL,"1")
    field(EGU,"Samples")
    info(autosaveFields_pass0, "VAL")
-   field(FLNK,"${PREFIX}TimeAxis-aSub_")
+   field(FLNK,"${PREFIX}TimeAxis-ASub_")
  }
 
 record(calc,"${PREFIX}SampLength-I")
@@ -94,7 +94,7 @@ record(calc,"${PREFIX}SampLength-I")
    field(INPB,"${PREFIX}NbrSamples-SP CP")
    field(CALC, "A*B*(1e+09)")  
    field(EGU,"ns")
-   field(FLNK,"${PREFIX}TimeAxis-aSub_")
+   field(FLNK,"${PREFIX}TimeAxis-ASub_")
 }
 
 record(longout,"${PREFIX}AcqTimeout-SP")
@@ -106,10 +106,10 @@ record(longout,"${PREFIX}AcqTimeout-SP")
    field(DRVL,"1000")
    field(EGU,"ms")
    info(autosaveFields_pass0, "VAL")
-   field(FLNK,"${PREFIX}TimeAxis-aSub_")
+   field(FLNK,"${PREFIX}TimeAxis-ASub_")
  }
  
-record(aSub,"${PREFIX}TimeAxis-aSub_")
+record(aSub,"${PREFIX}TimeAxis-ASub_")
 {
     field(DESC,"construct time axis")
     field(INAM,"timeAxisAsubInit")
@@ -128,19 +128,19 @@ record(aSub,"${PREFIX}TimeAxis-aSub_")
     field (FTC, "LONG")
     field (NOC, "1")
     #waveform data for time axis             
-    field (OUTA, "${PREFIX}TimeAxis-I PP")
+    field (OUTA, "${PREFIX}TimeAxis-Wf PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")
 }
 
-record(waveform,"${PREFIX}TimeAxis-I")
+record(waveform,"${PREFIX}TimeAxis-Wf")
 {
    field(SCAN,"Passive")
    field(DESC,"Time axis: ns unit")
    field(PINI,"YES")
    field(NELM,"${NELM}")
    field(FTVL,"DOUBLE")
-   field(INP,"${PREFIX}TimeAxis-aSub_.VALA")
+   field(INP,"${PREFIX}TimeAxis-ASub_.VALA")
    field(PREC,"3")
    field(EGU,"ns")
 }
