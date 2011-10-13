@@ -1,4 +1,4 @@
-/*acqiris_process_asub.cpp: process waveform record: voltage, peak, pulse integral, pulse count;
+/*acqiris_process_asub.cpp: process waveform record for NSLS-II specific purpose: voltage, peak, pulse integral, pulse count;
  * see aSub record "${Psy}-${Ssy}{${Dev}}CVolt-aSub_" in acqiris_channel.template for input/output links
  * */
 
