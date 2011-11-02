@@ -25,9 +25,9 @@ record(ao,"${PREFIX}FullScale-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${PREFIX}Offset-SP")
+record(ao,"${PREFIX}RangeOffset-SP")
 {
-   field(DESC,"DC Offset")
+   field(DESC,"Offset for Input Range")
    field(DTYP,"acqiris")
    field(OUT,"@M${MODULE} C${CHANNEL} COFFS")
    field(PINI,"YES")
@@ -83,7 +83,7 @@ record(mbbo,"${PREFIX}Bandwidth-Sel")
 }
 
 #get voltage waveform data in acqiris_drv_wf.cpp; 
-#doesn't subtract noise
+#doesn't subtract noise and no zeroing DC noise
 #Sept.06, 2011: subtracting noise doesn't help
 record(waveform,"${PREFIX}VoltData-Wf_")
 {
@@ -138,6 +138,21 @@ record(calc,"${PREFIX}NbrSamplesForSum-Calc_")
    info(autosaveFields_pass0, "VAL")
 }
 
+#Why need ZeroingOffset?
+#there might be DC offset between the FCT and the digitizer even without real beam
+#ZeroingOffset-SP == AveVolt-I
+record(ao,"${PREFIX}ZeroingOffset-SP")
+{
+   field(DESC,"Offset for zeroing noise")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"5.0")
+   field(DRVL,"-5.0")
+   field(EGU,"V")
+   field(PREC,"2")
+   info(autosaveFields_pass0, "VAL")
+}
+
 #raw waveform data: 16-bit integer
 record(waveform,"${PREFIX}RawData-Wf_")
 {
@@ -167,8 +182,8 @@ record(aSub,"${PREFIX}VoltWf-ASub_")
     field (INPB, "${PREFIX}FullScale-SP")
     field (FTB, "DOUBLE")
     field (NOB, "1")
-    #get DC offset   
-    field (INPC, "${PREFIX}Offset-SP")
+    #get offset for input range   
+    field (INPC, "${PREFIX}RangeOffset-SP")
     field (FTC, "DOUBLE")
     field (NOC, "1")
     #get peak threshold   
@@ -184,6 +199,10 @@ record(aSub,"${PREFIX}VoltWf-ASub_")
     field (INPF, "${PREFIX}CoefBunchQ-SP")
     field (FTF, "DOUBLE")
     field (NOF, "1")
+    #get offset for zeroing noise   
+    field (INPG, "${PREFIX}ZeroingOffset-SP")
+    field (FTG, "DOUBLE")
+    field (NOG, "1")
     #voltage waveform data: should have the same data as ${PREFIX}VoltData-Wf_
     # if no subtracting background noise               
     field (OUTA, "${PREFIX}VoltData-Wf PP")

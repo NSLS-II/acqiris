@@ -54,11 +54,12 @@ static long acqirisAsubInit(aSubRecord *precord,processMethod process)
 
 static long acqirisAsubProcess(aSubRecord *precord)
 {
-	double dcOffset = 0.0;
+	double rangeOffset = 0.0; //offset for input range
 	double fullScale = 0.0;
 	double peakThreshold = 0.0;
 	long nbrSampleForSum = 5; //number of samples for integral is odd number
 	double coefBunchQ = 1.0; //coefficient for calculation of absolute bunch charge of wall current monitor
+	double zeroingOffset = 0.0; //offset for zeroing noise
 	//unsigned short getbkGround = 0;
 	unsigned i = 0;
 	long j = 0; //must be signed
@@ -81,11 +82,12 @@ static long acqirisAsubProcess(aSubRecord *precord)
 //input links: raw integer waveform data, input range, offset, background noise waveform, peak search threshold, reset or get bkground
 	memcpy(prawData, (short *)precord->a, precord->noa * sizeof(short));
 	memcpy(&fullScale, (double *)precord->b, precord->nob * sizeof(double));
-	memcpy(&dcOffset, (double *)precord->c, precord->noc * sizeof(double));
+	memcpy(&rangeOffset, (double *)precord->c, precord->noc * sizeof(double));
 	//memcpy(pbkGroundData, (double *)precord->d, precord->nod * sizeof(double));
 	memcpy(&peakThreshold, (double *)precord->d, precord->nod * sizeof(double));
 	memcpy(&nbrSampleForSum, (long *)precord->e, precord->noe * sizeof(long));
 	memcpy(&coefBunchQ, (double *)precord->f, precord->nof * sizeof(double));
+	memcpy(&zeroingOffset, (double *)precord->g, precord->nog * sizeof(double));
 	//printf("nbrSampleForSum: %d \n", nbrSampleForSum);
 	//memcpy(&getbkGround, (unsigned short *)precord->f, precord->nof * sizeof(unsigned short));
 	//printf("get all input links values:  peakThreshold %f; getbkGround %d \n", peakThreshold, getbkGround);
@@ -111,9 +113,10 @@ static long acqirisAsubProcess(aSubRecord *precord)
 //convert raw data(16-bit integer) to voltages;
 	for (i = 0; i < pwf->nelm; i++)
 	{
-		//pvoltData[i] = fullScale * ((prawData[i]+32768.0)/(32704.0+32768.0)) + (-dcOffset-fullScale/2.0) - pbkGroundData[i];
+		//pvoltData[i] = fullScale * ((prawData[i]+32768.0)/(32704.0+32768.0)) + (-rangeOffset-fullScale/2.0) - pbkGroundData[i];
 //Sept.06, 2011: subtracting background noise makes data worse
-		pvoltData[i] = fullScale * ((prawData[i]+32768.0)/(32704.0+32768.0)) + (-dcOffset-fullScale/2.0);
+		pvoltData[i] = fullScale * ((prawData[i]+32768.0)/(32704.0+32768.0)) + (-rangeOffset-fullScale/2.0);
+		pvoltData[i] -= zeroingOffset;
 	}
 //Max, Min, ave, std(RMS noise): sum is not DC component
     max = pvoltData[0];
@@ -214,7 +217,7 @@ static long acqirisAsubProcess(aSubRecord *precord)
     {
     	printf("Associated with this asub record %s: \n",precord->name);
     	printf("	the first raw integer data of the waveform: %d; voltage: %fV \n",prawData[0],pvoltData[0]);
-    	printf("	DC offset: %fV; Full scale: %fV \n",dcOffset, fullScale);
+    	printf("	DC offset: %fV; Full scale: %fV \n",rangeOffset, fullScale);
     	printf("	Max: %fV; Min: %fV \n",max, min);
     }
 
