@@ -106,10 +106,11 @@ record(calc,"${PREFIX}SampLength-I")
 record(longout,"${PREFIX}AcqTimeout-SP")
 {
    #AcqrsD1_waitForEndOfAcquisition(id, timeout);
+   #AcqirisD1Interface.h: 'timeout' is internally clipped to a range of [0, 10000] milliseconds
    field(DESC,"AcquisitionTimeout(ms)")
    field(PINI,"YES")
-   field(DRVH,"60000")
-   field(DRVL,"1000")
+   field(DRVH,"10000")
+   field(DRVL,"2000")
    field(EGU,"ms")
    info(autosaveFields_pass0, "VAL")
    field(FLNK,"${PREFIX}TimeAxis-ASub_")

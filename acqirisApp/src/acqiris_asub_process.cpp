@@ -118,6 +118,9 @@ static long acqirisAsubProcess(aSubRecord *precord)
 		pvoltData[i] = fullScale * ((prawData[i]+32768.0)/(32704.0+32768.0)) + (-rangeOffset-fullScale/2.0);
 		pvoltData[i] -= zeroingOffset;
 	}
+	//field (OUTA, "${PREFIX}VoltData-Wf PP"): final voltage waveform data
+	memcpy((double *)precord->vala, pvoltData, precord->nova * sizeof(double));
+
 //Max, Min, ave, std(RMS noise): sum is not DC component
     max = pvoltData[0];
     min = pvoltData[0];
@@ -138,18 +141,27 @@ static long acqirisAsubProcess(aSubRecord *precord)
     std = sqrt(std/pwf->nelm);
 	//printf("RMS noise is: %f \n", std);
  //search positive or negative pulse peaks: number of bunches,normalized fill pattern, Max variation, individual bunch charge (integral), etc.
-    // find peaks and then sum values of 5 points
+    // find peaks and then sum values of at least 5 points
  //memset consumes lots of CPU load: the IOC will consume 100% CPU (2 cores) if using noa=1000000
     //memset(pfillPattern, 0, precord->noa * sizeof(double));
     memset(pfillPattern, 0, pwf->nelm * sizeof(double));
+
+    //in case of negative beam pulses: convert them to positive to keep the filling pattern algorithm below suitable for either \
+    //positive or negative beam signal
+    //however,this algorithm doesn't work for the signal with both negative and positive peaks, i.e. sinewave with -0.5V~+0.5V
+    for (i=0; i<pwf->nord; i++) // nord == nelm: see acqiris_drv_wf.cpp
+    {
+    	if (pvoltData[i] < 0.0) pvoltData[i] = (-pvoltData[i]);
+    }
 	//for (i = 2; i < (pwf->nelm -2); i++)
-	for (i=(nbrSampleForSum-1)/2; i<(pwf->nelm -(nbrSampleForSum-1)/2); i++)
+	for (i=(nbrSampleForSum-1)/2; i<(pwf->nelm -(nbrSampleForSum-1)/2); i++) //nbrSampleForSum must be >= 5
 	{
 		if (fabs(pvoltData[i]) > fabs(peakThreshold))
 		{
 			//printf("#%d data: %f > threshold %f \n", i, pvoltData[i], peakThreshold);
+			//what if there are 2 identical peaks? will pvoltData[i] >= pvoltData[i+1] solve the problem?
 			if ((pvoltData[i-1] < pvoltData[i]) && (pvoltData[i-2] < pvoltData[i]) \
-					&& (pvoltData[i] > pvoltData[i+1]) && (pvoltData[i] > pvoltData[i+2]))
+					&& (pvoltData[i] >= pvoltData[i+1]) && (pvoltData[i] > pvoltData[i+2]))
 			{
 				//pfillPattern[numBunch] = pvoltData[i-2] + pvoltData[i-1] + pvoltData[i] + pvoltData[i+1] + pvoltData[i+2];
 				for (j=-(nbrSampleForSum-1)/2; j<=(nbrSampleForSum-1)/2; j++)
@@ -199,7 +211,7 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	}
 
 //output links: voltage wf data, max, min, ave, std, NumBunch, FillPn, B2BMaxVar, BunchQ, MaxQBunchNum, MinQBunchNum
-	memcpy((double *)precord->vala, pvoltData, precord->nova * sizeof(double));
+	//memcpy((double *)precord->vala, pvoltData, precord->nova * sizeof(double));//moved to the above
     memcpy((double *)precord->valb, &max, precord->novb * sizeof(double));
     memcpy((double *)precord->valc, &min, precord->novc * sizeof(double));
     memcpy((double *)precord->vald, &ave, precord->novd * sizeof(double));
