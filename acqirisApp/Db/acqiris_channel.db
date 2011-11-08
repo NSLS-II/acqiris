@@ -269,6 +269,20 @@ record(waveform,"${PREFIX}VoltData-Wf")
    field(EGU,"V")
 }
 
+record(subArray,"${PREFIX}VoltData-SubAr_")
+{
+   field(DESC,"part of the voltage waveform data")
+   field(INP,"${PREFIX}VoltData-Wf CPP")
+   #don't need to set subArray.MALM == waveform.NELM
+   #field(MALM,"${NELM}")
+   field(MALM,"40")
+   field(INDX,"0")
+   field(NELM,"40")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+   field(EGU,"V")
+}
+
 record(ai,"${PREFIX}MaxVolt-I")
 {
    field(DESC,"Max value")
