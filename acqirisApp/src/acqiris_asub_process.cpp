@@ -29,6 +29,7 @@ static double *pvoltData;
 static double *pfillPattern;
 static double *ptimeAxis;
 static double sampleInterval;
+static unsigned int *pPeakIndex;
 /*global variable*/
 
 typedef long (*processMethod)(aSubRecord *precord);
@@ -39,7 +40,8 @@ static long acqirisAsubInit(aSubRecord *precord,processMethod process)
 		return (0);
     if (NULL == (prawData = (short *)malloc(precord->noa * sizeof(short)))
     		|| NULL == (pfillPattern = (double *)malloc(precord->noa * sizeof(double)))
-    		|| NULL == (pvoltData = (double *)malloc(precord->nova * sizeof(double))))
+    		|| NULL == (pvoltData = (double *)malloc(precord->nova * sizeof(double)))
+    	    || NULL == (pPeakIndex = (unsigned int *)malloc(precord->nova * sizeof(unsigned int))))
     {
     	printf("out of memory: acqirisAsubInit \n");
     	return -1;
@@ -61,8 +63,9 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	double coefBunchQ = 1.0; //coefficient for calculation of absolute bunch charge of wall current monitor
 	double zeroingOffset = 0.0; //offset for zeroing noise
 	//unsigned short getbkGround = 0;
-	unsigned i = 0;
+	unsigned int i = 0;
 	long j = 0; //must be signed
+	unsigned int k = 0;
 	DBLINK *plink;
 	DBADDR *paddr;
 	waveformRecord *pwf;
@@ -146,8 +149,8 @@ static long acqirisAsubProcess(aSubRecord *precord)
     //memset(pfillPattern, 0, precord->noa * sizeof(double));
     memset(pfillPattern, 0, pwf->nelm * sizeof(double));
 
-    //in case of negative beam pulses: convert them to positive to keep the filling pattern algorithm below suitable for either \
-    //positive or negative beam signal
+    //in case of negative beam pulses: convert them to positive to keep the filling pattern algorithm below suitable for either
+    ////positive or negative beam signal
     //however,this algorithm doesn't work for the signal with both negative and positive peaks, i.e. sinewave with -0.5V~+0.5V
     for (i=0; i<pwf->nord; i++) // nord == nelm: see acqiris_drv_wf.cpp
     {
@@ -171,6 +174,7 @@ static long acqirisAsubProcess(aSubRecord *precord)
 				}
 				pfillPattern[numBunch] *= (coefBunchQ * sampleInterval); // charge of each bunch
 				numBunch++;
+				pPeakIndex[k++] = i;
 			}
 		}
 	}
@@ -210,7 +214,7 @@ static long acqirisAsubProcess(aSubRecord *precord)
 		}
 	}
 
-//output links: voltage wf data, max, min, ave, std, NumBunch, FillPn, B2BMaxVar, BunchQ, MaxQBunchNum, MinQBunchNum
+//output links: voltage wf data, max, min, ave, std, NumBunch, FillPn, B2BMaxVar, BunchQ, MaxQBunchNum, MinQBunchNum, PeakIndex
 	//memcpy((double *)precord->vala, pvoltData, precord->nova * sizeof(double));//moved to the above
     memcpy((double *)precord->valb, &max, precord->novb * sizeof(double));
     memcpy((double *)precord->valc, &min, precord->novc * sizeof(double));
@@ -223,6 +227,7 @@ static long acqirisAsubProcess(aSubRecord *precord)
   //memcpy((double *)precord->vali, &bunchQ, precord->novi * sizeof(double));
     memcpy((long *)precord->valj, &maxQBunchNum, precord->novj * sizeof(long));
     memcpy((long *)precord->valk, &minQBunchNum, precord->novk * sizeof(long));
+    memcpy((unsigned int *)precord->valm, &pPeakIndex[0], MAX_NUM_BUNCH * sizeof(unsigned int));
 	//printf("put all output links values \n");
 
     if (acqirisAsubDebug)

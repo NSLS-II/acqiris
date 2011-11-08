@@ -33,8 +33,14 @@ dbLoadRecords ("db/acqiris_trigger.db", "PREFIX=LN-BI{ACQ:1},MODULE=0")
 #system("install -d ./as/save")
 #system("install -d ./as/req")
 #set_pass0_restoreFile("acqiris_settings.sav")
+#set_pass1_restoreFile("acqiris_set_pass1.sav")
 
 iocInit
 
 #makeAutosaveFileFromDbInfo("./as/req/acqiris_settings.req", "autosaveFields_pass0")
 #create_monitor_set("acqiris_settings.req", 10 , "")
+#makeAutosaveFileFromDbInfo("./as/req/acqiris_set_pass1.req", "autosaveFields_pass1")
+#create_monitor_set("acqiris_set_pass1.req", 10 , "")
+
+#Need to process the record below again after iocInit to get Max. 8GS/s
+#dbpf "LFE-BI{ACQ:4}SampInterval-SP.PROC", "1"

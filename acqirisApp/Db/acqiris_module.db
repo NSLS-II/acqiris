@@ -32,7 +32,8 @@ record(longout,"${PREFIX}NbrConvertersPerChannel-SP")
 #both DOL and VAL works: must use one of them to avoid 'Floating point exception'
    field(DOL, "1")
    #field(VAL,"1")
-   info(autosaveFields_pass0, "VAL")
+   #info(autosaveFields_pass0, "VAL")
+    info(autosaveFields_pass1, "VAL")
 }
 
 record(ao,"${PREFIX}SampFreq-SP")
@@ -45,34 +46,37 @@ record(ao,"${PREFIX}SampFreq-SP")
 #initial sampleRate: 100MHz
    field(VAL,"100000000")
    field(EGU,"Hz")
-   field(FLNK,"${PREFIX}SampFreq-cal_")
+   field(FLNK,"${PREFIX}SampFreq-Calc_")
    #use 'VAL' instead of 'RVAL'
    info(autosaveFields_pass0, "VAL")
 }
 
-record(calcout,"${PREFIX}SampFreq-cal_")
+record(calc,"${PREFIX}SampFreq-Calc_")
 {
    field(SCAN,"Passive")
    field(DESC,"calc sampInterval")
-   field(PINI,"YES")
+   #field(PINI,"YES")
    field(INPA,"${PREFIX}SampFreq-SP")
    field(CALC, "(A < 100)?100:(1.0/A)")
    #the expression below seems OK
    #field(CALC, "1.0/A")
-   field(OUT, "${PREFIX}SampInterval-SP PP")
+   #field(OUT, "${PREFIX}SampInterval-SP PP")
+   field(FLNK,"${PREFIX}SampInterval-SP")
 }
 
 record(ao,"${PREFIX}SampInterval-SP")
 {
    field(DESC,"sampInterval")
    field(DTYP,"acqiris")
+   field(DOL,"${PREFIX}SampFreq-Calc_")
+   field(OMSL,"closed_loop")
    field(OUT,"@M${MODULE} MSMIN")
-   field(PINI,"YES")
+   #field(PINI,"YES")
    field(SCAN,"Passive")
    field(EGU,"Sec")
    field(PREC,"4")
    #use 'VAL' instead of 'RVAL'
-   info(autosaveFields_pass0, "VAL")
+   #info(autosaveFields_pass0, "VAL")
 }
 
 record(longout,"${PREFIX}NbrSamples-SP")

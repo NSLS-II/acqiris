@@ -251,6 +251,11 @@ record(aSub,"${PREFIX}VoltWf-ASub_")
     field (OUTL, "${PREFIX}BunchQ-Wf PP")
     field (FTVL, "DOUBLE")
     field (NOVL, "150")
+    #where are the peaks: position/index in '${PREFIX}VoltData-Wf'
+    field (OUTM, "${PREFIX}PeakIndex-Wf PP")
+    #LONG equals to int?
+    field (FTVM, "LONG")
+    field (NOVM, "150")
 }
 
 record(waveform,"${PREFIX}VoltData-Wf")
@@ -406,6 +411,30 @@ record(ai,"${PREFIX}Bunch1Q-I")
    field(INP,"${PREFIX}Bunch1Q-SubAr CPP")
    field(PREC,"4")
    field(EGU,"nC")
+}
+
+record(waveform,"${PREFIX}PeakIndex-Wf")
+{
+   field(DESC,"index of peaks")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALM")
+   field(NELM,"150")
+   field(FTVL,"LONG")
+}
+
+record(subArray,"${PREFIX}FirstPeakPos-SubAr")
+{
+   field(DESC,"position of the first peak")
+   field(INP,"${PREFIX}PeakIndex-Wf CPP")
+   field(MALM,"150")
+   field(INDX,"0")
+   field(NELM,"1")
+   field(FTVL,"LONG")
+}
+
+record(longin,"${PREFIX}FirstPeakPos-I")
+{
+   field(DESC,"position of the first peak")
+   field(INP,"${PREFIX}FirstPeakPos-SubAr CPP")
 }
 
 record(ai,"${PREFIX}TrigLevelRange")
