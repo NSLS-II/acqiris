@@ -163,16 +163,15 @@ record(longin,"${PREFIX}EventCount-RB")
    field(INP,"@M${MODULE} MEVCN")
    field(PINI,"YES")
    field(SCAN,"1 second")
-   field(FLNK,"${PREFIX}TrigRate-I")
+   field(FLNK,"${PREFIX}TrigRate-I_")
 }
 
-record(calc,"${PREFIX}TrigRate-I")
+record(calc,"${PREFIX}TrigRate-I_")
 {
-   field(SCAN,"Passive")
-   field(DESC,"calc trigger rate")
+   field(DESC,"calc trigger rate from EventCount")
    #field(INPA,"${PREFIX}EventCount-RB")
    #field(INPB,"${PREFIX}PreEventCount-I_")
-   field(INPA,"${PREFIX}TrigRate-I.B")
+   field(INPA,"${PREFIX}TrigRate-I_.B")
    field(INPB,"${PREFIX}EventCount-RB")
    field(CALC, "B-A")
    field(EGU,"Hz")
@@ -183,7 +182,7 @@ record(ai,"${PREFIX}PreEventCount-I_")
 {
    field(SCAN,"Passive")
    field(DESC,"old/previous count")
-   field(INP,"${PREFIX}TrigRate-I")
+   field(INP,"${PREFIX}TrigRate-I_")
 }
 
 record(longin,"${PREFIX}TriggerTimeouts-RB")

@@ -18,6 +18,7 @@
 #include "waveformRecord.h"
 
 #include "acqiris_drv.hh" // extern long timeout;//yhu: acquisition timeout
+#include "acqiris_dev.hh" // acqiris_record_t; for 'realTrigRate'
 
 #define MAX_NUM_BUNCH 150
 int acqirisAsubDebug = 0;
@@ -81,6 +82,10 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	long numBunch = 0;
 	long maxQBunchNum = 0;
 	long minQBunchNum = 0;
+	acqiris_record_t* arc;
+	int module;
+	acqiris_driver_t* ad;
+	unsigned int nSamples;
 
 //input links: raw integer waveform data, input range, offset, background noise waveform, peak search threshold, reset or get bkground
 	memcpy(prawData, (short *)precord->a, precord->noa * sizeof(short));
@@ -121,8 +126,16 @@ static long acqirisAsubProcess(aSubRecord *precord)
 		pvoltData[i] = fullScale * ((prawData[i]+32768.0)/(32704.0+32768.0)) + (-rangeOffset-fullScale/2.0);
 		pvoltData[i] -= zeroingOffset;
 	}
-	//field (OUTA, "${PREFIX}VoltData-Wf PP"): final voltage waveform data
-	memcpy((double *)precord->vala, pvoltData, precord->nova * sizeof(double));
+	//field (OUTA, "${PREFIX}VoltData-Wf PP"): final voltage waveform data, only copy effective number of samples
+	memcpy((double *)precord->vala, pvoltData, 	pwf->nelm * sizeof(double));
+	//memcpy((double *)precord->vala, pvoltData, precord->nova * sizeof(double));
+//dynamically change NELM field of waveform record '${PREFIX}VoltData-Wf'(OUTA) to the effective number of samples
+	nSamples = pwf->nelm;
+	plink = &precord->outa;
+	if (DB_LINK != plink->type) return -1;
+	paddr = (DBADDR *)plink->value.pv_link.pvt;
+	pwf = (waveformRecord *)paddr->precord;
+	pwf->nelm = nSamples;
 
 //Max, Min, ave, std(RMS noise): sum is not DC component
     max = pvoltData[0];
@@ -228,8 +241,16 @@ static long acqirisAsubProcess(aSubRecord *precord)
     memcpy((long *)precord->valj, &maxQBunchNum, precord->novj * sizeof(long));
     memcpy((long *)precord->valk, &minQBunchNum, precord->novk * sizeof(long));
     memcpy((unsigned int *)precord->valm, &pPeakIndex[0], MAX_NUM_BUNCH * sizeof(unsigned int));
-	//printf("put all output links values \n");
 
+//get MODULE info from INPA: ${PREFIX}RawData-Wf_ and then get 'realTrigRate'
+	plink = &precord->inpa;
+	paddr = (DBADDR *)plink->value.pv_link.pvt;
+	arc = (acqiris_record_t *)paddr->precord->dpvt;
+	module = arc->module;
+	ad = &acqiris_drivers[module];
+	memcpy((double *)precord->valn, &ad->realTrigRate, precord->novn * sizeof(double));
+
+	//printf("put all output links values \n");
     if (acqirisAsubDebug)
     {
     	printf("Associated with this asub record %s: \n",precord->name);
@@ -237,7 +258,6 @@ static long acqirisAsubProcess(aSubRecord *precord)
     	printf("	DC offset: %fV; Full scale: %fV \n",rangeOffset, fullScale);
     	printf("	Max: %fV; Min: %fV \n",max, min);
     }
-
 	return(0);
 }
 
@@ -282,15 +302,12 @@ static long timeAxisAsubProcess(aSubRecord *precord)
 	paddr = (DBADDR *)plink->value.pv_link.pvt;
 	pwf = (waveformRecord *)paddr->precord;
 	pwf->nelm = nSample;
-	//printf("number of effective samples(samples/ch): %d \n", pwf->nelm);
-
+    //printf("number of effective samples(samples/ch): %d \n", pwf->nelm)
 	for (i = 0; i < pwf->nelm; i++)
 	{
 		ptimeAxis[i] = i * (sampleLength/nSample);
 	}
 	//printf("ptimeAxis-1: %f;  ptimeAxis-max: %f;\n", ptimeAxis[1], ptimeAxis[pwf->nelm-1]);
-
-//output links: waveform
 	memcpy((double *)precord->vala, ptimeAxis, pwf->nelm * sizeof(double));
 	//printf("put all output links values \n");
 

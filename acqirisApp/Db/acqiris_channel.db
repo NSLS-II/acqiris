@@ -256,6 +256,10 @@ record(aSub,"${PREFIX}VoltWf-ASub_")
     #LONG equals to int?
     field (FTVM, "LONG")
     field (NOVM, "150")
+    #calculate real external trigger rate ~ = ioc update rate
+    field (OUTN, "${PREFIX}TrigRate-I PP")
+    field (FTVN, "DOUBLE")
+    field (NOVN, "1")
 }
 
 record(waveform,"${PREFIX}VoltData-Wf")
@@ -449,6 +453,14 @@ record(longin,"${PREFIX}FirstPeakPos-I")
 {
    field(DESC,"position of the first peak")
    field(INP,"${PREFIX}FirstPeakPos-SubAr CPP")
+}
+
+record(ai,"${PREFIX}TrigRate-I")
+{
+   field(DESC,"precise trigRate")
+   field(INP,"${PREFIX}VoltWf-ASub_.VALN")
+   field(PREC,"3")
+   field(EGU,"Hz")
 }
 
 record(ai,"${PREFIX}TrigLevelRange")

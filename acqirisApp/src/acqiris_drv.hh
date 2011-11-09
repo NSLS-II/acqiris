@@ -48,6 +48,7 @@ struct acqiris_driver_t {
   long serialNbr;
   long busNbr;
   long slotNbr;
+  double realTrigRate;
 };
 typedef struct acqiris_driver_t ad_t;
 

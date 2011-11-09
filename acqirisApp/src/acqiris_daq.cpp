@@ -16,6 +16,9 @@
 
 #define SUCCESSREAD(x) (((x)&0x80000000)==VI_SUCCESS)
 
+/*global variable*/
+//double iocUpdateRate;
+
 extern "C"
 {
   long timeout = 2000;//acquisition timeout declared in acqiris_drv.hh
@@ -26,6 +29,8 @@ extern "C"
     epicsTimeStamp now;
     char tsText[30];
     //short *buffer;
+    double preTimeAtEndOfAcq = 0.0;
+    double curTimeAtEndOfAcq = 0.0;
 
     acqiris_driver_t* ad = reinterpret_cast<acqiris_driver_t*>(arg);
     int nchannels = ad->nchannels;//max. number of channels (no combination/interleaving)
@@ -76,6 +81,12 @@ extern "C"
 
         //printf("Acquisition timout is set to: %d ms \n",timeout);
         status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
+
+        epicsTimeGetCurrent(&now);
+        curTimeAtEndOfAcq = now.secPastEpoch + now.nsec/1000000000.0;
+        ad->realTrigRate = 1.0/(curTimeAtEndOfAcq - preTimeAtEndOfAcq);
+        preTimeAtEndOfAcq = curTimeAtEndOfAcq;
+
         if (status != VI_SUCCESS) {
 //Yong Hu
           printf("Timeout when waitForEndofAcquisition: status code is 0x%x, the time is: ", (unsigned)status);
