@@ -81,7 +81,7 @@ extern "C"
 
         //printf("Acquisition timout is set to: %d ms \n",timeout);
         status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
-
+//compute trigger rate (ioc update rate): should be calculated here or below (if ... else)?
         epicsTimeGetCurrent(&now);
         curTimeAtEndOfAcq = now.secPastEpoch + now.nsec/1000000000.0;
         ad->realTrigRate = 1.0/(curTimeAtEndOfAcq - preTimeAtEndOfAcq);
@@ -89,7 +89,7 @@ extern "C"
 
         if (status != VI_SUCCESS) {
 //Yong Hu
-          printf("Timeout when waitForEndofAcquisition: status code is 0x%x, the time is: ", (unsigned)status);
+          printf("Timeout occurred on card #%d when waitForEndofAcquisition: status code is 0x%x, the time is: ", ad->module,(unsigned)status);
           epicsTimeGetCurrent(&now);
           epicsTimeToStrftime(tsText, sizeof(tsText), "%Y-%m-%d %H:%M:%S.%6f", &now);
           printf("%s \n", tsText);
@@ -120,7 +120,7 @@ extern "C"
               //printf("Horizontal position of first data point: %f;  readParams.flags: %d \n", segDesc[nbrSegments].horPos, readParams.flags);
             } else {
               ad->data[channel].nsamples = 0;
-              printf(" AcqrsD1_readData() error, error status: 0x%X \n", status);
+              printf(" AcqrsD1_readData() error on card #%d, error status: 0x%X \n", ad->module, status);
               ad->readerrors++;
             }
           }//for (int channel=0; channel<nchannels; channel++)

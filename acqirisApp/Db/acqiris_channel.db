@@ -20,9 +20,11 @@ record(ao,"${PREFIX}FullScale-SP")
    field(DRVH,"5.0")
    field(DRVL,"-5.0")
    field(EGU,"V")
-   field(PREC,"2")
+   field(PREC,"3")
    #seems 'VAL' doesn't work well here. use 'RVAL'
-   info(autosaveFields_pass0, "RVAL")
+   #Nov-15-2011: RVAL is long type
+   #info(autosaveFields_pass0, "RVAL")
+   info(autosaveFields_pass1, "VAL")
 }
 
 record(ao,"${PREFIX}RangeOffset-SP")
@@ -35,9 +37,10 @@ record(ao,"${PREFIX}RangeOffset-SP")
    field(DRVH,"5.0")
    field(DRVL,"-5.0")
    field(EGU,"V")
-   field(PREC,"2")
+   field(PREC,"3")
     #seems 'VAL' doesn't work well here. use 'RVAL'
-    info(autosaveFields_pass0, "RVAL")
+    #info(autosaveFields_pass0, "RVAL")
+    info(autosaveFields_pass1, "VAL")
 }
 
 record(mbbo,"${PREFIX}Coupling-Sel")
@@ -93,7 +96,7 @@ record(waveform,"${PREFIX}VoltData-Wf_")
    field(NELM,"${NELM}")
    field(FTVL,"FLOAT")
    field(INP,"@M${MODULE} C${CHANNEL} WVOL")
-   field(PREC,"4")
+   field(PREC,"6")
    field(EGU,"V")
    #save waveform data only if Nbrbunches >= 1
    #field(FLNK,"${PREFIX}VoltDataSaved-Wf_")
@@ -149,7 +152,7 @@ record(ao,"${PREFIX}ZeroingOffset-SP")
    field(DRVH,"5.0")
    field(DRVL,"-5.0")
    field(EGU,"V")
-   field(PREC,"2")
+   field(PREC,"4")
    info(autosaveFields_pass0, "VAL")
 }
 
@@ -162,7 +165,6 @@ record(waveform,"${PREFIX}RawData-Wf_")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   field(PREC,"4")
    field(EGU,"Volts")
    field(FLNK,"${PREFIX}VoltWf-ASub_")
 }
@@ -269,7 +271,7 @@ record(waveform,"${PREFIX}VoltData-Wf")
    field(NELM,"${NELM}")
    field(FTVL,"DOUBLE")
    field(INP,"${PREFIX}VoltWf-ASub_.VALA")
-   field(PREC,"4")
+   field(PREC,"6")
    field(EGU,"V")
 }
 
@@ -283,7 +285,7 @@ record(subArray,"${PREFIX}VoltData-SubAr_")
    field(INDX,"0")
    field(NELM,"40")
    field(FTVL,"DOUBLE")
-   field(PREC,"4")
+   field(PREC,"6")
    field(EGU,"V")
 }
 
@@ -291,7 +293,7 @@ record(ai,"${PREFIX}MaxVolt-I")
 {
    field(DESC,"Max value")
    field(INP,"${PREFIX}VoltWf-ASub_.VALB")
-   field(PREC,"4")
+   field(PREC,"6")
    field(EGU,"V")
 }
 
@@ -299,7 +301,7 @@ record(ai,"${PREFIX}MinVolt-I")
 {
    field(DESC,"Min value")
    field(INP,"${PREFIX}VoltWf-ASub_.VALC")
-   field(PREC,"4")
+   field(PREC,"6")
    field(EGU,"V")
 }
 
@@ -307,7 +309,7 @@ record(ai,"${PREFIX}AveVolt-I")
 {
    field(DESC,"Averaged DC")
    field(INP,"${PREFIX}VoltWf-ASub_.VALD")
-   field(PREC,"4")
+   field(PREC,"6")
    field(EGU,"Volts")
 }
 
@@ -315,7 +317,7 @@ record(ai,"${PREFIX}StdVolt-I")
 {
    field(DESC,"RMS noise")
    field(INP,"${PREFIX}VoltWf-ASub_.VALE")
-   field(PREC,"4")
+   field(PREC,"6")
    field(EGU,"V")
 }
 
@@ -356,7 +358,7 @@ record(waveform,"${PREFIX}VoltDataSaved-Wf_")
    field(NELM,"${NELM}")
    field(FTVL,"FLOAT")
    field(INP,"${PREFIX}VoltData-Wf")
-   field(PREC,"4")
+   field(PREC,"6")
    field(EGU,"V")
 }
 
@@ -463,15 +465,6 @@ record(ai,"${PREFIX}TrigRate-I")
    field(EGU,"Hz")
 }
 
-record(ai,"${PREFIX}TrigLevelRange")
-{
-   field(DESC,"TrigLevelRange")
-   field(DTYP,"acqiris")
-   field(INP,"@M${MODULE} C${CHANNEL} CTLRG")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
 record(mbbo,"${PREFIX}TrigCoupling-Sel")
 {
    field(DESC,"Channel TrigCoupling")
@@ -524,7 +517,8 @@ record(ao,"${PREFIX}TrigLevel1-SP")
    field(DRVH,"50")
    field(DRVL,"0")
    field(EGU,"%")
-   info(autosaveFields_pass0, "RVAL")
+   #info(autosaveFields_pass0, "RVAL")
+   info(autosaveFields_pass1, "VAL")
 }
 
 record(ao,"${PREFIX}TrigLevel2-SP")
@@ -537,7 +531,17 @@ record(ao,"${PREFIX}TrigLevel2-SP")
    field(DRVH,"50")
    field(DRVL,"0")
    field(EGU,"%")
-   info(autosaveFields_pass0, "RVAL")
+   #info(autosaveFields_pass0, "RVAL")
+   info(autosaveFields_pass1, "VAL")
+}
+
+record(ai,"${PREFIX}TrigLevelRange")
+{
+   field(DESC,"TrigLevelRange")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} C${CHANNEL} CTLRG")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
 }
 
 record(longin,"${PREFIX}OverloadStatus")

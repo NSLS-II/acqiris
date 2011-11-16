@@ -107,6 +107,11 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	//printf("This aSub record name is: %s, %s \n", precord->name, plink->value.pv_link.precord->name);
 	paddr = (DBADDR *)plink->value.pv_link.pvt;
 	pwf = (waveformRecord *)paddr->precord;
+	//get MODULE info from INPA: ${PREFIX}RawData-Wf_ and then get 'realTrigRate'
+	arc = (acqiris_record_t *)paddr->precord->dpvt;
+	module = arc->module;
+	ad = &acqiris_drivers[module];
+	memcpy((double *)precord->valn, &ad->realTrigRate, precord->novn * sizeof(double));
 	//printf("number of effective samples(samples/ch): %d \n", pwf->nelm);
 
 //reset background noise: all zero
@@ -193,7 +198,6 @@ static long acqirisAsubProcess(aSubRecord *precord)
 	}
 	//put integral values (individual bunch charge) into out link (waveform record)
     memcpy((double *)precord->vall, &pfillPattern[0], MAX_NUM_BUNCH * sizeof(double));
-
 /*
 	if (numBunch > MAX_NUM_BUNCH)
 	{
@@ -241,15 +245,6 @@ static long acqirisAsubProcess(aSubRecord *precord)
     memcpy((long *)precord->valj, &maxQBunchNum, precord->novj * sizeof(long));
     memcpy((long *)precord->valk, &minQBunchNum, precord->novk * sizeof(long));
     memcpy((unsigned int *)precord->valm, &pPeakIndex[0], MAX_NUM_BUNCH * sizeof(unsigned int));
-
-//get MODULE info from INPA: ${PREFIX}RawData-Wf_ and then get 'realTrigRate'
-	plink = &precord->inpa;
-	paddr = (DBADDR *)plink->value.pv_link.pvt;
-	arc = (acqiris_record_t *)paddr->precord->dpvt;
-	module = arc->module;
-	ad = &acqiris_drivers[module];
-	memcpy((double *)precord->valn, &ad->realTrigRate, precord->novn * sizeof(double));
-
 	//printf("put all output links values \n");
     if (acqirisAsubDebug)
     {
