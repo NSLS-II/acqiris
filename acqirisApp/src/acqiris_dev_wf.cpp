@@ -26,6 +26,7 @@ extern "C" {
     return acqiris_read_record(r);
   }
 
+  //get_ioint_info is only called during iocInit: returns ioscanpvt
   static long get_ioint_info(int cmd, void* record, IOSCANPVT* ppvt)
   {  
     waveformRecord* r = reinterpret_cast<waveformRecord*>(record);

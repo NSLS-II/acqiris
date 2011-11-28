@@ -1,12 +1,12 @@
-## Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer
-## functionality: configure the board for all channels: start/stop acquisition, converters per channel(interleaving),\\
+## functionality: configure the board for all channels: start/stop DAQ, converters per channel
 ## \\Sample interval/sampling frequency, sample length, trigger source, diagnostics info, etc.
-## PREFIX	- follows NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+## PREFIX	-   NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
-## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
-##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+## MODULE   -	#digitizer; "0" is the first digitizer found during initialization.
+##              For Acqiris crate and CPU, it's the top slot if there's one digitizer 
+## NELM     -	max. number of samples to be acquired 
 
 record(mbbo,"${PREFIX}DAQStatus-Sel")
 {
@@ -107,19 +107,6 @@ record(calc,"${PREFIX}SampLength-I")
    field(FLNK,"${PREFIX}TimeAxis-ASub_")
 }
 
-record(longout,"${PREFIX}AcqTimeout-SP")
-{
-   #AcqrsD1_waitForEndOfAcquisition(id, timeout);
-   #AcqirisD1Interface.h: 'timeout' is internally clipped to a range of [0, 10000] milliseconds
-   field(DESC,"AcquisitionTimeout(ms)")
-   field(PINI,"YES")
-   field(DRVH,"10000")
-   field(DRVL,"2000")
-   field(EGU,"ms")
-   info(autosaveFields_pass0, "VAL")
-   field(FLNK,"${PREFIX}TimeAxis-ASub_")
- }
- 
 record(aSub,"${PREFIX}TimeAxis-ASub_")
 {
     field(DESC,"construct time axis")
@@ -134,10 +121,6 @@ record(aSub,"${PREFIX}TimeAxis-ASub_")
     field (INPB, "${PREFIX}SampLength-I")
     field (FTB, "DOUBLE")
     field (NOB, "1")
-    #acquisition time out(ms): AcqrsD1_waitForEndOfAcquisition(id, timeout);
-    field (INPC, "${PREFIX}AcqTimeout-SP")
-    field (FTC, "LONG")
-    field (NOC, "1")
     #waveform data for time axis             
     field (OUTA, "${PREFIX}TimeAxis-Wf PP")
     field (FTVA, "DOUBLE")

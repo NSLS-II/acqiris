@@ -1,260 +1,235 @@
 /* 
-    Original Author: Perazzo, Amedeo
-    Modified by Yong Hu: 10/29/2010
+Original Author: Perazzo, Amedeo
+Current Author: Hu, Yong <yhu@bnl.gov>
 */
-
-#include "acqiris_drv.hh"
-#include "acqiris_daq.hh"
-
-#include <AcqirisD1Import.h>
-#include <AcqirisImport.h>
-
-#include <epicsExport.h>
-#include <iocsh.h>
-//Yong Hu
-#include <drvSup.h>
 
 #include <stdio.h>
 #include <string.h>
 
-//Yong Hu
-/*
-#ifdef __cplusplus 
-extern "C" { 
-#endif 
+#include "AcqirisD1Import.h"
+#include "AcqirisImport.h"
+
+#include "epicsExport.h"
+#include "iocsh.h"
+#include "drvSup.h"
+#include "epicsPrint.h"
+#include "epicsThread.h"
+
+#include "acqiris_drv.hh"
+#include "acqiris_daq.hh"
+
+namespace { const char rcs_id[] = "$Id$"; }
+
+/**must have the following line, otherwise compilation error occurs:
+ * acqiris_drv_li.o: In function
+ * `int acqiris_read_record_specialized<longinRecord>(longinRecord*)':
+... undefined reference to `acqiris_drivers'
 */
+acqiris_driver_t acqiris_drivers[MAX_DEV];
 
-/*
-***define global variables here and only once;
-***if no 'extern "C"' is used to declare global variables in 'acqiris_drv.hh',
-move these definitions out of 'extern "C"' below;
-***if 'extern "C"' is used to declare global variables in 'acqiris_drv.hh',
-these variables can be defined anywhere.
+static int nbr_acqiris_drivers = 0;
+
+//ignore check_version_number if the board gives wrong version number
+static void check_version_number(ViInt32 id)
+{
+	const char *versionstr[] =
+	{
+			"Kernel Driver",
+			"EEPROM Common Section",
+			"EEPROM Instrument Section",
+			"CPLD Firmware"
+	};
+	const ViInt32 expected[4] = {0x10006, 0x3, 0x8, 0x2a};
+	ViInt32 found[4];
+	for (int v=0; v<4; v++)
+	{
+		Acqrs_getVersion(id, v+1, found+v);
+		if (((found[v] & 0xffff0000) != (expected[v] & 0xffff0000)) ||\
+				((found[v] & 0x0000ffff) <  (expected[v] & 0x0000ffff)))
+		{
+			fprintf(stderr, "Unexpected version 0x%x for %s, expected 0x%x\n",\
+					(unsigned)found[v], versionstr[v], (unsigned)expected[v]);
+		}
+	}//for (int v=0; v<4; v++)
+}//static void check_version_number(ViInt32 id)
+
+static int acqiris_find_devices(int calibration)
+{
+	ViInt32 nbrInstruments = 0;
+	ViString options;
+	int module = 0;
+
+	ViStatus status = Acqrs_getNbrInstruments(&nbrInstruments);
+	if (VI_SUCCESS != status)
+	{
+		errlogPrintf("can't get any instrument \n");
+		return 0;
+	}
+	printf("%d modules found \n",(int)nbrInstruments);
+
+	if (0 == calibration)
+	{
+		options = "cal=0 dma=0";
+		printf("No calibration during power-up \n");;
+	}
+	else
+	{
+		options = "cal=1 dma=0";
+		printf("Calibration in progress, Wait... \n");;
+	}
+
+	for (module = 0; module < nbrInstruments; module++)
+	{
+		acqiris_driver_t *ad = &acqiris_drivers[module];
+		char name[20];
+		sprintf(name, "PCI::INSTR%d", module);
+		status = Acqrs_InitWithOptions(name, VI_FALSE, VI_FALSE,\
+				options, (ViSession*)&ad->id);
+		if (VI_SUCCESS != status)
+		{
+			errlogPrintf("Init failed (%x) for instrument %s with options(%s) \n",\
+					(unsigned)status, name, options);
+//if one board can't be initialized, just return the number of initialized boards
+			return module;
+		}
+		printf("Initialized module(%s) with options(%s): status:0x%x\n",\
+				name,options,(unsigned)status);
+
+		status = Acqrs_getNbrChannels(ad->id, (ViInt32*)&ad->nchannels);
+		status = Acqrs_getInstrumentInfo(ad->id, "MaxSamplesPerChannel", &ad->maxsamples);
+		status = Acqrs_getInstrumentInfo(ad->id, "TbSegmentPad", &ad->extra);
+		status = Acqrs_getInstrumentInfo(ad->id, "CrateNb", &ad->CrateNb);
+		status = Acqrs_getInstrumentInfo(ad->id, "NbrADCBits", &ad->NbrADCBits);
+		status = Acqrs_getInstrumentInfo(ad->id, "PosInCrate", &ad->PosInCrate);
+		status = Acqrs_getInstrumentData(ad->id, ad->modelName, &ad->serialNbr,\
+				&ad->busNbr, &ad->slotNbr);
+		if (VI_SUCCESS != status)
+		{
+			errlogPrintf("can't get more instrument info of %s \n", name);
+			return module;
+		}
+
+//ignore check_version_number if the board gives wrong version number
+		//check_version_number(ad->id);
+
+		ad->module = module;
+	}//for (module=0; module<nbrInstruments; )
+
+	return module;//return the number of successfully initialized boards
+}//static int acqiris_find_devices(int calibration)
+
+static int acqirisInit(int calibration)
+{
+	acqiris_driver_t* ad;
+	int channel;
+	char name[32];
+	int size;
+
+	nbr_acqiris_drivers = acqiris_find_devices(calibration);
+	if (0 == nbr_acqiris_drivers)
+	{
+		//fprintf(stderr, "*** Could not find any acqiris device\n");
+		errlogPrintf("*** Could not find any acqiris device\n");
+		return -1;
+	}
+
+	for (int module=0; module<nbr_acqiris_drivers; module++)
+	{
+		ad = &acqiris_drivers[module];
+ /*Cancel the calibration process after initialization
+  * so that no periodical cal which might impact digitzing
 */
+  //Acqrs_calibrateCancel(ad->id);
+		ad->run_semaphore = epicsEventMustCreate(epicsEventEmpty);
+		ad->daq_mutex = epicsMutexMustCreate();
+		ad->count = 0;
+		for (channel=0; channel<ad->nchannels; channel++)
+		{
+			size = (ad->maxsamples + ad->extra) * sizeof(short);
+			ad->data[channel].nsamples = 0;
+			ad->data[channel].buffer = new char[size];
+		}
 
-//acqiris_driver_t acqiris_drivers[MAX_DEV];
-//unsigned nbr_acqiris_drivers = 0;
-//epicsMutexId acqiris_dma_mutex;
+		snprintf(name, sizeof(name), "tacqirisdaq%u", module);
+		scanIoInit(&ad->ioscanpvt);
+		epicsThreadMustCreate(name, epicsThreadPriorityMin,\
+				5000000, acqiris_daq_thread, ad);
+		printf("DAQ thread (%s) is created for digitizer #%d\n", name, module);
+	} //for (int module=0; module<nbr_acqiris_drivers; module++)
 
-extern "C" {
-  acqiris_driver_t acqiris_drivers[MAX_DEV];
-  unsigned nbr_acqiris_drivers = 0;
-  epicsMutexId acqiris_dma_mutex;
-  //static char modelName[32];
-  //static ViInt32 serialNbr;
-  //static ViInt32 busNbr;
-  //static ViInt32 slotNbr;
+	return (0);
+}//static int acqirisInit(int calibration)
 
-//Yong Hu: our DC252 version is 0x7, igore check_version_number 
-  static void check_version_number(ViInt32 id)
-  {
-    const char* versionstr[] = {
-      "Kernel Driver",
-      "EEPROM Common Section",
-      "EEPROM Instrument Section",
-      "CPLD Firmware"
-    };
-    const ViInt32 expected[4] = {0x10006, 0x3, 0x8, 0x2a};
-    ViInt32 found[4];
-    for (int v=0; v<4; v++) {
-      Acqrs_getVersion(id, v+1, found+v);
-      if (((found[v] & 0xffff0000) != (expected[v] & 0xffff0000)) ||
-	  ((found[v] & 0x0000ffff) <  (expected[v] & 0x0000ffff))) {
-	fprintf(stderr, "*** Unexpected version 0x%x for %s, expected 0x%x\n",
-		(unsigned)found[v], versionstr[v], (unsigned)expected[v]);
-      }
-    }
-  }
+static const iocshArg acqirisInitArg0 = {"calibration",iocshArgInt};
+static const iocshArg * const acqirisInitArgs[1] = {&acqirisInitArg0};
+static const iocshFuncDef acqirisInitFuncDef = {"acqirisInit",1,acqirisInitArgs};
 
-  static int acqiris_find_devices(int calibration)
-  {
-    ViInt32 nbrInstruments;
-    ViString options;
-    ViStatus status = Acqrs_getNbrInstruments(&nbrInstruments);
-    printf("%d modules found \n",(int)nbrInstruments);
-    if (0 ==  calibration)
-    {
-    	options = "cal=0 dma=0";
-        printf("No calibration during power-up \n");;
-    }
-    else
-    {
-    	options = "cal=1 dma=0";
-        printf("Calibration in progress, Wait... \n");;
-    }
+static void acqirisInitCallFunc(const iocshArgBuf *arg)
+{
+	acqirisInit(arg[0].ival);
+}
 
-    int module;
-    for (module = 0; module < nbrInstruments; )
-    {
-    	acqiris_driver_t* ad = &acqiris_drivers[module];
-//Yong Hu: pass calibration parameters
-      //ViString options = "";
-      //ViString options = "cal=0 dma=0";
-      //ViString options = "cal=1,dma=1";
-     
-      char name[20];
-      sprintf(name, "PCI::INSTR%d", module);
-      status = Acqrs_InitWithOptions(name, VI_FALSE, VI_FALSE, options, (ViSession*)&ad->id);
-      //Yong Hu
-      if (status != VI_SUCCESS)
-      {
-    	  fprintf(stderr, "*** Init failed (%x) for instrument %s with options(%s) \n",(unsigned)status, name, options);
-    	  //continue;
-    	  return module;
-      }
-      printf("Initialized module(%s) with options(%s) successfully(status:0x%x)\n",name,options,(unsigned)status);
+void acqirisRegistrar()
+{
+	iocshRegister(&acqirisInitFuncDef,acqirisInitCallFunc);
+}
 
-//Yong Hu
-     // Acqrs_calibrate(ad->id);
-     // Acqrs_calibrateEx(ad->id, 0, 0, 0);
+epicsExportRegistrar(acqirisRegistrar);
 
-      Acqrs_getNbrChannels(ad->id, (ViInt32*)&ad->nchannels);
-      Acqrs_getInstrumentInfo(ad->id, "MaxSamplesPerChannel", &ad->maxsamples);
-      Acqrs_getInstrumentInfo(ad->id, "TbSegmentPad", &ad->extra);
-//Yong Hu: get more instrument information
-      Acqrs_getInstrumentInfo(ad->id, "CrateNb", &ad->CrateNb);
-      Acqrs_getInstrumentInfo(ad->id, "NbrADCBits", &ad->NbrADCBits);
-      Acqrs_getInstrumentInfo(ad->id, "PosInCrate", &ad->PosInCrate);
-      Acqrs_getInstrumentInfo(ad->id, "VersionUserDriver", &ad->VersionUserDriver);
-      //printf("digitizer version: %s\n", &ad->VersionUserDriver);
-      //if char* modelName, ad->modelName gives Segmentation fault; &ad->modelName gives compilation error
-     Acqrs_getInstrumentData(ad->id, ad->modelName, &ad->serialNbr, &ad->busNbr, &ad->slotNbr);
-      //status = Acqrs_getInstrumentData(ad->id, modelName, &serialNbr, &busNbr, &slotNbr);
-      //Acqrs_getInstrumentData(ViSession instrumentID,ViChar name[], ViInt32* serialNbr, ViInt32* busNbr, ViInt32* slotNbr);
-      //printf("model name: %s\n", ad->modelName);
-//Yong Hu: our DC252 version is 0x7, igore check_version_number 
-      //check_version_number(ad->id);
-      ad->module = module;
-      module++;
-    }//for (module=0; module<nbrInstruments; )
+//for dbior: driver support
+static long report()
+{
+	acqiris_driver_t* ad;
+	printf("********************************************************\n");
+	printf("%d digitizers are initialized successfully:\n", nbr_acqiris_drivers);
+	for (int module=0; module<nbr_acqiris_drivers; module++)
+	{
+		ad = &acqiris_drivers[module];
+		printf("digitizer #%d:\n", module);
+		printf("\t%d channels, %d samples(max.)/channel, resolution %d-bit;\n",\
+				ad->nchannels, ad->maxsamples, ad->NbrADCBits);
+		printf("\tat slot %d, total %d slots in the crate;\n",\
+				ad->PosInCrate, ad->CrateNb);
+		printf("\tmodel: %s; serial number: %d; bus number: %d; slot number: %d; \n",\
+				ad->modelName, ad->serialNbr, ad->busNbr, ad->slotNbr);
+		printf("********************************************************\n");
+	}//for (int module=0; module<nbr_acqiris_drivers; module++)
 
-    return module;
-  }   
+	return 0;
+}
 
-  //static int acqirisInit(int order)
-  static int acqirisInit(int calibration)
-  {
-//Yong Hu
-    acqiris_driver_t* ad;
+static long init()
+{
+	acqiris_driver_t* ad;
+	printf("********************************************************\n");
+	printf("%d digitizers are initialized successfully:\n", nbr_acqiris_drivers);
+	for (int module=0; module<nbr_acqiris_drivers; module++)
+	{
+		ad = &acqiris_drivers[module];
+		printf("digitizer #%d:\n", module);
+		printf("\t%d channels, %d samples(max.)/channel, resolution %d-bit;\n",\
+				ad->nchannels, ad->maxsamples, ad->NbrADCBits);
+		printf("\tat slot %d, total %d slots in the crate;\n",\
+				ad->PosInCrate, ad->CrateNb);
+		printf("\tmodel: %s; serial number: %d; bus number: %d; slot number: %d; \n",\
+				ad->modelName, ad->serialNbr, ad->busNbr, ad->slotNbr);
+		printf("********************************************************\n");
+	}//for (int module=0; module<nbr_acqiris_drivers; module++)
 
-    nbr_acqiris_drivers = acqiris_find_devices(calibration);
-    if (!nbr_acqiris_drivers) {
-      fprintf(stderr, "*** Could not find any acqiris device\n");
-      return -1;
-    }
-    acqiris_dma_mutex = epicsMutexMustCreate();
-    for (unsigned module=0; module<nbr_acqiris_drivers; module++) {
-      int channel;
-      char name[32];
-//Yong Hu: Cancel the calibration process after initialization 
-//so that no periodical cal which might impact digitzing
-      ad = &acqiris_drivers[module];
-      Acqrs_calibrateCancel(ad->id);
-      //printf("Cancel the calibration process after initialization--yhu\n");
+	return 0;
+}
 
-      ad->run_semaphore = epicsEventMustCreate(epicsEventEmpty);
-      ad->daq_mutex = epicsMutexMustCreate();
-      ad->count = 0;
-      for(channel=0; channel<ad->nchannels; channel++) {
-	int size = (ad->maxsamples+ad->extra)*sizeof(short);
-	ad->data[channel].nsamples = 0;
-	ad->data[channel].buffer = new char[size];
-      }
-      snprintf(name, sizeof(name), "tacqirisdaq%u", module);
-      scanIoInit(&ad->ioscanpvt);      //printf("digitizer version: %s\n", &ad->VersionUserDriver);
-      epicsThreadMustCreate(name, 
-			    epicsThreadPriorityMin, 
-			    5000000,
-			    acqiris_daq_thread, 
-			    ad); 
-    } //for (unsigned module=0; module<nbr_acqiris_drivers; module++)  
-  
-    //Yong Hu
-    //Acqrs_calibrateCancel(ad->id);
-    //printf("Cancel the calibration process after initialization--yhu\n");
-    return 0;
-  }
+struct
+{
+	long number;
+	DRVSUPFUN report;
+	DRVSUPFUN init;
+} drvAcqiris =
+{
+		2,
+		report,
+		init
+};
 
-  static const iocshArg acqirisInitArg0 = {"calibration",iocshArgInt};
-  static const iocshArg * const acqirisInitArgs[1] = {&acqirisInitArg0};
-  static const iocshFuncDef acqirisInitFuncDef =
-    {"acqirisInit",1,acqirisInitArgs};
-
-  static void acqirisInitCallFunc(const iocshArgBuf *arg)
-  {
-    acqirisInit(arg[0].ival);  
-  }
-
-  void acqirisRegistrar()
-  {
-    iocshRegister(&acqirisInitFuncDef,acqirisInitCallFunc);
-  }
-
-  epicsExportRegistrar(acqirisRegistrar);
-
-//Yong Hu:for dbior()
-//wrong if "static long report(int level)"
-  static long report()
-  {
-    int module;
-    acqiris_driver_t* ad;
-    //printf("dbior: testing --yhu\n");
-    printf("********************************************************\n");
-    printf("%d modules/digitizers are initialized successfully:\n", nbr_acqiris_drivers);
-    for (module=0; module<nbr_acqiris_drivers; module++) 
-    {
-      ad = &acqiris_drivers[module];
-      printf("digitizer #%d:\n", module);
-//must use "&ad->VersionUserDriver"
-      printf("	User driver version: %s;\n", &ad->VersionUserDriver);
-      printf("	%d channels, %d samples(max.)/channel, resolution %d-bit;\n", ad->nchannels, ad->maxsamples, ad->NbrADCBits);
-      printf("	at slot %d, total %d slots in the crate;\n", ad->PosInCrate, ad->CrateNb);
-      printf("	model: %s; serial number: %d; bus number: %d; slot number: %d; \n", ad->modelName, ad->serialNbr, ad->busNbr, ad->slotNbr);
-      printf("********************************************************\n");
-    }
-
-    return 0;
-  }
-
-  static long init()
-  {
-    int module;
-    acqiris_driver_t* ad;
-    //printf("dbior: testing --yhu\n");
-    printf("********************************************************\n");
-    printf("%d modules/digitizers are initialized successfully: \n", nbr_acqiris_drivers);
-    for (module=0; module<nbr_acqiris_drivers; module++) 
-    {
-      ad = &acqiris_drivers[module];
-      printf("digitizer #%d:\n", module);
-//must use "&ad->VersionUserDriver"
-      printf("	User driver version: %s;\n", &ad->VersionUserDriver);
-      printf("	%d channels, %dK samples(max.)/channel, resolution %d-bit;\n", ad->nchannels, ad->maxsamples / 1024, ad->NbrADCBits);
-      printf("	at slot %d, total %d slots in the crate;\n", ad->PosInCrate, ad->CrateNb);
-      //printf("	model: %s; serial number: %d; bus number: %d; slot number: %d; \n", modelName, serialNbr, busNbr, slotNbr);
-      printf("	model: %s; serial number: %d; bus number: %d; slot number: %d; \n", ad->modelName, ad->serialNbr, ad->busNbr, ad->slotNbr);
-      printf("********************************************************\n");
-    }
-    return 0;
-  }
-
-  struct {
-    long number;
-    DRVSUPFUN report;
-    DRVSUPFUN init;
-    } drvAcqiris = {
-      2,
-      report,
-      init
-    };
-
-  epicsExportAddress(drvet,drvAcqiris);
-
-} //extern "C"
-
-/*
-#ifdef __cplusplus 
-} 
-#endif 
-*/
+epicsExportAddress(drvet,drvAcqiris);
 

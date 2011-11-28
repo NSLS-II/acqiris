@@ -1,5 +1,5 @@
-#include "acqiris_dev.hh"
 #include "acqiris_drv.hh"
+#include "acqiris_dev.hh"
 
 #include <AcqirisD1Import.h>
 #include <AcqirisImport.h>

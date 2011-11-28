@@ -1,14 +1,26 @@
-## Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer
-## functionality: for individual channel, configure input range, offset, triggering, coupling and bandwidth, \\
-## \\get raw waveform data, process data by subArray record;
-## PREFIX	- follows NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+## functionality: configure individual channel: input range, offset, triggering,etc.
+## 				  get raw waveform data, process data by subArray record;
+## PREFIX - NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
 ## CHANNEL  -	#channel of the board(MODULE); "0" refers to the first channel  
-## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
-##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+## MODULE   -	#digitizer; "0" is the first digitizer found during initialization.
+##              For Acqiris crate and CPU, it's the top slot if there's one digitizer  
 ## NELM     -	(max.) number of elements of waveform record 
+
+#raw waveform data: 16-bit integer
+record(waveform,"${PREFIX}RawData-Wf_")
+{
+   field(SCAN,"I/O Intr")
+   field(DESC,"Raw waveform data")
+   field(DTYP,"acqiris")
+   field(NELM,"${NELM}")
+   field(FTVL,"SHORT")
+   field(INP,"@M${MODULE} C${CHANNEL} WRAW")
+   field(EGU,"Volts")
+   field(FLNK,"${PREFIX}VoltWf-ASub_")
+}
 
 record(ao,"${PREFIX}FullScale-SP")
 {
@@ -43,65 +55,6 @@ record(ao,"${PREFIX}RangeOffset-SP")
     info(autosaveFields_pass1, "VAL")
 }
 
-record(mbbo,"${PREFIX}Coupling-Sel")
-{
-   field(DESC,"Channel Coupling")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CCPLN")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"Ground")
-   field(ONVL,"1")
-   field(ONST,"DC")
-   field(TWVL,"2")
-   field(TWST,"AC")
-   field(THVL,"3")
-   field(THST,"DC_50_Ohm")
-   field(FRVL,"4")
-   field(FRST,"AC_50_Ohm")
-   info(autosaveFields_pass0, "RVAL")
-}
-
-record(mbbo,"${PREFIX}Bandwidth-Sel")
-{
-   field(DESC,"Bandwidth")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CBNDW")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"No_Limit")
-   field(ONVL,"1")
-   field(ONST,"25Mhz")
-   field(TWVL,"2")
-   field(TWST,"700MHz")
-   field(THVL,"3")
-   field(THST,"200Mhz")
-   field(FRVL,"4")
-   field(FRST,"20Mhz")
-   field(FVVL,"5")
-   field(FVST,"35Mhz")
-   info(autosaveFields_pass0, "RVAL")
-}
-
-#get voltage waveform data in acqiris_drv_wf.cpp; 
-#doesn't subtract noise and no zeroing DC noise
-#Sept.06, 2011: subtracting noise doesn't help
-record(waveform,"${PREFIX}VoltData-Wf_")
-{
-   field(SCAN,"I/O Intr")
-   field(DESC,"voltage waveform data")
-   field(DTYP,"acqiris")
-   field(NELM,"${NELM}")
-   field(FTVL,"FLOAT")
-   field(INP,"@M${MODULE} C${CHANNEL} WVOL")
-   field(PREC,"6")
-   field(EGU,"V")
-   #save waveform data only if Nbrbunches >= 1
-   #field(FLNK,"${PREFIX}VoltDataSaved-Wf_")
-}
-
 record(ao,"${PREFIX}PeakThreshold-SP")
 {
    field(DESC,"Threshold for searching peak")
@@ -112,7 +65,7 @@ record(ao,"${PREFIX}PeakThreshold-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-#coefficient for calculation of absolute bunch charge of wall current monitor  
+#coefficient for calculation of absolute bunch charge of WCM, etc.  
 record(ao,"${PREFIX}CoefBunchQ-SP")
 {
    field(DESC,"Coefficient")
@@ -156,21 +109,21 @@ record(ao,"${PREFIX}ZeroingOffset-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-#raw waveform data: 16-bit integer
-record(waveform,"${PREFIX}RawData-Wf_")
+record(longout,"${PREFIX}AcqTimeout-SP")
 {
-   field(SCAN,"I/O Intr")
-   field(DESC,"Raw waveform data")
-   field(DTYP,"acqiris")
-   field(NELM,"${NELM}")
-   field(FTVL,"SHORT")
-   field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   field(EGU,"Volts")
-   field(FLNK,"${PREFIX}VoltWf-ASub_")
-}
+   #AcqrsD1_waitForEndOfAcquisition(id, timeout);
+   #'timeout' is internally clipped to a range of [0, 10000] milliseconds
+   field(DESC,"AcquisitionTimeout(ms)")
+   field(PINI,"YES")
+   field(DRVH,"10000")
+   field(DRVL,"2000")
+   field(EGU,"ms")
+   info(autosaveFields_pass0, "VAL")
+ }
 
-#see acqiris_asub_process.cpp: process the waveform record: voltage, max, min, ave, std, 
-#number of bunches(peaks/pulse counts), filling pattern(pulse integral, normalization, etc.), individual bunch charge calibrated against ICT;
+## see acqiris_asub_process.cpp: process the waveform record: voltage, max, min, ave, std, 
+#number of bunches(peaks/pulse counts), filling pattern(integral, normalization, etc.), 
+#individual bunch charge calibrated against ICT;
 record(aSub,"${PREFIX}VoltWf-ASub_")
 {
     field(DESC,"process raw waveform data")
@@ -205,6 +158,10 @@ record(aSub,"${PREFIX}VoltWf-ASub_")
     field (INPG, "${PREFIX}ZeroingOffset-SP")
     field (FTG, "DOUBLE")
     field (NOG, "1")
+    #acquisition time out(ms): AcqrsD1_waitForEndOfAcquisition(id, timeout);
+    field (INPH, "${PREFIX}AcqTimeout-SP")
+    field (FTH, "LONG")
+    field (NOH, "1")
     #voltage waveform data: should have the same data as ${PREFIX}VoltData-Wf_
     # if no subtracting background noise               
     field (OUTA, "${PREFIX}VoltData-Wf PP")
@@ -463,6 +420,48 @@ record(ai,"${PREFIX}TrigRate-I")
    field(INP,"${PREFIX}VoltWf-ASub_.VALN")
    field(PREC,"3")
    field(EGU,"Hz")
+}
+
+record(mbbo,"${PREFIX}Coupling-Sel")
+{
+   field(DESC,"Channel Coupling")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CCPLN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Ground")
+   field(ONVL,"1")
+   field(ONST,"DC")
+   field(TWVL,"2")
+   field(TWST,"AC")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${PREFIX}Bandwidth-Sel")
+{
+   field(DESC,"Bandwidth")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CBNDW")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"No_Limit")
+   field(ONVL,"1")
+   field(ONST,"25Mhz")
+   field(TWVL,"2")
+   field(TWST,"700MHz")
+   field(THVL,"3")
+   field(THST,"200Mhz")
+   field(FRVL,"4")
+   field(FRST,"20Mhz")
+   field(FVVL,"5")
+   field(FVST,"35Mhz")
+   info(autosaveFields_pass0, "RVAL")
 }
 
 record(mbbo,"${PREFIX}TrigCoupling-Sel")

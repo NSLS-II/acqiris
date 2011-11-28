@@ -1,11 +1,10 @@
-## Yong Hu: simplify/reduce the original db by SLAC(Perazzo, Amedeo) to be dedicated for Acqiris digitizer;
-## functionality: configure external triggering: trigger level, full scale, coupling, etc.
-## PREFIX	- follows NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+## functionality: configure external triggering: trigger level, scale, coupling, etc.
+## PREFIX - NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
-## MODULE   -	#board / digitizer; "0" refers to the first digitizer found during initialization. \\
-##              For Acqiris crate and Concurrent CPU, it's the top slot(#5) if there's one digitizer in slot 5 
+## MODULE   -	#digitizer; "0" is the first digitizer found during initialization.
+##              For Acqiris crate and CPU, it's the top slot if there's one digitizer 
 
 record(ao,"${PREFIX}ExTrigLevel1-SP")
 {

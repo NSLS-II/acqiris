@@ -1,49 +1,45 @@
 /* 
     Original Author: Perazzo, Amedeo
-    Modified/modified by Yong Hu: 09/29/2011
+    Current Author: Hu, Yong <yhu@bnl.gov>
 */
+
+#include <stdio.h>
+
+#include "AcqirisD1Import.h"
+#include "AcqirisImport.h"
+
+#include "epicsTime.h"
+#include "epicsMutex.h"
+#include "epicsPrint.h"
 
 #include "acqiris_daq.hh"
 #include "acqiris_drv.hh"
 
-#include <AcqirisD1Import.h>
-#include <AcqirisImport.h>
-
-#include <stdio.h>
-
-/*Yong Hu*/
-#include <epicsTime.h>
-
 #define SUCCESSREAD(x) (((x)&0x80000000)==VI_SUCCESS)
 
-/*global variable*/
-//double iocUpdateRate;
-
-extern "C"
+void acqiris_daq_thread(void *arg)
 {
-  long timeout = 2000;//acquisition timeout declared in acqiris_drv.hh
-
-  void acqiris_daq_thread(void *arg)
-  {
-//Yong Hu
-    epicsTimeStamp now;
+	epicsTimeStamp now;
     char tsText[30];
-    //short *buffer;
     double preTimeAtEndOfAcq = 0.0;
     double curTimeAtEndOfAcq = 0.0;
+    const int nbrSegments = 1;
+    AqReadParameters readParams;
+    AqDataDescriptor wfDesc;
+    AqSegmentDescriptor segDesc[nbrSegments];
 
     acqiris_driver_t* ad = reinterpret_cast<acqiris_driver_t*>(arg);
-    int nchannels = ad->nchannels;//max. number of channels (no combination/interleaving)
-    int extra = ad->extra;//extra=208
-    //int extra = 32;
-    const int nbrSegments = 1;
-    int nbrSamples = ad->maxsamples;//512K for stardard DC252
-    //int nbrSamples = 4000;
-    //printf("extra: %d;nbrSamples: %d \n", ad->extra, ad->maxsamples );
 
-    AqReadParameters    readParams;
-    AqDataDescriptor    wfDesc;
-    AqSegmentDescriptor segDesc[nbrSegments];
+    ad->acqTimeout = 2000;
+    long timeout = ad->acqTimeout;
+
+    int extra = ad->extra;
+    int nbrSamples = ad->maxsamples;
+    //printf("extra: %d;nbrSamples: %d \n", ad->extra, ad->maxsamples );
+    int size = (ad->maxsamples + ad->extra)*sizeof(short);
+    void* buffer = new char[size];
+
+    epicsMutexId acqiris_dma_mutex = epicsMutexMustCreate();
 
     readParams.dataType         = ReadInt16;
     readParams.readMode         = ReadModeStdW;
@@ -54,81 +50,100 @@ extern "C"
     readParams.segDescArraySize = nbrSegments*sizeof(AqSegmentDescriptor);
     readParams.nbrSamplesInSeg  = nbrSamples;
     readParams.dataArraySize    = (nbrSamples+extra)*nbrSegments*sizeof(short);
-    //yhu: bug fix: AqReadDataFlags is default to 5; must set readParams.flags=0 to display waveform data stably/correctly
+/**bug fix: AqReadDataFlags is default to 5;
+    must set readParams.flags=0 to display waveform data stably/correctly
+*/
     readParams.flags = 0;
     readParams.reserved = 0;
     readParams.reserved2 = 0.0;
     readParams.reserved3 = 0.0;
-//Yong Hu
-     //printf("ad->running = %d --yhu\n", ad->running);
-     //Acqrs_calibrateCancel(ad->id);
-     //printf("Cancel the calibration process after initialization--yhu\n");
 
-    while (1) {
-      epicsEventWait(ad->run_semaphore);
-      do { 
-//Yong Hu: use shorter timeout for testing 120Hz: 10ms is too short, 20ms works well;
-        //const long timeout = 2000; /* ms */
-        //const long timeout = 10; /* ms */
-        //const long timeout = 20; /* ms */
-        int id = ad->id;
-        //AcqrsD1_acquire(id); 
-//Yong Hu
-        ViStatus status = AcqrsD1_acquire(id); 
-        if (status != VI_SUCCESS) {
-          printf("Can't start the acquisition --yhu\n");
-        }
+    while (1)
+    {
+    	epicsEventWait(ad->run_semaphore);
 
-        //printf("Acquisition timout is set to: %d ms \n",timeout);
-        status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
-//compute trigger rate (ioc update rate): should be calculated here or below (if ... else)?
-        epicsTimeGetCurrent(&now);
-        curTimeAtEndOfAcq = now.secPastEpoch + now.nsec/1000000000.0;
-        ad->realTrigRate = 1.0/(curTimeAtEndOfAcq - preTimeAtEndOfAcq);
-        preTimeAtEndOfAcq = curTimeAtEndOfAcq;
+    	do
+    	{
+    		int id = ad->id;
+    		ViStatus status = AcqrsD1_acquire(id);
+    		if (VI_SUCCESS != status)
+    		{
+    			errlogPrintf("card#%d can't start the acquisition\n",ad->module);
+    		}
 
-        if (status != VI_SUCCESS) {
-//Yong Hu
-          printf("Timeout occurred on card #%d when waitForEndofAcquisition: status code is 0x%x, the time is: ", ad->module,(unsigned)status);
-          epicsTimeGetCurrent(&now);
-          epicsTimeToStrftime(tsText, sizeof(tsText), "%Y-%m-%d %H:%M:%S.%6f", &now);
-          printf("%s \n", tsText);
-          //epicsTimeShow(&now, 0);
-          AcqrsD1_stopAcquisition(id);
-          ad->timeouts++;
-        } else {
-          epicsMutexLock(ad->daq_mutex);
-          //yhu: bug fix: nchannels is the max. number of channels. Should use actual effective channels,
-          //otherwise, AcqrsD1_readData will return without success
-          //for (int channel=0; channel<nchannels; channel++) {
-          //ad->effectiveChs is set in acqiris_drv_lo.cpp
-          for (int channel=0; channel < ad->effectiveChs; channel++) {
-            void* buffer = ad->data[channel].buffer;
-            epicsMutexLock(acqiris_dma_mutex);
-            status = AcqrsD1_readData(id, 
-                                      channel+1, 
-                                      &readParams, 
-                                      buffer,
-                                      &wfDesc, 
-                                      &segDesc);
-            epicsMutexUnlock(acqiris_dma_mutex);
-            if (SUCCESSREAD(status)) {
-              ad->data[channel].nsamples = wfDesc.returnedSamplesPerSeg;
-              //yhu: bug fix: DataArray[indexFirstPoint]... DataArray[indexFirstPoint+ returnedSamplesPerSeg-1]
-              ad->data[channel].buffer = (void *)((short *)buffer + wfDesc.indexFirstPoint);
-              //printf("indexFirstPoint(the first valid point): %d; number of actual acquired samples: %d \n", wfDesc.indexFirstPoint, wfDesc.returnedSamplesPerSeg);
-              //printf("Horizontal position of first data point: %f;  readParams.flags: %d \n", segDesc[nbrSegments].horPos, readParams.flags);
-            } else {
-              ad->data[channel].nsamples = 0;
-              printf(" AcqrsD1_readData() error on card #%d, error status: 0x%X \n", ad->module, status);
-              ad->readerrors++;
-            }
-          }//for (int channel=0; channel<nchannels; channel++)
-          epicsMutexUnlock(ad->daq_mutex);
-          scanIoRequest(ad->ioscanpvt);
-          ad->count++;
-        }
-      } while (ad->running);
-    }
-  }
-}
+    		//printf("card#%d AcqTimeout is set to: %d ms\n",ad->module,timeout);
+    		status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
+
+//compute trigger rate (ioc update rate): should be here or below (if ... else)?
+    		epicsTimeGetCurrent(&now);
+    		curTimeAtEndOfAcq = now.secPastEpoch + now.nsec/1000000000.0;
+    		ad->realTrigRate = 1.0/(curTimeAtEndOfAcq - preTimeAtEndOfAcq);
+    		preTimeAtEndOfAcq = curTimeAtEndOfAcq;
+
+    		if (VI_SUCCESS != status)
+    		{
+    			errlogPrintf("Timeout on card #%d when waitForEndofAcquisition:\n",\
+    					ad->module);
+    			errlogPrintf("\t status code is 0x%x, the time is ", \
+    					(unsigned)status);
+    			epicsTimeGetCurrent(&now);
+    			epicsTimeToStrftime(tsText, sizeof(tsText),\
+    					"%Y-%m-%d %H:%M:%S.%6f", &now);
+    			errlogPrintf("%s \n", tsText);
+    			//epicsTimeShow(&now, 0);
+    			AcqrsD1_stopAcquisition(id);
+    			ad->timeouts++;
+    		}
+    		else
+    		{
+/** bug fix: use effective channels instead of the max. number of channels
+ * otherwise, AcqrsD1_readData will return without success
+*/
+    			//ad->effectiveChs is set in acqiris_drv_lo.cpp
+    			//epicsMutexLock(ad->daq_mutex);
+    			for (int channel=0; channel < ad->effectiveChs; channel++)
+    			{
+    				//void *buffer = ad->data[channel].buffer;
+
+    				epicsMutexLock(acqiris_dma_mutex);
+    				status = AcqrsD1_readData(id, channel+1, &readParams,\
+    						buffer, &wfDesc, &segDesc);
+    				epicsMutexUnlock(acqiris_dma_mutex);
+
+    				if (SUCCESSREAD(status))
+    				{
+//returned samples per Seg is configured by AcqrsD1_configMemory() in acqiris_drv_lo.cpp
+    					ad->data[channel].nsamples = wfDesc.returnedSamplesPerSeg;
+/*bugs fix:
+ * 1. fix "waveform display jitter:
+ *		use DataArray[indexFirstPoint]... DataArray[indexFirstPoint+returnedSamplesPerSeg-1];
+ * 2. fix segmentation fault:
+ * 		use 'void* buffer = new char[size]' instead of 'void *buffer = ad->data[channel].buffer'
+ * to prevent these pointers being modified;
+ * */
+    					ad->data[channel].buffer=(void *)((short *)buffer+wfDesc.indexFirstPoint);
+    					//printf("card#%d -- indexFirstPoint: %d; returnedSamplesPerSeg: %d \n",\
+    							ad->module, wfDesc.indexFirstPoint, wfDesc.returnedSamplesPerSeg);
+    					/*printf("Horizontal position of first data: %f;  readParams.flags: %d \n",\
+    					segDesc[nbrSegments].horPos, readParams.flags);*/
+    				}
+    				else
+    				{
+    					ad->data[channel].nsamples = 0;
+    					errlogPrintf(" AcqrsD1_readData() error on card #%d, status: 0x%X \n",\
+    							ad->module, status);
+    					ad->readerrors++;
+    				}
+    			}//for (int channel=0; channel<nchannels; channel++)
+    			//epicsMutexUnlock(ad->daq_mutex);
+
+    			ad->count++;
+
+    			scanIoRequest(ad->ioscanpvt);
+    			//printf("card#%d send out iocsanpvt to waveform record(s)\n", ad->module);
+    		}//if (status != VI_SUCCESS) ... else
+    	}//do
+    	while (ad->running);
+    }//while(1)
+ }
+

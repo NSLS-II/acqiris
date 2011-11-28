@@ -2,9 +2,9 @@
     Original Author: Perazzo, Amedeo
     Modified by Yong Hu: 10/29/2010
 ***********************************************************************************
-    acqiris_init_record(): parse INP/OUT fields to get module/digitizer numbers, channels, and then call 
+   acqiris_init_record(): parse INP/OUT fields to get module/digitizer numbers, channels, and then call
 acqiris_init_record_specialized() which is implemented in acqiris_drv_wf(ao,etc.)
-    acqiris_read_record() &  acqiris_write_record(): just directly call acqiris_read_record_specialized
+   acqiris_read_record() &  acqiris_write_record(): just directly call acqiris_read_record_specialized
 which is implemented in acqiris_drv_wf(ao,etc.)
 */
 
