@@ -1,10 +1,10 @@
-## functionality: configure external triggering: trigger level, scale, coupling, etc.
-## PREFIX - NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+##configure external triggering: trigger level, scale, coupling, etc.
+#PREFIX NSLS2 naming:[PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
-## MODULE   -	#digitizer; "0" is the first digitizer found during initialization.
-##              For Acqiris crate and CPU, it's the top slot if there's one digitizer 
+## MODULE   -	"0" is the first digitizer found during initialization.
+##   For Acqiris crate and CPU, it's the top slot if there's one digitizer 
 
 record(ao,"${PREFIX}ExTrigLevel1-SP")
 {

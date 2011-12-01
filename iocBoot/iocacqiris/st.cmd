@@ -1,5 +1,6 @@
 #!../../bin/linux-x86/acqiris
-#This startup script is for testing NSLS-II Linac(LN) Wall Current Monitor(WCM) in Beam Instrumentation(BI) system. 
+#This startup script is for testing NSLS-II Linac(LN) Wall Current Monitor(WCM)
+#in Beam Instrumentation(BI) system. 
 #You may need to  modify this file to make it work for your setup; 
 #if something wrong happens, check your directory path/structure first
 
@@ -12,12 +13,14 @@ cd ../..
 dbLoadDatabase "dbd/acqiris.dbd"
 acqiris_registerRecordDeviceDriver pdbbase
 
-#acqirisInit(int calibration): 0: no calibration during power-up, mostly for quick system startup during tests; 
-#			       others: perform calibration during startup for precise measurement
+#acqirisInit(int calibration): 
+#0: no calibration during power-up, for quick system startup during tests; 
+# others: perform calibration during startup for precise measurement
 acqirisInit(0)
 #acqirisInit(1)
 
-#For the Elma cPCI crate and CR11 cPCI CPU at NSLS-II Linac, the first Acqiris digitizer is at the bottom of the crate
+#For the Elma cPCI crate and CR11 cPCI CPU at NSLS-II Linac, 
+#the first Acqiris digitizer is at the bottom of the crate
 #the first channel of the first Acqiris digitizer: MODULE=0, CHANNEL=0
 dbLoadRecords ("db/acqiris_channel.db", "PREFIX=LN-BI{WCM:1},MODULE=0,CHANNEL=0,NELM=4000")
 dbLoadRecords ("db/acqiris_module.db",  "PREFIX=LN-BI{ACQ:1},MODULE=0,NELM=4000")

@@ -1,12 +1,12 @@
-## functionality: configure individual channel: input range, offset, triggering,etc.
-## 				  get raw waveform data, process data by subArray record;
-## PREFIX - NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+## configure individual channel: input range, offset, triggering,etc.
+## 	  get raw waveform data, process data by subArray record;
+#PREFIX NSLS2 naming [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
 ## CHANNEL  -	#channel of the board(MODULE); "0" refers to the first channel  
-## MODULE   -	#digitizer; "0" is the first digitizer found during initialization.
-##              For Acqiris crate and CPU, it's the top slot if there's one digitizer  
+## MODULE   -	"0" is the first digitizer found during initialization.
+##       For Acqiris crate and CPU, it's the top slot if there's one digitizer  
 ## NELM     -	(max.) number of elements of waveform record 
 
 #raw waveform data: 16-bit integer
@@ -95,7 +95,7 @@ record(calc,"${PREFIX}NbrSamplesForSum-Calc_")
 }
 
 #Why need ZeroingOffset?
-#there might be DC offset between the FCT and the digitizer even without real beam
+#there might be DC offset between the FCT and the digitizer without real beam
 #ZeroingOffset-SP == AveVolt-I
 record(ao,"${PREFIX}ZeroingOffset-SP")
 {
@@ -121,8 +121,9 @@ record(longout,"${PREFIX}AcqTimeout-SP")
    info(autosaveFields_pass0, "VAL")
  }
 
-## see acqiris_asub_process.cpp: process the waveform record: voltage, max, min, ave, std, 
-#number of bunches(peaks/pulse counts), filling pattern(integral, normalization, etc.), 
+## see acqiris_asub_process.cpp: process the waveform record: voltage, 
+#max, min, ave, std, number of bunches(peaks/pulse counts), 
+#filling pattern(integral, normalization, etc.), 
 #individual bunch charge calibrated against ICT;
 record(aSub,"${PREFIX}VoltWf-ASub_")
 {
@@ -150,7 +151,7 @@ record(aSub,"${PREFIX}VoltWf-ASub_")
     #${PREFIX}NbrSamplesForSum-calc_.VAL seems double, but it works here
     field (FTE, "LONG")
     field (NOE, "1")
-    #coefficient for calculation of absolute bunch charge of wall current monitor  
+    #coefficient for calculating absolute bunch charge of wall current monitor  
     field (INPF, "${PREFIX}CoefBunchQ-SP")
     field (FTF, "DOUBLE")
     field (NOF, "1")
@@ -185,7 +186,7 @@ record(aSub,"${PREFIX}VoltWf-ASub_")
     field (OUTF, "${PREFIX}NbrBunches-I PP")
     field (FTVF, "LONG")
     field (NOVF, "1")
-    #normalized Filling pattern(max. 150 bunches for NSLS2): 0.85, 0.90, 1.00, ... 
+    #normalized Filling pattern(max. 150 bunches for NSLS2): 0.85, 1.00, ... 
     field (OUTG, "${PREFIX}FillPattern-Wf PP")
     field (FTVG, "DOUBLE")
     field (NOVG, "150")

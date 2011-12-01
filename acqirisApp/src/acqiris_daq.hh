@@ -2,10 +2,12 @@
 #define ACQIRIS_DAQ_HH
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void acqiris_daq_thread(void* arg);
+    void
+    acqiris_daq_thread(void* arg);
 
 #ifdef __cplusplus
 }

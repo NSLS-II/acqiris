@@ -1,11 +1,11 @@
-## functionality: configure the board for all channels: start/stop DAQ, converters per channel
-## \\Sample interval/sampling frequency, sample length, trigger source, diagnostics info, etc.
-## PREFIX	-   NSLS2 naming: [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+## configure the board for all channels: start/stop DAQ, converters per channel
+## Sample interval, sample length, trigger source, diagnostics info, etc.
+##PREFIX NSLS2 naming:[PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
-## MODULE   -	#digitizer; "0" is the first digitizer found during initialization.
-##              For Acqiris crate and CPU, it's the top slot if there's one digitizer 
+## MODULE   -	"0" is the first digitizer found during initialization.
+##       For Acqiris crate and CPU, it's the top slot if there's one digitizer 
 ## NELM     -	max. number of samples to be acquired 
 
 record(mbbo,"${PREFIX}DAQStatus-Sel")
@@ -29,7 +29,7 @@ record(longout,"${PREFIX}NbrConvertersPerChannel-SP")
    field(OUT,"@M${MODULE} MNCPC")
    field(PINI,"YES")
    field(SCAN,"Passive")
-#both DOL and VAL works: must use one of them to avoid 'Floating point exception'
+#DOL and VAL works: must use one of them to avoid 'Floating point exception'
    field(DOL, "1")
    #field(VAL,"1")
    #info(autosaveFields_pass0, "VAL")
