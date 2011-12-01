@@ -1,11 +1,26 @@
-This driver/device support module interfaces Agilent Acqiris high-speed (max. 8GS/s) compactPCI digitizer family. The original author is Amedeo Perazzo (perazzo at slac.stanford.edu). The driver works with both Linux (tested on Linux kernel 2.6.32-5-686 and Debian 6.0.2) and RTEMS. 
+This driver/device support module interfaces Agilent Acqiris high-speed
+(max. 8GS/s) compactPCI digitizer family. The original author is Amedeo Perazzo
+(perazzo at slac.stanford.edu). The driver works with both Linux 
+(tested on Linux kernel 2.6.32-5-686 and Debian 6.0.2) and RTEMS. 
 
-For RTEMS porting, you need contact Agilent and sign NDA licence agreement and then I or Amedeo Perazzo may give you all the source codes. 
+For RTEMS porting, you need contact Agilent and sign NDA licence agreement
+and then I or Amedeo Perazzo may give you all the source codes. 
 
-For Linux support, Agilent should give you one CD contaning all the manuals, Linux device driver and library, FPGA firmware, etc. If you use Debian, there is a package like 'agilent-acqirisdriver*.deb' in the CD. Read the digitizer user manual and install the required Linux device driver and library before you compile and use this EPICS driver 
+For Linux support, Agilent should give you one CD contaning all the manuals, 
+Linux device driver and library, FPGA firmware, etc. 
+If you use Debian, there is a package like 'agilent-acqirisdriver*.deb' in the CD. 
+Read the digitizer user manual and install the required Linux device driver 
+and library before you compile and use this EPICS driver. 
 
-If your cPCI CPU board has no disk, you might be interested in using PXE to netboot Debirf (http://cmrg.fifthhorseman.net/wiki/debirf, or google it). 
+If your cPCI CPU board has no disk, you might be interested in using PXE to
+netboot Debirf (http://cmrg.fifthhorseman.net/wiki/debirf, or google it). 
 
-To compile and build this module, edit configure/RELEASE to define your own EPICS_BASE and then 'make'. Also check out acqirisApp/DB/Makefile, acqirisApp/src/Makefile and iocBoot/iocacqiris/st.cmd if you have trouble building this driver and running the IOC. Use opi/test_acqiris.opi BOY screen to communicate with the softIOC to test your Acqiris digitizer.
+To compile and build this module, edit configure/RELEASE to define your own 
+EPICS_BASE and then 'make'. 
+Also check out acqirisApp/DB/Makefile, acqirisApp/src/Makefile and 
+iocBoot/iocacqiris/st.cmd if you have trouble building this driver 
+and running the IOC. 
+Use opi/test_acqiris.opi BOY screen to communicate with the softIOC to 
+test your Acqiris digitizer.
 
 
