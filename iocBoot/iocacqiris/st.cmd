@@ -1,5 +1,5 @@
 #!../../bin/linux-x86/acqiris
-#This startup script is for testing NSLS-II Linac(LN) Wall Current Monitor(WCM)
+#This startup script is for testing NSLS-II Linac(LN) Wall Current Monitors(WCM)
 #in Beam Instrumentation(BI) system. 
 #You may need to  modify this file to make it work for your setup; 
 #if something wrong happens, check your directory path/structure first
@@ -22,9 +22,15 @@ acqirisInit(0)
 #For the Elma cPCI crate and CR11 cPCI CPU at NSLS-II Linac, 
 #the first Acqiris digitizer is at the bottom of the crate
 #the first channel of the first Acqiris digitizer: MODULE=0, CHANNEL=0
-dbLoadRecords ("db/acqiris_channel.db", "PREFIX=LN-BI{WCM:1},MODULE=0,CHANNEL=0,NELM=4000")
-dbLoadRecords ("db/acqiris_module.db",  "PREFIX=LN-BI{ACQ:1},MODULE=0,NELM=4000")
-dbLoadRecords ("db/acqiris_trigger.db", "PREFIX=LN-BI{ACQ:1},MODULE=0")
+#MON: beam MONitor/detector;
+#MODULE: the first card/digitizer is 0;
+#CHANNEL: the first channel of the card is 0;
+#NELM: max. number of samples/channel;
+#DIG:WCM: the DIGitizer for several WCMs;
+dbLoadRecords ("db/acqiris_channel.db", "MON=LN-BI{WCM:1},MODULE=0,CHANNEL=0,NELM=4000")
+#dbLoadRecords ("db/acqiris_channel.db", "MON=LN-BI{WCM:2},MODULE=0,CHANNEL=1,NELM=4000")
+dbLoadRecords ("db/acqiris_module.db",  "DIG=LN-BI{DIG:WCM},MODULE=0,NELM=4000")
+dbLoadRecords ("db/acqiris_trigger.db", "DIG=LN-BI{DIG:WCM},MODULE=0")
 
 #uncomment the following if you want iocStats and autosave stuff
 #dbLoadRecords ("db/iocAdminSoft.db", "IOC=LN-BI{IOC:cPCI}")

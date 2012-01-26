@@ -1,6 +1,6 @@
 ## configure the board for all channels: start/stop DAQ, converters per channel
 ## Sample interval, sample length, trigger source, diagnostics info, etc.
-##PREFIX NSLS2 naming:[PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+##DIG NSLS2 naming:[PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
@@ -8,7 +8,7 @@
 ##       For Acqiris crate and CPU, it's the top slot if there's one digitizer 
 ## NELM     -	max. number of samples to be acquired 
 
-record(mbbo,"${PREFIX}DAQStatus-Sel")
+record(mbbo,"${DIG}DAQStatus-Sel")
 {
    field(DESC,"DAQStatus")
    field(DTYP,"acqiris")
@@ -22,7 +22,7 @@ record(mbbo,"${PREFIX}DAQStatus-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(longout,"${PREFIX}NbrConvertersPerChannel-SP")
+record(longout,"${DIG}NbrConvertersPerChannel-SP")
 {
    field(DESC,"nbrConvertersPerChannel")
    field(DTYP,"acqiris")
@@ -36,7 +36,7 @@ record(longout,"${PREFIX}NbrConvertersPerChannel-SP")
     info(autosaveFields_pass1, "VAL")
 }
 
-record(ao,"${PREFIX}SampFreq-SP")
+record(ao,"${DIG}SampFreq-SP")
 {
    field(SCAN,"Passive")
    field(DESC,"sampFreq")
@@ -46,29 +46,29 @@ record(ao,"${PREFIX}SampFreq-SP")
 #initial sampleRate: 100MHz
    field(VAL,"100000000")
    field(EGU,"Hz")
-   field(FLNK,"${PREFIX}SampFreq-Calc_")
+   field(FLNK,"${DIG}SampFreq-Calc_")
    #use 'VAL' instead of 'RVAL'
    info(autosaveFields_pass0, "VAL")
 }
 
-record(calc,"${PREFIX}SampFreq-Calc_")
+record(calc,"${DIG}SampFreq-Calc_")
 {
    field(SCAN,"Passive")
    field(DESC,"calc sampInterval")
    #field(PINI,"YES")
-   field(INPA,"${PREFIX}SampFreq-SP")
+   field(INPA,"${DIG}SampFreq-SP")
    field(CALC, "(A < 100)?100:(1.0/A)")
    #the expression below seems OK
    #field(CALC, "1.0/A")
-   #field(OUT, "${PREFIX}SampInterval-SP PP")
-   field(FLNK,"${PREFIX}SampInterval-SP")
+   #field(OUT, "${DIG}SampInterval-SP PP")
+   field(FLNK,"${DIG}SampInterval-SP")
 }
 
-record(ao,"${PREFIX}SampInterval-SP")
+record(ao,"${DIG}SampInterval-SP")
 {
    field(DESC,"sampInterval")
    field(DTYP,"acqiris")
-   field(DOL,"${PREFIX}SampFreq-Calc_")
+   field(DOL,"${DIG}SampFreq-Calc_")
    field(OMSL,"closed_loop")
    field(OUT,"@M${MODULE} MSMIN")
    #field(PINI,"YES")
@@ -79,7 +79,7 @@ record(ao,"${PREFIX}SampInterval-SP")
    #info(autosaveFields_pass0, "VAL")
 }
 
-record(longout,"${PREFIX}NbrSamples-SP")
+record(longout,"${DIG}NbrSamples-SP")
 {
    field(DESC,"Number of Samples")
    field(DTYP,"acqiris")
@@ -93,82 +93,82 @@ record(longout,"${PREFIX}NbrSamples-SP")
    field(VAL,"1000")
    field(EGU,"Samples")
    info(autosaveFields_pass0, "VAL")
-   field(FLNK,"${PREFIX}TimeAxis-ASub_")
+   field(FLNK,"${DIG}TimeAxis-ASub_")
  }
 
-record(calc,"${PREFIX}SampLength-I")
+record(calc,"${DIG}SampLength-I")
 {
    field(DESC,"Sample length:ns")
    field(SCAN,"Passive")
-   field(INPA,"${PREFIX}SampInterval-SP CP")
-   field(INPB,"${PREFIX}NbrSamples-SP CP")
+   field(INPA,"${DIG}SampInterval-SP CP")
+   field(INPB,"${DIG}NbrSamples-SP CP")
    field(CALC, "A*B*(1e+09)")  
    field(EGU,"ns")
-   field(FLNK,"${PREFIX}TimeAxis-ASub_")
+   field(FLNK,"${DIG}TimeAxis-ASub_")
 }
 
-record(aSub,"${PREFIX}TimeAxis-ASub_")
+record(aSub,"${DIG}TimeAxis-ASub_")
 {
     field(DESC,"construct time axis")
     field(INAM,"timeAxisAsubInit")
     field(SNAM,"timeAxisAsubProcess")
     #get samples/data points
-    field (INPA, "${PREFIX}NbrSamples-SP")
+    field (INPA, "${DIG}NbrSamples-SP")
     field (FTA, "ULONG")
     field (NOA, "1")
     #get sample length (ns) 
-    #no error message even when typing wrong PV '${PREFIX}SampLength-SP'
-    field (INPB, "${PREFIX}SampLength-I")
+    #no error message even when typing wrong PV '${DIG}SampLength-SP'
+    field (INPB, "${DIG}SampLength-I")
     field (FTB, "DOUBLE")
     field (NOB, "1")
     #waveform data for time axis             
-    field (OUTA, "${PREFIX}TimeAxis-Wf PP")
+    field (OUTA, "${DIG}TimeAxis-Wf PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")
 }
 
-record(waveform,"${PREFIX}TimeAxis-Wf")
+record(waveform,"${DIG}TimeAxis-Wf")
 {
    field(SCAN,"Passive")
    field(DESC,"Time axis: ns unit")
    field(PINI,"YES")
    field(NELM,"${NELM}")
    field(FTVL,"DOUBLE")
-   field(INP,"${PREFIX}TimeAxis-ASub_.VALA")
+   field(INP,"${DIG}TimeAxis-ASub_.VALA")
    field(PREC,"3")
    field(EGU,"ns")
 }
 
-record(longin,"${PREFIX}EventCount-RB")
+record(longin,"${DIG}EventCount-RB")
 {
    field(DESC,"EventCount")
    field(DTYP,"acqiris")
    field(INP,"@M${MODULE} MEVCN")
    field(PINI,"YES")
    field(SCAN,"1 second")
-   field(FLNK,"${PREFIX}TrigRate-I_")
+   field(FLNK,"${DIG}TrigRate-I_")
 }
 
-record(calc,"${PREFIX}TrigRate-I_")
+record(calc,"${DIG}TrigRate-I_")
 {
    field(DESC,"calc trigger rate from EventCount")
-   #field(INPA,"${PREFIX}EventCount-RB")
-   #field(INPB,"${PREFIX}PreEventCount-I_")
-   field(INPA,"${PREFIX}TrigRate-I_.B")
-   field(INPB,"${PREFIX}EventCount-RB")
+   #field(INPA,"${DIG}EventCount-RB")
+   #field(INPB,"${DIG}PreEventCount-I_")
+   field(INPA,"${DIG}TrigRate-I_.B")
+   field(INPB,"${DIG}EventCount-RB")
    field(CALC, "B-A")
    field(EGU,"Hz")
-   #field(FLNK,"${PREFIX}PreEventCount-I_")
+   #field(FLNK,"${DIG}PreEventCount-I_")
 }
 
-record(ai,"${PREFIX}PreEventCount-I_")
+record(ai,"${DIG}PreEventCount-I_")
 {
    field(SCAN,"Passive")
    field(DESC,"old/previous count")
-   field(INP,"${PREFIX}TrigRate-I_")
+   field(INP,"${DIG}TrigRate-I_")
 }
 
-record(longin,"${PREFIX}TriggerTimeouts-RB")
+record(longin,"${DIG}TriggerTimeouts-RB")
 {
    field(DESC,"TriggerTimeouts")
    field(DTYP,"acqiris")
@@ -177,7 +177,7 @@ record(longin,"${PREFIX}TriggerTimeouts-RB")
    field(SCAN,"1 second")
 }
 
-record(longin,"${PREFIX}CrateNb-RB")
+record(longin,"${DIG}CrateNb-RB")
 {
    field(DESC,"CrateNb")
    field(DTYP,"acqiris")
@@ -186,7 +186,7 @@ record(longin,"${PREFIX}CrateNb-RB")
    field(SCAN,"Passive")
 }
 
-record(ai,"${PREFIX}DelayOffset-RB")
+record(ai,"${DIG}DelayOffset-RB")
 {
    field(DESC,"DelayOffset")
    field(DTYP,"acqiris")
@@ -195,7 +195,7 @@ record(ai,"${PREFIX}DelayOffset-RB")
    field(SCAN,"2 second")
 }
 
-record(ai,"${PREFIX}DelayScale-RB")
+record(ai,"${DIG}DelayScale-RB")
 {
    field(DESC,"DelayScale")
    field(DTYP,"acqiris")
@@ -204,7 +204,7 @@ record(ai,"${PREFIX}DelayScale-RB")
    field(SCAN,"2 second")
 }
 
-record(longin,"${PREFIX}IsPreTriggerRunning-RB")
+record(longin,"${DIG}IsPreTriggerRunning-RB")
 {
    field(DESC,"IsPreTriggerRunning")
    field(DTYP,"acqiris")
@@ -213,7 +213,7 @@ record(longin,"${PREFIX}IsPreTriggerRunning-RB")
    field(SCAN,"2 second")
 }
 
-record(longin,"${PREFIX}MaxSamplesPerChannel-RB")
+record(longin,"${DIG}MaxSamplesPerChannel-RB")
 {
    field(DESC,"MaxSamplesPerChannel")
    field(DTYP,"acqiris")
@@ -222,7 +222,7 @@ record(longin,"${PREFIX}MaxSamplesPerChannel-RB")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}NbrADCBits-RB")
+record(longin,"${DIG}NbrADCBits-RB")
 {
    field(DESC,"NbrADCBits")
    field(DTYP,"acqiris")
@@ -232,7 +232,7 @@ record(longin,"${PREFIX}NbrADCBits-RB")
    field(EGU, "bit")
 }
 
-record(longin,"${PREFIX}NbrModulesInInstrument-RB")
+record(longin,"${DIG}NbrModulesInInstrument-RB")
 {
    field(DESC,"NbrModulesInInstrument")
    field(DTYP,"acqiris")
@@ -241,7 +241,7 @@ record(longin,"${PREFIX}NbrModulesInInstrument-RB")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}PosInCrate-RB")
+record(longin,"${DIG}PosInCrate-RB")
 {
    field(DESC,"PosInCrate")
    field(DTYP,"acqiris")
@@ -250,7 +250,7 @@ record(longin,"${PREFIX}PosInCrate-RB")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}Temperature_m-RB")
+record(longin,"${DIG}Temperature_m-RB")
 {
    field(DESC,"Temperature_m")
    field(DTYP,"acqiris")
@@ -260,7 +260,7 @@ record(longin,"${PREFIX}Temperature_m-RB")
    field(EGU,"degC")
 }
 
-record(longout,"${PREFIX}UsedChannels-SP")
+record(longout,"${DIG}UsedChannels-SP")
 {
    field(DESC,"usedChannels")
    field(DTYP,"acqiris")
@@ -270,7 +270,7 @@ record(longout,"${PREFIX}UsedChannels-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(longout,"${PREFIX}DelayNbrSamples-SP")
+record(longout,"${DIG}DelayNbrSamples-SP")
 {
    field(DESC,"delayNbrSamples")
    field(DTYP,"acqiris")
@@ -280,7 +280,7 @@ record(longout,"${PREFIX}DelayNbrSamples-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(ao,"${PREFIX}DelayTime-SP")
+record(ao,"${DIG}DelayTime-SP")
 {
    field(DESC,"delayTime")
    field(DTYP,"acqiris")
@@ -291,7 +291,7 @@ record(ao,"${PREFIX}DelayTime-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}TrigClass-Sel")
+record(mbbo,"${DIG}TrigClass-Sel")
 {
    field(DESC,"trigClass")
    field(DTYP,"acqiris")
@@ -305,7 +305,7 @@ record(mbbo,"${PREFIX}TrigClass-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}TrigSource-Sel")
+record(mbbo,"${DIG}TrigSource-Sel")
 {
    field(DESC,"TriggerSource")
    field(DTYP,"acqiris")
@@ -326,7 +326,7 @@ record(mbbo,"${PREFIX}TrigSource-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(longin,"${PREFIX}ReadErrors-RB")
+record(longin,"${DIG}ReadErrors-RB")
 {
    field(DESC,"ReadErrors")
    field(DTYP,"acqiris")
@@ -335,7 +335,7 @@ record(longin,"${PREFIX}ReadErrors-RB")
    field(SCAN,"1 second")
 }
 
-record(longin,"${PREFIX}Truncated-RB")
+record(longin,"${DIG}Truncated-RB")
 {
    field(DESC,"TruncatedEvents")
    field(DTYP,"acqiris")
@@ -344,7 +344,7 @@ record(longin,"${PREFIX}Truncated-RB")
    field(SCAN,"1 second")
 }
 
-record(longin,"${PREFIX}ASBusBusNb")
+record(longin,"${DIG}ASBusBusNb")
 {
    field(DESC,"ASBusBusNb")
    field(DTYP,"acqiris")
@@ -353,7 +353,7 @@ record(longin,"${PREFIX}ASBusBusNb")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}ASBusIsMaster")
+record(longin,"${DIG}ASBusIsMaster")
 {
    field(DESC,"ASBusIsMaster")
    field(DTYP,"acqiris")
@@ -362,7 +362,7 @@ record(longin,"${PREFIX}ASBusIsMaster")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}ASBusPosInCrate")
+record(longin,"${DIG}ASBusPosInCrate")
 {
    field(DESC,"ASBusPosInCrate")
    field(DTYP,"acqiris")
@@ -371,7 +371,7 @@ record(longin,"${PREFIX}ASBusPosInCrate")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}ASBusSerialNb")
+record(longin,"${DIG}ASBusSerialNb")
 {
    field(DESC,"ASBusSerialNb")
    field(DTYP,"acqiris")
@@ -380,7 +380,7 @@ record(longin,"${PREFIX}ASBusSerialNb")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}ASBusSlotNb")
+record(longin,"${DIG}ASBusSlotNb")
 {
    field(DESC,"ASBusSlotNb")
    field(DTYP,"acqiris")
@@ -389,7 +389,7 @@ record(longin,"${PREFIX}ASBusSlotNb")
    field(SCAN,"Passive")
 }
 
-record(ai,"${PREFIX}ExtCkRatio")
+record(ai,"${DIG}ExtCkRatio")
 {
    field(DESC,"ExtCkRatio")
    field(DTYP,"acqiris")
@@ -398,7 +398,7 @@ record(ai,"${PREFIX}ExtCkRatio")
    field(SCAN,"2 second")
 }
 
-record(longin,"${PREFIX}HasTrigVeto")
+record(longin,"${DIG}HasTrigVeto")
 {
    field(DESC,"HasTrigVeto")
    field(DTYP,"acqiris")
@@ -407,7 +407,7 @@ record(longin,"${PREFIX}HasTrigVeto")
    field(SCAN,"2 second")
 }
 
-record(longin,"${PREFIX}LogDevDataLinks")
+record(longin,"${DIG}LogDevDataLinks")
 {
    field(DESC,"LogDevDataLinks")
    field(DTYP,"acqiris")
@@ -416,7 +416,7 @@ record(longin,"${PREFIX}LogDevDataLinks")
    field(SCAN,"2 second")
 }
 
-record(longin,"${PREFIX}NbrExternalTriggers")
+record(longin,"${DIG}NbrExternalTriggers")
 {
    field(DESC,"NbrExternalTriggers")
    field(DTYP,"acqiris")
@@ -425,7 +425,7 @@ record(longin,"${PREFIX}NbrExternalTriggers")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}NbrInternalTriggers")
+record(longin,"${DIG}NbrInternalTriggers")
 {
    field(DESC,"NbrInternalTriggers")
    field(DTYP,"acqiris")
@@ -434,7 +434,7 @@ record(longin,"${PREFIX}NbrInternalTriggers")
    field(SCAN,"Passive")
 }
 
-record(ai,"${PREFIX}SSRTimeStamp")
+record(ai,"${DIG}SSRTimeStamp")
 {
    field(DESC,"SSRTimeStamp")
    field(DTYP,"acqiris")
@@ -443,7 +443,7 @@ record(ai,"${PREFIX}SSRTimeStamp")
    field(SCAN,"2 second")
 }
 
-record(longin,"${PREFIX}TbSegmentPad")
+record(longin,"${DIG}TbSegmentPad")
 {
    field(DESC,"TbSegmentPad")
    field(DTYP,"acqiris")
@@ -452,7 +452,7 @@ record(longin,"${PREFIX}TbSegmentPad")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}Signal")
+record(longout,"${DIG}Signal")
 {
    field(DESC,"signal")
    field(DTYP,"acqiris")
@@ -461,7 +461,7 @@ record(longout,"${PREFIX}Signal")
    field(SCAN,"Passive")
 }
 
-record(mbbo,"${PREFIX}ClockType")
+record(mbbo,"${DIG}ClockType")
 {
    field(DESC,"clockType")
    field(DTYP,"acqiris")
@@ -478,7 +478,7 @@ record(mbbo,"${PREFIX}ClockType")
    field(THST,"ExtStartStop ")
 }
 
-record(ao,"${PREFIX}InputThreshold")
+record(ao,"${DIG}InputThreshold")
 {
    field(DESC,"inputThreshold")
    field(DTYP,"acqiris")
@@ -487,7 +487,7 @@ record(ao,"${PREFIX}InputThreshold")
    field(SCAN,"Passive")
 }
 
-record(ao,"${PREFIX}InputFrequency")
+record(ao,"${DIG}InputFrequency")
 {
    field(DESC,"inputFrequency")
    field(DTYP,"acqiris")
@@ -497,7 +497,7 @@ record(ao,"${PREFIX}InputFrequency")
    field(EGU,"Hz")
 }
 
-record(ao,"${PREFIX}SampFrequency")
+record(ao,"${DIG}SampFrequency")
 {
    field(DESC,"sampFrequency")
    field(DTYP,"acqiris")
@@ -507,7 +507,7 @@ record(ao,"${PREFIX}SampFrequency")
    field(EGU,"Hz")
 }
 
-record(longout,"${PREFIX}FcntChannel")
+record(longout,"${DIG}FcntChannel")
 {
    field(DESC,"fcntChannel")
    field(DTYP,"acqiris")
@@ -516,7 +516,7 @@ record(longout,"${PREFIX}FcntChannel")
    field(SCAN,"Passive")
 }
 
-record(mbbo,"${PREFIX}Type")
+record(mbbo,"${DIG}Type")
 {
    field(DESC,"type")
    field(DTYP,"acqiris")
@@ -533,7 +533,7 @@ record(mbbo,"${PREFIX}Type")
    field(THST,"TotByGate")
 }
 
-record(ao,"${PREFIX}TargetValue")
+record(ao,"${DIG}TargetValue")
 {
    field(DESC,"targetValue")
    field(DTYP,"acqiris")
@@ -542,7 +542,7 @@ record(ao,"${PREFIX}TargetValue")
    field(SCAN,"Passive")
 }
 
-record(ao,"${PREFIX}ApertureTime")
+record(ao,"${DIG}ApertureTime")
 {
    field(DESC,"apertureTime")
    field(DTYP,"acqiris")
@@ -551,7 +551,7 @@ record(ao,"${PREFIX}ApertureTime")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}FcntFlags")
+record(longout,"${DIG}FcntFlags")
 {
    field(DESC,"fcntFlags")
    field(DTYP,"acqiris")
@@ -560,7 +560,7 @@ record(longout,"${PREFIX}FcntFlags")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}NbrMemSegments")
+record(longout,"${DIG}NbrMemSegments")
 {
    field(DESC,"nbrMemSegments")
    field(DTYP,"acqiris")
@@ -569,7 +569,7 @@ record(longout,"${PREFIX}NbrMemSegments")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}NbrSegments")
+record(longout,"${DIG}NbrSegments")
 {
    field(DESC,"nbrSegments")
    field(DTYP,"acqiris")
@@ -578,7 +578,7 @@ record(longout,"${PREFIX}NbrSegments")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}NbrBanks")
+record(longout,"${DIG}NbrBanks")
 {
    field(DESC,"nbrBanks")
    field(DTYP,"acqiris")
@@ -587,7 +587,7 @@ record(longout,"${PREFIX}NbrBanks")
    field(SCAN,"Passive")
 }
 
-record(mbbo,"${PREFIX}Memflags")
+record(mbbo,"${DIG}Memflags")
 {
    field(DESC,"memflags")
    field(DTYP,"acqiris")
@@ -600,7 +600,7 @@ record(mbbo,"${PREFIX}Memflags")
    field(ONST,"ForceInternal ")
 }
 
-record(mbbo,"${PREFIX}Mode")
+record(mbbo,"${DIG}Mode")
 {
    field(DESC,"mode")
    field(DTYP,"acqiris")
@@ -623,7 +623,7 @@ record(mbbo,"${PREFIX}Mode")
    field(SVST,"SSR")
 }
 
-record(longout,"${PREFIX}Modifier")
+record(longout,"${DIG}Modifier")
 {
    field(DESC,"modifier")
    field(DTYP,"acqiris")
@@ -632,7 +632,7 @@ record(longout,"${PREFIX}Modifier")
    field(SCAN,"Passive")
 }
 
-record(mbbo,"${PREFIX}ModeFlags")
+record(mbbo,"${DIG}ModeFlags")
 {
    field(DESC,"modeFlags")
    field(DTYP,"acqiris")

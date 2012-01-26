@@ -1,6 +1,6 @@
 ## configure individual channel: input range, offset, triggering,etc.
 ## 	  get raw waveform data, process data by subArray record;
-#PREFIX NSLS2 naming [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+#MON NSLS2 naming [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
@@ -10,19 +10,18 @@
 ## NELM     -	(max.) number of elements of waveform record 
 
 #raw waveform data: 16-bit integer
-record(waveform,"${PREFIX}RawData-Wf_")
+record(waveform,"${MON}Raw-Wf")
 {
    field(SCAN,"I/O Intr")
-   field(DESC,"Raw waveform data")
+   field(DESC,"Raw waveform 16-bit data")
    field(DTYP,"acqiris")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   field(EGU,"Volts")
-   field(FLNK,"${PREFIX}VoltWf-ASub_")
+   field(FLNK,"${MON}VoltWf-ASub_")
 }
 
-record(ao,"${PREFIX}FullScale-SP")
+record(ao,"${MON}FullScale-SP")
 {
    field(DESC,"Input Voltage Range")
    field(DTYP,"acqiris")
@@ -39,7 +38,7 @@ record(ao,"${PREFIX}FullScale-SP")
    info(autosaveFields_pass1, "VAL")
 }
 
-record(ao,"${PREFIX}RangeOffset-SP")
+record(ao,"${MON}RangeOffset-SP")
 {
    field(DESC,"Offset for Input Range")
    field(DTYP,"acqiris")
@@ -55,7 +54,7 @@ record(ao,"${PREFIX}RangeOffset-SP")
     info(autosaveFields_pass1, "VAL")
 }
 
-record(ao,"${PREFIX}PeakThreshold-SP")
+record(ao,"${MON}PeakThreshold-SP")
 {
    field(DESC,"Threshold for searching peak")
    field(DRVH,"5.0")
@@ -66,7 +65,7 @@ record(ao,"${PREFIX}PeakThreshold-SP")
 }
 
 #coefficient for calculation of absolute bunch charge of WCM, etc.  
-record(ao,"${PREFIX}CoefBunchQ-SP")
+record(ao,"${MON}CoefBunchQ-SP")
 {
    field(DESC,"Coefficient")
    field(PINI,"YES")
@@ -75,7 +74,7 @@ record(ao,"${PREFIX}CoefBunchQ-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(longout,"${PREFIX}NbrSamplesForSum-SP")
+record(longout,"${MON}NbrSamplesForSum-SP")
 {
    field(DESC,"NumberOfSamplesForIntegral")
    field(PINI,"YES")
@@ -83,13 +82,13 @@ record(longout,"${PREFIX}NbrSamplesForSum-SP")
    field(DRVL,"5")
    field(EGU,"Samples")
    info(autosaveFields_pass0, "VAL")
-   field(FLNK,"${PREFIX}NbrSamplesForSum-Calc_")
+   field(FLNK,"${MON}NbrSamplesForSum-Calc_")
  }
 
-record(calc,"${PREFIX}NbrSamplesForSum-Calc_")
+record(calc,"${MON}NbrSamplesForSum-Calc_")
 {
    field(DESC,"NumberShouldBeOdd")
-   field(INPA,"${PREFIX}NbrSamplesForSum-SP")
+   field(INPA,"${MON}NbrSamplesForSum-SP")
    field(CALC,"(A%2 = 0) ? (A+1):A")
    info(autosaveFields_pass0, "VAL")
 }
@@ -97,7 +96,7 @@ record(calc,"${PREFIX}NbrSamplesForSum-Calc_")
 #Why need ZeroingOffset?
 #there might be DC offset between the FCT and the digitizer without real beam
 #ZeroingOffset-SP == AveVolt-I
-record(ao,"${PREFIX}ZeroingOffset-SP")
+record(ao,"${MON}ZeroingOffset-SP")
 {
    field(DESC,"Offset for zeroing noise")
    field(PINI,"YES")
@@ -109,7 +108,7 @@ record(ao,"${PREFIX}ZeroingOffset-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(longout,"${PREFIX}AcqTimeout-SP")
+record(longout,"${MON}AcqTimeout-SP")
 {
    #AcqrsD1_waitForEndOfAcquisition(id, timeout);
    #'timeout' is internally clipped to a range of [0, 10000] milliseconds
@@ -125,118 +124,118 @@ record(longout,"${PREFIX}AcqTimeout-SP")
 #max, min, ave, std, number of bunches(peaks/pulse counts), 
 #filling pattern(integral, normalization, etc.), 
 #individual bunch charge calibrated against ICT;
-record(aSub,"${PREFIX}VoltWf-ASub_")
+record(aSub,"${MON}VoltWf-ASub_")
 {
     field(DESC,"process raw waveform data")
     field (INAM,"acqirisAsubInit")
     field (SNAM,"acqirisAsubProcess")
     #get raw data (integer) from the waveform record above
-    field (INPA, "${PREFIX}RawData-Wf_")
+    field (INPA, "${MON}Raw-Wf")
     field (FTA, "SHORT")
     field (NOA, "${NELM}")
     #get input range (Full scale)   
-    field (INPB, "${PREFIX}FullScale-SP")
+    field (INPB, "${MON}FullScale-SP")
     field (FTB, "DOUBLE")
     field (NOB, "1")
     #get offset for input range   
-    field (INPC, "${PREFIX}RangeOffset-SP")
+    field (INPC, "${MON}RangeOffset-SP")
     field (FTC, "DOUBLE")
     field (NOC, "1")
     #get peak threshold   
-    field (INPD, "${PREFIX}PeakThreshold-SP")
+    field (INPD, "${MON}PeakThreshold-SP")
     field (FTD, "DOUBLE")
     field (NOD, "1")
     #number of samples for integral value(individual bunch charge)   
-    field (INPE, "${PREFIX}NbrSamplesForSum-Calc_")
-    #${PREFIX}NbrSamplesForSum-calc_.VAL seems double, but it works here
+    field (INPE, "${MON}NbrSamplesForSum-Calc_")
+    #${MON}NbrSamplesForSum-calc_.VAL seems double, but it works here
     field (FTE, "LONG")
     field (NOE, "1")
     #coefficient for calculating absolute bunch charge of wall current monitor  
-    field (INPF, "${PREFIX}CoefBunchQ-SP")
+    field (INPF, "${MON}CoefBunchQ-SP")
     field (FTF, "DOUBLE")
     field (NOF, "1")
     #get offset for zeroing noise   
-    field (INPG, "${PREFIX}ZeroingOffset-SP")
+    field (INPG, "${MON}ZeroingOffset-SP")
     field (FTG, "DOUBLE")
     field (NOG, "1")
     #acquisition time out(ms): AcqrsD1_waitForEndOfAcquisition(id, timeout);
-    field (INPH, "${PREFIX}AcqTimeout-SP")
+    field (INPH, "${MON}AcqTimeout-SP")
     field (FTH, "LONG")
     field (NOH, "1")
-    #voltage waveform data: should have the same data as ${PREFIX}VoltData-Wf_
+    #voltage waveform data: should have the same data as ${MON}V-Wf_
     # if no subtracting background noise               
-    field (OUTA, "${PREFIX}VoltData-Wf PP")
+    field (OUTA, "${MON}V-Wf PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")
     #max & min voltages               
-    field (OUTB, "${PREFIX}MaxVolt-I PP")
+    field (OUTB, "${MON}MaxV-I PP")
     field (FTVB, "DOUBLE")
     field (NOVB, "1")
-    field (OUTC, "${PREFIX}MinVolt-I PP")
+    field (OUTC, "${MON}MinV-I PP")
     field (FTVC, "DOUBLE")
     field (NOVC, "1")
     #average value (Sum is not DC component), standard deviation/RMS noise
-    field (OUTD, "${PREFIX}AveVolt-I PP")
+    field (OUTD, "${MON}AveV-I PP")
     field (FTVD, "DOUBLE")
     field (NOVD, "1")
-    field (OUTE, "${PREFIX}StdVolt-I PP")
+    field (OUTE, "${MON}StdV-I PP")
     field (FTVE, "DOUBLE")
     field (NOVE, "1")
     #Number of bunches
-    field (OUTF, "${PREFIX}NbrBunches-I PP")
+    field (OUTF, "${MON}NbrBunches-I PP")
     field (FTVF, "LONG")
     field (NOVF, "1")
     #normalized Filling pattern(max. 150 bunches for NSLS2): 0.85, 1.00, ... 
-    field (OUTG, "${PREFIX}FillPattern-Wf PP")
+    field (OUTG, "${MON}FillPattern-Wf PP")
     field (FTVG, "DOUBLE")
     field (NOVG, "150")
     #Max. bunch-to-bunch charge variation < 20%
-    field (OUTH, "${PREFIX}B2BMaxVar-I PP")
+    field (OUTH, "${MON}B2BMaxVar-I PP")
     field (FTVH, "DOUBLE")
     field (NOVH, "1")
     #individual bunch charge (Q) calibrated against nearby ICT
-    field (OUTI, "${PREFIX}BunchQCalib-Wf PP")
+    field (OUTI, "${MON}BunchQCalib-Wf PP")
     field (FTVI, "DOUBLE")
     field (NOVI, "150")
     #Which bunch has the highest/max. charge
-    field (OUTJ, "${PREFIX}MaxQBunchNbr-I PP")
+    field (OUTJ, "${MON}MaxQBunchNbr-I PP")
     field (FTVJ, "LONG")
     field (NOVJ, "1")
     #Which bunch has the lowest/min. charge
-    field (OUTK, "${PREFIX}MinQBunchNbr-I PP")
+    field (OUTK, "${MON}MinQBunchNbr-I PP")
     field (FTVK, "LONG")
     field (NOVK, "1")
     #integral value of individual bunch(max. 150 bunches for NSLS2) 
     ##calculate bunch charge by integrating samples: wall current monitor 
-    field (OUTL, "${PREFIX}BunchQ-Wf PP")
+    field (OUTL, "${MON}BunchQ-Wf PP")
     field (FTVL, "DOUBLE")
     field (NOVL, "150")
-    #where are the peaks: position/index in '${PREFIX}VoltData-Wf'
-    field (OUTM, "${PREFIX}PeakIndex-Wf PP")
+    #where are the peaks: position/index in '${MON}V-Wf'
+    field (OUTM, "${MON}PeakIndex-Wf PP")
     #LONG equals to int?
     field (FTVM, "LONG")
     field (NOVM, "150")
     #calculate real external trigger rate ~ = ioc update rate
-    field (OUTN, "${PREFIX}TrigRate-I PP")
+    field (OUTN, "${MON}TrigRate-I PP")
     field (FTVN, "DOUBLE")
     field (NOVN, "1")
 }
 
-record(waveform,"${PREFIX}VoltData-Wf")
+record(waveform,"${MON}V-Wf")
 {
    field(SCAN,"Passive")
    field(DESC,"voltage waveform data by aSub")
    field(NELM,"${NELM}")
    field(FTVL,"DOUBLE")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALA")
+   field(INP,"${MON}VoltWf-ASub_.VALA")
    field(PREC,"6")
    field(EGU,"V")
 }
 
-record(subArray,"${PREFIX}VoltData-SubAr_")
+record(subArray,"${MON}VoltData-SubAr_")
 {
    field(DESC,"part of the voltage waveform data")
-   field(INP,"${PREFIX}VoltData-Wf CPP")
+   field(INP,"${MON}V-Wf CPP")
    #don't need to set subArray.MALM == waveform.NELM
    #field(MALM,"${NELM}")
    field(MALM,"40")
@@ -247,134 +246,134 @@ record(subArray,"${PREFIX}VoltData-SubAr_")
    field(EGU,"V")
 }
 
-record(ai,"${PREFIX}MaxVolt-I")
+record(ai,"${MON}MaxV-I")
 {
    field(DESC,"Max value")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALB")
+   field(INP,"${MON}VoltWf-ASub_.VALB")
    field(PREC,"6")
    field(EGU,"V")
 }
 
-record(ai,"${PREFIX}MinVolt-I")
+record(ai,"${MON}MinV-I")
 {
    field(DESC,"Min value")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALC")
+   field(INP,"${MON}VoltWf-ASub_.VALC")
    field(PREC,"6")
    field(EGU,"V")
 }
 
-record(ai,"${PREFIX}AveVolt-I")
+record(ai,"${MON}AveV-I")
 {
    field(DESC,"Averaged DC")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALD")
+   field(INP,"${MON}VoltWf-ASub_.VALD")
    field(PREC,"6")
    field(EGU,"Volts")
 }
 
-record(ai,"${PREFIX}StdVolt-I")
+record(ai,"${MON}StdV-I")
 {
    field(DESC,"RMS noise")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALE")
+   field(INP,"${MON}VoltWf-ASub_.VALE")
    field(PREC,"6")
    field(EGU,"V")
 }
 
-record(longin,"${PREFIX}NbrBunches-I")
+record(longin,"${MON}NbrBunches-I")
 {
    field(DESC,"Number of bunches")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALF")
+   field(INP,"${MON}VoltWf-ASub_.VALF")
    field(EGU,"bunches")
-   field(FLNK,"${PREFIX}SaveWf-Calc_")
+   field(FLNK,"${MON}SaveWf-Calc_")
 }
 
-#record(calcout, "${PREFIX}SaveWf-calcout_")
+#record(calcout, "${MON}SaveWf-calcout_")
 #{
 	#field(DESC,"saveWaveformIfHaveBeam")
-	#field(INPA,"${PREFIX}NbrBunch-I")
+	#field(INPA,"${MON}NbrBunch-I")
 	#field(CALC,"(A>=1) ? 1:0")
 	#field(OOPT,"When Non-zero")
 	#field(DOPT,"Use CALC")
 	#It seems OUT doesn't take PV, only take record?
-	#filed(OUT,"${PREFIX}VoltWf-Saved_.PROC")
-	#filed(OUT,"${PREFIX}VoltWf-Saved_.SDIS")
+	#filed(OUT,"${MON}VoltWf-Saved_.PROC")
+	#filed(OUT,"${MON}VoltWf-Saved_.SDIS")
 #}
 
-record(calc, "${PREFIX}SaveWf-Calc_")
+record(calc, "${MON}SaveWf-Calc_")
 {
 	field(DESC,"saveWaveformIfHaveBeam")
-	field(INPA,"${PREFIX}NbrBunch-I")
-	#disable scanning ${PREFIX}VoltWf-Saved_ if A<1(no beam)
+	field(INPA,"${MON}NbrBunch-I")
+	#disable scanning ${MON}VoltWf-Saved_ if A<1(no beam)
 	field(CALC,"(A>=1) ? 0:1")
-	field(FLNK,"${PREFIX}VoltDataSaved-Wf_")
+	field(FLNK,"${MON}VoltDataSaved-Wf_")
 }
 
-record(waveform,"${PREFIX}VoltDataSaved-Wf_")
+record(waveform,"${MON}VoltDataSaved-Wf_")
 {
    field(DESC,"saved waveform data")
    #DISV is 1 by default
-   field(SDIS,"${PREFIX}SaveWf-Calc_")
+   field(SDIS,"${MON}SaveWf-Calc_")
    field(NELM,"${NELM}")
    field(FTVL,"FLOAT")
-   field(INP,"${PREFIX}VoltData-Wf")
+   field(INP,"${MON}V-Wf")
    field(PREC,"6")
    field(EGU,"V")
 }
 
-record(waveform,"${PREFIX}FillPattern-Wf")
+record(waveform,"${MON}FillPattern-Wf")
 {
    field(DESC,"normalized filling pattern")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALG")
+   field(INP,"${MON}VoltWf-ASub_.VALG")
    field(NELM,"150")
    field(FTVL,"DOUBLE")
    field(PREC,"4")
 }
 
-record(ai,"${PREFIX}B2BMaxVar-I")
+record(ai,"${MON}B2BMaxVar-I")
 {
    field(DESC,"bunch-to-bunch max. variation")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALH")
+   field(INP,"${MON}VoltWf-ASub_.VALH")
    field(PREC,"4")
 }
 
 #individual bunch charge (Q) calibrated against nearby ICT
-record(waveform,"${PREFIX}BunchQCalib-Wf")
+record(waveform,"${MON}BunchQCalib-Wf")
 {
    field(DESC,"Calibrated bunch charge")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALI")
+   field(INP,"${MON}VoltWf-ASub_.VALI")
    field(NELM,"150")
    field(FTVL,"DOUBLE")
    field(PREC,"4")
    field(EGU,"nC")
 }
 
-record(longin,"${PREFIX}MaxQBunchNbr-I")
+record(longin,"${MON}MaxQBunchNbr-I")
 {
    field(DESC,"No# highest charge")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALJ")
+   field(INP,"${MON}VoltWf-ASub_.VALJ")
 }
 
-record(longin,"${PREFIX}MinQBunchNbr-I")
+record(longin,"${MON}MinQBunchNbr-I")
 {
    field(DESC,"No# lowest charge")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALK")
+   field(INP,"${MON}VoltWf-ASub_.VALK")
 }
 
 #calculate bunch charge by integrating samples: wall current monitor 
-record(waveform,"${PREFIX}BunchQ-Wf")
+record(waveform,"${MON}BunchQ-Wf")
 {
    #field(DESC,"IntegralValueOfEachBunch")
    field(DESC,"ChargeOfEachBunch")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALL")
+   field(INP,"${MON}VoltWf-ASub_.VALL")
    field(NELM,"150")
    field(FTVL,"DOUBLE")
    field(PREC,"4")
    field(EGU,"nC")
 }
 
-record(subArray,"${PREFIX}Bunch1Q-SubAr")
+record(subArray,"${MON}Bunch1Q-SubAr")
 {
    field(DESC,"ChargeOfTheFirstBunch-subArray")
-   field(INP,"${PREFIX}BunchQ-Wf CPP")
+   field(INP,"${MON}BunchQ-Wf CPP")
    field(MALM,"150")
    field(INDX,"0")
    field(NELM,"1")
@@ -383,47 +382,47 @@ record(subArray,"${PREFIX}Bunch1Q-SubAr")
    field(EGU,"nC")
 }
 
-record(ai,"${PREFIX}Bunch1Q-I")
+record(ai,"${MON}Bunch1Q-I")
 {
    field(DESC,"ChargeOfTheFirstBunch")
-   field(INP,"${PREFIX}Bunch1Q-SubAr CPP")
+   field(INP,"${MON}Bunch1Q-SubAr CPP")
    field(PREC,"4")
    field(EGU,"nC")
 }
 
-record(waveform,"${PREFIX}PeakIndex-Wf")
+record(waveform,"${MON}PeakIndex-Wf")
 {
    field(DESC,"index of peaks")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALM")
+   field(INP,"${MON}VoltWf-ASub_.VALM")
    field(NELM,"150")
    field(FTVL,"LONG")
 }
 
-record(subArray,"${PREFIX}FirstPeakPos-SubAr")
+record(subArray,"${MON}FirstPeakPos-SubAr")
 {
    field(DESC,"position of the first peak")
-   field(INP,"${PREFIX}PeakIndex-Wf CPP")
+   field(INP,"${MON}PeakIndex-Wf CPP")
    field(MALM,"150")
    field(INDX,"0")
    field(NELM,"1")
    field(FTVL,"LONG")
 }
 
-record(longin,"${PREFIX}FirstPeakPos-I")
+record(longin,"${MON}FirstPeakPos-I")
 {
    field(DESC,"position of the first peak")
-   field(INP,"${PREFIX}FirstPeakPos-SubAr CPP")
+   field(INP,"${MON}FirstPeakPos-SubAr CPP")
 }
 
-record(ai,"${PREFIX}TrigRate-I")
+record(ai,"${MON}TrigRate-I")
 {
    field(DESC,"precise trigRate")
-   field(INP,"${PREFIX}VoltWf-ASub_.VALN")
+   field(INP,"${MON}VoltWf-ASub_.VALN")
    field(PREC,"3")
    field(EGU,"Hz")
 }
 
-record(mbbo,"${PREFIX}Coupling-Sel")
+record(mbbo,"${MON}Coupling-Sel")
 {
    field(DESC,"Channel Coupling")
    field(DTYP,"acqiris")
@@ -443,7 +442,7 @@ record(mbbo,"${PREFIX}Coupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}Bandwidth-Sel")
+record(mbbo,"${MON}Bandwidth-Sel")
 {
    field(DESC,"Bandwidth")
    field(DTYP,"acqiris")
@@ -465,7 +464,7 @@ record(mbbo,"${PREFIX}Bandwidth-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}TrigCoupling-Sel")
+record(mbbo,"${MON}TrigCoupling-Sel")
 {
    field(DESC,"Channel TrigCoupling")
    field(DTYP,"acqiris")
@@ -485,7 +484,7 @@ record(mbbo,"${PREFIX}TrigCoupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}TrigSlope-Sel")
+record(mbbo,"${MON}TrigSlope-Sel")
 {
    field(DESC,"Channel TrigSlope")
    field(DTYP,"acqiris")
@@ -507,7 +506,7 @@ record(mbbo,"${PREFIX}TrigSlope-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${PREFIX}TrigLevel1-SP")
+record(ao,"${MON}TrigLevel1-SP")
 {
    field(DESC,"Channel TrigLevel1")
    field(DTYP,"acqiris")
@@ -521,7 +520,7 @@ record(ao,"${PREFIX}TrigLevel1-SP")
    info(autosaveFields_pass1, "VAL")
 }
 
-record(ao,"${PREFIX}TrigLevel2-SP")
+record(ao,"${MON}TrigLevel2-SP")
 {
    field(DESC,"Channel TrigLevel2 for Window TrigSlope")
    field(DTYP,"acqiris")
@@ -535,7 +534,7 @@ record(ao,"${PREFIX}TrigLevel2-SP")
    info(autosaveFields_pass1, "VAL")
 }
 
-record(ai,"${PREFIX}TrigLevelRange")
+record(ai,"${MON}TrigLevelRange")
 {
    field(DESC,"TrigLevelRange")
    field(DTYP,"acqiris")
@@ -544,7 +543,7 @@ record(ai,"${PREFIX}TrigLevelRange")
    field(SCAN,"Passive")
 }
 
-record(longin,"${PREFIX}OverloadStatus")
+record(longin,"${MON}OverloadStatus")
 {
    field(DESC,"OverloadStatus")
    field(DTYP,"acqiris")
@@ -553,7 +552,7 @@ record(longin,"${PREFIX}OverloadStatus")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}DitherRange")
+record(longout,"${MON}DitherRange")
 {
    field(DESC,"DitherRange")
    field(DTYP,"acqiris")
@@ -562,7 +561,7 @@ record(longout,"${PREFIX}DitherRange")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}FixedSamples")
+record(longout,"${MON}FixedSamples")
 {
    field(DESC,"FixedSamples")
    field(DTYP,"acqiris")
@@ -571,7 +570,7 @@ record(longout,"${PREFIX}FixedSamples")
    field(SCAN,"Passive")
 }
 
-record(mbbo,"${PREFIX}GateType")
+record(mbbo,"${MON}GateType")
 {
    field(DESC,"GateType")
    field(DTYP,"acqiris")
@@ -584,7 +583,7 @@ record(mbbo,"${PREFIX}GateType")
    field(TWST,"Threshold_Gates")
 }
 
-record(mbbo,"${PREFIX}HistoTDCEnable")
+record(mbbo,"${MON}HistoTDCEnable")
 {
    field(DESC,"HistoTDCEnable")
    field(DTYP,"acqiris")
@@ -597,7 +596,7 @@ record(mbbo,"${PREFIX}HistoTDCEnable")
    field(ONST,"Enabled")
 }
 
-record(mbbo,"${PREFIX}InvertData")
+record(mbbo,"${MON}InvertData")
 {
    field(DESC,"InvertData")
    field(DTYP,"acqiris")
@@ -610,7 +609,7 @@ record(mbbo,"${PREFIX}InvertData")
    field(ONST,"Inversion")
 }
 
-record(longout,"${PREFIX}NbrMaxGates")
+record(longout,"${MON}NbrMaxGates")
 {
    field(DESC,"NbrMaxGates")
    field(DTYP,"acqiris")
@@ -619,7 +618,7 @@ record(longout,"${PREFIX}NbrMaxGates")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}NbrSamples")
+record(longout,"${MON}NbrSamples")
 {
    field(DESC,"NbrSamples")
    field(DTYP,"acqiris")
@@ -628,7 +627,7 @@ record(longout,"${PREFIX}NbrSamples")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}NbrSegments")
+record(longout,"${MON}NbrSegments")
 {
    field(DESC,"NbrSegments")
    field(DTYP,"acqiris")
@@ -637,7 +636,7 @@ record(longout,"${PREFIX}NbrSegments")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}NbrWaveforms")
+record(longout,"${MON}NbrWaveforms")
 {
    field(DESC,"NbrWaveforms")
    field(DTYP,"acqiris")
@@ -646,7 +645,7 @@ record(longout,"${PREFIX}NbrWaveforms")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}NbrRoundRobins")
+record(longout,"${MON}NbrRoundRobins")
 {
    field(DESC,"NbrRoundRobins")
    field(DTYP,"acqiris")
@@ -655,7 +654,7 @@ record(longout,"${PREFIX}NbrRoundRobins")
    field(SCAN,"Passive")
 }
 
-record(longout,"${PREFIX}NoiseBaseEnable")
+record(longout,"${MON}NoiseBaseEnable")
 {
    field(DESC,"NoiseBaseEnable")
    field(DTYP,"acqiris")
@@ -664,7 +663,7 @@ record(longout,"${PREFIX}NoiseBaseEnable")
    field(SCAN,"Passive")
 }
 
-record(ao,"${PREFIX}NoiseBase")
+record(ao,"${MON}NoiseBase")
 {
    field(DESC,"NoiseBase")
    field(DTYP,"acqiris")

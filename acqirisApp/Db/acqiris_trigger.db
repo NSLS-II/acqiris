@@ -1,12 +1,12 @@
 ##configure external triggering: trigger level, scale, coupling, etc.
-#PREFIX NSLS2 naming:[PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
+#DIG NSLS2 naming:[PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
 #### Psy	-	Primary system
 #### Ssy	-	Secondary system
 #### Dev	-	Device name
 ## MODULE   -	"0" is the first digitizer found during initialization.
 ##   For Acqiris crate and CPU, it's the top slot if there's one digitizer 
 
-record(ao,"${PREFIX}ExTrigLevel1-SP")
+record(ao,"${DIG}ExTrigLevel1-SP")
 {
    field(DESC,"External TrigLevel1")
    field(DTYP,"acqiris")
@@ -19,7 +19,7 @@ record(ao,"${PREFIX}ExTrigLevel1-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${PREFIX}ExTrigFullScale-SP")
+record(ao,"${DIG}ExTrigFullScale-SP")
 {
    field(DESC,"External FullScale")
    field(DTYP,"acqiris")
@@ -32,7 +32,7 @@ record(ao,"${PREFIX}ExTrigFullScale-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}ExTrigCoupling-Sel")
+record(mbbo,"${DIG}ExTrigCoupling-Sel")
 {
    field(DESC,"External TrigCoupling")
    field(DTYP,"acqiris")
@@ -52,7 +52,7 @@ record(mbbo,"${PREFIX}ExTrigCoupling-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}ExTrigSlope-Sel")
+record(mbbo,"${DIG}ExTrigSlope-Sel")
 {
    field(DESC,"External TrigSlope")
    field(DTYP,"acqiris")
@@ -74,7 +74,7 @@ record(mbbo,"${PREFIX}ExTrigSlope-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${PREFIX}ExTrigLevel2-SP")
+record(ao,"${DIG}ExTrigLevel2-SP")
 {
    field(DESC,"ExTrigLevel2 for Window TrigSlope")
    field(DTYP,"acqiris")
@@ -85,7 +85,7 @@ record(ao,"${PREFIX}ExTrigLevel2-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(ao,"${PREFIX}ExTrigOffset-SP")
+record(ao,"${DIG}ExTrigOffset-SP")
 {
    field(DESC,"External Offset")
    field(DTYP,"acqiris")
@@ -96,7 +96,7 @@ record(ao,"${PREFIX}ExTrigOffset-SP")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}ExTrigBandwidth-Sel")
+record(mbbo,"${DIG}ExTrigBandwidth-Sel")
 {
    field(DESC,"Bandwidth")
    field(DTYP,"acqiris")
@@ -118,7 +118,7 @@ record(mbbo,"${PREFIX}ExTrigBandwidth-Sel")
    info(autosaveFields_pass0, "RVAL")
 }
 
-record(mbbo,"${PREFIX}CrateCoupling-Sel")
+record(mbbo,"${DIG}CrateCoupling-Sel")
 {
    field(DESC,"crate Coupling?")
    field(DTYP,"acqiris")
