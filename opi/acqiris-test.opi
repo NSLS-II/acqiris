@@ -1889,7 +1889,7 @@ $(pv_value)</tooltip>
     <format_type>2</format_type>
     <precision_from_pv>false</precision_from_pv>
     <transparent>false</transparent>
-    <pv_name>${MONITOR}MaxVolt-I</pv_name>
+    <pv_name>${MONITOR}MaxV-I</pv_name>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
@@ -1967,7 +1967,7 @@ $(pv_value)</tooltip>
     <format_type>2</format_type>
     <precision_from_pv>false</precision_from_pv>
     <transparent>false</transparent>
-    <pv_name>${MONITOR}MinVolt-I</pv_name>
+    <pv_name>${MONITOR}MinV-I</pv_name>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
@@ -2045,7 +2045,7 @@ $(pv_value)</tooltip>
     <format_type>2</format_type>
     <precision_from_pv>false</precision_from_pv>
     <transparent>false</transparent>
-    <pv_name>${MONITOR}StdVolt-I</pv_name>
+    <pv_name>${MONITOR}StdV-I</pv_name>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
@@ -2135,7 +2135,7 @@ $(pv_value)</tooltip>
     <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
     <axis_0_scale_format />
     <trace_0_x_pv>${ACQIRIS}TimeAxis-Wf</trace_0_x_pv>
-    <trace_0_y_pv>${MONITOR}VoltData-Wf</trace_0_y_pv>
+    <trace_0_y_pv>${MONITOR}V-Wf</trace_0_y_pv>
     <axis_0_title_font>
       <fontdata fontName="Arial" height="9" style="1" />
     </axis_0_title_font>
