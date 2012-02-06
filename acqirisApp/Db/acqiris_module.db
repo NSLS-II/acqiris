@@ -43,6 +43,8 @@ record(ao,"${DIG}SampFreq-SP")
    field(PINI,"YES")
    field(DRVH,"8000000000")
    field(DRVL,"100")
+   field(HOPR,"8000000000")
+   field(LOPR,"100") 
 #initial sampleRate: 100MHz
    field(VAL,"100000000")
    field(EGU,"Hz")
@@ -89,6 +91,8 @@ record(longout,"${DIG}NbrSamples-SP")
    #Max. number of samples <= NELM of waveform in acqiris_channel.db
    field(DRVH,"${NELM}")
    field(DRVL,"1")
+   field(HOPR,"${NELM}")
+   field(LOPR,"1")
 #initial NbrSamples: 1000
    field(VAL,"1000")
    field(EGU,"Samples")

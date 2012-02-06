@@ -16,6 +16,10 @@ record(ao,"${DIG}ExTrigLevel1-SP")
    field(PINI, "YES")
    field(RVAL, "1000")
    #field(RVAL, "500")
+   field(DRVH,"5000.0")
+   field(DRVL,"1000.0")
+   field(HOPR,"5000.0")
+   field(LOPR,"1000.0")
    info(autosaveFields_pass0, "RVAL")
 }
 
@@ -29,6 +33,10 @@ record(ao,"${DIG}ExTrigFullScale-SP")
    field(PREC,"2")
    field(PINI, "YES")
    field(RVAL, "5")
+   field(DRVH,"5000.0")
+   field(DRVL,"1000.0")
+   field(HOPR,"5000.0")
+   field(LOPR,"1000.0")
    info(autosaveFields_pass0, "RVAL")
 }
 
