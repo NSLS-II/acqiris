@@ -49,7 +49,9 @@ template<>
             return 0;
         }
 
-        const void* buffer = ad->data[arc->channel].buffer;
+        //const void* buffer = ad->data[arc->channel].buffer;
+        const void* buffer = (void *) ((short *) ad->data[arc->channel].buffer
+                + ad->indexFirstPoint);
         //printf("record name is: %s, arc_name is:%s, nsamples is: %d\n",\
 			pwf->name, arc->name, nsamples);
         try

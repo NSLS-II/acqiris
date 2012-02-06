@@ -56,6 +56,8 @@ extern "C"
         long slotNbr;
         double realTrigRate;
         long acqTimeout;
+        //the index of the first valid data
+        int indexFirstPoint;
     };
     typedef struct acqiris_driver_t ad_t;
 

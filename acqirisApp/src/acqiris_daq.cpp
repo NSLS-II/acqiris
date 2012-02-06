@@ -37,8 +37,11 @@ acqiris_daq_thread(void *arg)
     int extra = ad->extra;
     int nbrSamples = ad->maxsamples;
     //printf("extra: %d;nbrSamples: %d \n", ad->extra, ad->maxsamples );
-    int size = (ad->maxsamples + ad->extra) * sizeof(short);
-    void* buffer = new char[size];
+    /** bug fix: using the following 'void * buffer' will produce identical
+     * data for all channels, i.e. DC252: Ch1 has the data which is from Ch2
+     */
+    //int size = (ad->maxsamples + ad->extra) * sizeof(short);
+    //void* buffer = new char[size];
 
     epicsMutexId acqiris_dma_mutex = epicsMutexMustCreate();
 
@@ -107,7 +110,7 @@ acqiris_daq_thread(void *arg)
                 //epicsMutexLock(ad->daq_mutex);
                 for (int channel = 0; channel < ad->effectiveChs; channel++)
                 {
-                    //void *buffer = ad->data[channel].buffer;
+                    void *buffer = ad->data[channel].buffer;
 
                     epicsMutexLock(acqiris_dma_mutex);
                     status = AcqrsD1_readData(id, channel + 1, &readParams,
@@ -129,9 +132,12 @@ acqiris_daq_thread(void *arg)
                          * 		use 'void* buffer = new char[size]' instead of
                          *          'void *buffer = ad->data[channel].buffer'
                          *    to prevent these pointers being modified;
+                         * 3. 02/06/2012:don't use 'void* buffer = new char[size]'
+                         *    and put 'wfDesc.indexFirstPoint' into acqiris_drv_wf.cpp
                          * */
-                        ad->data[channel].buffer = (void *) ((short *) buffer
-                                + wfDesc.indexFirstPoint);
+                        //ad->data[channel].buffer = (void *) ((short *) buffer
+                        //        + wfDesc.indexFirstPoint);
+                        ad->indexFirstPoint = wfDesc.indexFirstPoint;
                         /*printf("card#%d: indexFirstPoint: %d;
                          * returnedSamplesPerSeg: %d \n",ad->module,
                          * wfDesc.indexFirstPoint,wfDesc.returnedSamplesPerSeg);
