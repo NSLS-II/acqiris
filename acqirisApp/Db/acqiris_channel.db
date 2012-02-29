@@ -550,6 +550,15 @@ record(ao,"${MON}TrigLevel2-SP")
    info(autosaveFields_pass1, "VAL")
 }
 
+record(stringout, "$(MON)FilePath") 
+{
+   field(DESC, "Data log dir path")
+   field(PINI, "YES")
+   field(VAL, "/home/yhu")
+   info(autosaveFields, "VAL")
+}
+
+#the following records are original version from SLAC
 record(ai,"${MON}TrigLevelRange")
 {
    field(DESC,"TrigLevelRange")
