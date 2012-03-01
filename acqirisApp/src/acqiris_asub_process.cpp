@@ -43,11 +43,11 @@ acqirisAsubInit(aSubRecord *precord, processMethod process)
     if (acqirisAsubInitialized)
         return (0);
     if (NULL == (prawData = (short *) malloc(precord->noa * sizeof(short)))
-            || NULL == (pfillPattern = (double *) malloc(precord->noa
-                    * sizeof(double))) || NULL == (pvoltData
+            || NULL == (pfillPattern = (double *) malloc(
+                    precord->noa * sizeof(double))) || NULL == (pvoltData
             = (double *) malloc(precord->nova * sizeof(double))) || NULL
-            == (pPeakIndex = (unsigned int *) malloc(precord->nova
-                    * sizeof(unsigned int))))
+            == (pPeakIndex = (unsigned int *) malloc(
+                    precord->nova * sizeof(unsigned int))))
     {
         printf("out of memory: acqirisAsubInit \n");
         return -1;
@@ -95,50 +95,78 @@ acqirisAsubProcess(aSubRecord *precord)
     int module = 0;
     acqiris_driver_t *ad = NULL;
     unsigned int nSamples = 0;
+    char *pcharData = NULL;
 
     /*input links: raw integer waveform data, input range, range offset,
      * peak search threshold,number of samples for integral, etc.
      * */
-    memcpy(prawData, (short *) precord->a, precord->noa * sizeof(short));
+    //get MODULE info from INPA: ${MON}Raw-Wf
+    plink = &precord->inpa;
+    if (DB_LINK != plink->type)
+        return -1;
+    paddr = (DBADDR *) plink->value.pv_link.pvt;
+    pwf = (waveformRecord *) paddr->precord;
+    arc = (acqiris_record_t *) paddr->precord->dpvt;
+    module = arc->module;
+    ad = &acqiris_drivers[module];
+
+    if (8 == ad->NbrADCBits)
+    {
+        precord->fta = 1;
+        pcharData = (char *)precord->a;
+    }
+    else
+    {
+        memcpy(prawData, (short *) precord->a, precord->noa * sizeof(short));
+    }
     memcpy(&fullScale, (double *) precord->b, precord->nob * sizeof(double));
     memcpy(&rangeOffset, (double *) precord->c, precord->noc * sizeof(double));
     memcpy(&peakThreshold, (double *) precord->d, precord->nod * sizeof(double));
     memcpy(&nbrSampleForSum, (long *) precord->e, precord->noe * sizeof(long));
     memcpy(&coefBunchQ, (double *) precord->f, precord->nof * sizeof(double));
     memcpy(&zeroingOffset, (double *) precord->g, precord->nog * sizeof(double));
-    //below:memcpy(&ad->acqTimeout,(long *)precord->h,precord->noh*sizeof(long));
+    memcpy(&ad->acqTimeout, (long *) precord->h, precord->noh * sizeof(long));
     //printf("nbrSampleForSum: %d \n", nbrSampleForSum);
     //printf("threshold for peak searching is %f \n", peakThreshold);
 
     /*using effective number of samples ('NELM') in the waveform
      * instead of 'NOA'(max. samples/ch) for data analysis
      * */
-    plink = &precord->inpa;
-    if (DB_LINK != plink->type)
-        return -1;
-    paddr = (DBADDR *) plink->value.pv_link.pvt;
-    pwf = (waveformRecord *) paddr->precord;
-    /*get MODULE info from INPA: ${PREFIX}RawData-Wf_ and get 'realTrigRate'
-     * which is calculated in acqiris_daq.cpp
-     * */
-    arc = (acqiris_record_t *) paddr->precord->dpvt;
-    module = arc->module;
-    ad = &acqiris_drivers[module];
-    memcpy((double *) precord->valn, &ad->realTrigRate, precord->novn
-            * sizeof(double));
-    //set acquisition timeout(ms):AcqrsD1_waitForEndOfAcquisition(id,timeout);
-    memcpy(&ad->acqTimeout, (long *) precord->h, precord->noh * sizeof(long));
-
-    //convert raw data(16-bit integer) to voltages;
     //printf("number of effective samples(samples/ch): %d \n", pwf->nelm);
-    for (i = 0; i < pwf->nelm; i++)
+    //convert raw data(8-bit or 16-bit) to voltages: [-off-fs/2, -off+fs/2]
+    if (10 == ad->NbrADCBits)
     {
-        pvoltData[i] = fullScale * ((prawData[i] + 32768.0) / (32704.0
-                + 32768.0)) + (-rangeOffset - fullScale / 2.0);
+        for (i = 0; i < pwf->nelm; i++)
+        {
+            //10-bit raw ADC data as 16-bit in the range [-32768, 32704]
+            pvoltData[i] = fullScale * ((prawData[i] + 32768.0) / (32704.0
+                    + 32768.0)) + (-rangeOffset - fullScale / 2.0);
 
-        pvoltData[i] -= zeroingOffset;
+            pvoltData[i] -= zeroingOffset;
+        }
     }
-    /* field (OUTA, "${PREFIX}VoltData-Wf PP"):
+    else if (12 == ad->NbrADCBits)
+    {
+        for (i = 0; i < pwf->nelm; i++)
+        {
+            //12-bit raw ADC data as 16-bit in the range [-32768, 32752]
+            pvoltData[i] = fullScale * ((prawData[i] + 32768.0) / (32752.0
+                    + 32768.0)) + (-rangeOffset - fullScale / 2.0);
+
+            pvoltData[i] -= zeroingOffset;
+        }
+    }
+    else //8-bit: [-128,+127]
+    {
+        for (i = 0; i < pwf->nelm; i++)
+        {
+            pvoltData[i] = fullScale * ((pcharData[i] + 128.0)
+                    / (127.0 + 128.0)) + (-rangeOffset - fullScale / 2.0);
+
+            pvoltData[i] -= zeroingOffset;
+        }
+    }
+    /* field (OUTA, "${PREFIX}V-Wf PP"):
      * final voltage waveform data, only copy effective number of samples
      * */
     memcpy((double *) precord->vala, pvoltData, pwf->nelm * sizeof(double));
@@ -213,8 +241,8 @@ acqirisAsubProcess(aSubRecord *precord)
     }//for (i=(nbrSampleForSum-1)/2; i<(pwf->nelm -(nbrSampleForSum-1)/2); i++)
 
     //put integral (absolute bunch charge, 150-bunch for NSLS-2) into OUTL
-    memcpy((double *) precord->vall, &pfillPattern[0], MAX_NUM_BUNCH
-            * sizeof(double));
+    memcpy((double *) precord->vall, &pfillPattern[0],
+            MAX_NUM_BUNCH * sizeof(double));
 
     //Normalized filling pattern
     maxSum = pfillPattern[0];
@@ -249,16 +277,16 @@ acqirisAsubProcess(aSubRecord *precord)
     memcpy((double *) precord->vald, &ave, precord->novd * sizeof(double));
     memcpy((double *) precord->vale, &std, precord->nove * sizeof(double));
     memcpy((long *) precord->valf, &numBunch, precord->novf * sizeof(long));
-    memcpy((double *) precord->valg, &pfillPattern[0], MAX_NUM_BUNCH
-            * sizeof(double));
+    memcpy((double *) precord->valg, &pfillPattern[0],
+            MAX_NUM_BUNCH * sizeof(double));
     memcpy((double *) precord->valh, &b2BMaxVar, precord->novh * sizeof(double));
     //not: memcpy((double *)precord->vali,&BunchQCalib,...);
     memcpy((long *) precord->valj, &maxQBunchNum, precord->novj * sizeof(long));
     memcpy((long *) precord->valk, &minQBunchNum, precord->novk * sizeof(long));
     //above:memcpy((double *)precord->vall,&pfillPattern[0], ...);
     memcpy((int *) precord->valm, &pPeakIndex[0], MAX_NUM_BUNCH * sizeof(int));
-    //above:memcpy((double *)precord->valn,&ad->realTrigRate,...);
-
+    memcpy((double *) precord->valn, &ad->realTrigRate,
+            precord->novn * sizeof(double));
     //printf("end of %s in acqirisAsubProcess()\n",precord->name);
     return (0);
 }

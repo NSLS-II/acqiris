@@ -9,11 +9,13 @@
 ##       For Acqiris crate and CPU, it's the top slot if there's one digitizer  
 ## NELM     -	(max.) number of elements of waveform record 
 
-#raw waveform data: 16-bit integer
+#raw waveform data: 8-bit (DC265) or 16-bit (10- or 12-bit digitizer)
+#FTVL by default is SHORT. 
+#FTVL is changed to CHAR for 8-bit digitizer in acqiris_drv_wf.cpp
 record(waveform,"${MON}Raw-Wf")
 {
    field(SCAN,"I/O Intr")
-   field(DESC,"Raw waveform 16-bit data")
+   field(DESC,"Raw waveform data")
    field(DTYP,"acqiris")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
@@ -143,6 +145,8 @@ record(aSub,"${MON}VoltWf-ASub_")
     field (SNAM,"acqirisAsubProcess")
     #get raw data (integer) from the waveform record above
     field (INPA, "${MON}Raw-Wf")
+    #FTA by default is SHORT. 
+    #FTA is changed to CHAR for 8-bit digitizer in acqiris_asub_process.cpp
     field (FTA, "SHORT")
     field (NOA, "${NELM}")
     #get input range (Full scale)   
@@ -174,8 +178,7 @@ record(aSub,"${MON}VoltWf-ASub_")
     field (INPH, "${MON}AcqTimeout-SP")
     field (FTH, "LONG")
     field (NOH, "1")
-    #voltage waveform data: should have the same data as ${MON}V-Wf_
-    # if no subtracting background noise               
+    #voltage waveform data converted from raw data (8-, 12-, or 16-bit)           
     field (OUTA, "${MON}V-Wf PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")

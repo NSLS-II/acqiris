@@ -31,10 +31,12 @@ template<>
         return (ret);
     }
 
+//Read raw waveform data (8-bit or 16-bit)
 template<>
     int
     acqiris_read_record_specialized(waveformRecord* pwf)
     {
+        const void* buffer = NULL;
         acqiris_record_t* arc = reinterpret_cast<acqiris_record_t*> (pwf->dpvt);
         //arc->module is fetched from INP field (@M${MODULE})
         ad_t* ad = &acqiris_drivers[arc->module];
@@ -49,23 +51,38 @@ template<>
             return 0;
         }
 
-        //const void* buffer = ad->data[arc->channel].buffer;
-        const void* buffer = (void *) ((short *) ad->data[arc->channel].buffer
-                + ad->indexFirstPoint);
-        //printf("record name is: %s, arc_name is:%s, nsamples is: %d\n",\
-			pwf->name, arc->name, nsamples);
-        try
+        //pwf->ftvl is SHORT (3) by default. Use CHAR (1) for 8-bit digitizer
+        if (8 == ad->NbrADCBits)
         {
-            /*make sure the memory size(N bytes) of
-             * pwf->bptr & buffer >= nsamples * sizeof(short)
-             * */
-            memcpy(pwf->bptr, buffer, nsamples * sizeof(short));
-            //printf("Volt of the second sample: %f\n", *(buffer+1));
-            //printf("record: %s completed waveform memory copy\n", arc->name);
+            //printf("Card #%d is %d-bit, FTVL of the record %s is %d \n",
+            // arc->module, ad->NbrADCBits, pwf->name, pwf->ftvl);
+            pwf->ftvl = 1;
+            buffer = (void *) ((char *) ad->data[arc->channel].buffer
+                    + ad->indexFirstPoint);
+            memcpy(pwf->bptr, buffer, nsamples * sizeof(char));
+
         }
-        catch (std::exception &e)
+        else //10-bit or 12-bit digitizer
         {
-            errlogPrintf("Error occurred during buffer copy: %s\n", e.what());
+            //const void* buffer = ad->data[arc->channel].buffer;
+            buffer = (void *) ((short *) ad->data[arc->channel].buffer
+                    + ad->indexFirstPoint);
+            //printf("record name is: %s, arc_name is:%s, nsamples is: %d\n",\
+			pwf->name, arc->name, nsamples);
+            try
+            {
+                /*make sure the memory size(N bytes) of
+                 * pwf->bptr & buffer >= nsamples * sizeof(short)
+                 * */
+                memcpy(pwf->bptr, buffer, nsamples * sizeof(short));
+                //printf("Volt of the second sample: %f\n", *(buffer+1));
+                //printf("record: %s completed waveform memory copy\n", arc->name);
+            }
+            catch (std::exception &e)
+            {
+                errlogPrintf("Error occurred during buffer copy: %s\n",
+                        e.what());
+            }
         }
 
         /*reset NELM to the actual number of samples obtained by
