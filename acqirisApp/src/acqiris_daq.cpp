@@ -45,7 +45,19 @@ acqiris_daq_thread(void *arg)
 
     epicsMutexId acqiris_dma_mutex = epicsMutexMustCreate();
 
-    readParams.dataType = ReadInt16;
+    //for 8-bit digitizer, dataType is 0. ReadInt16 for 10- or 12-bit
+    if (8 == ad->NbrADCBits)
+    {
+        readParams.dataType = ReadInt8;
+    }
+    else if ((ad->NbrADCBits > 8) && (ad->NbrADCBits < 16))
+    {
+        readParams.dataType = ReadInt16;
+    }
+    else
+    {
+        errlogPrintf("unknown ADC resolution: not 8-, or 10- or 12-bit \n");
+    }
     readParams.readMode = ReadModeStdW;
     readParams.nbrSegments = nbrSegments;
     readParams.firstSampleInSeg = 0;
