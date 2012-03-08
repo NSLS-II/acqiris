@@ -28,6 +28,7 @@ static short *prawData;
 static double *pvoltData;
 static double *pfillPattern;
 static double *ptimeAxis;
+static char *pcharData = NULL;
 /*sampleInterval: calculated in timeAxisAsubProcess(), used in
  * acqirisAsubProcess() for computing absolute charge of each bunch
  * */
@@ -42,11 +43,12 @@ acqirisAsubInit(aSubRecord *precord, processMethod process)
 {
     if (acqirisAsubInitialized)
         return (0);
-    if (NULL == (prawData = (short *) malloc(precord->noa * sizeof(short)))
-            || NULL == (pfillPattern = (double *) malloc(
-                    precord->noa * sizeof(double))) || NULL == (pvoltData
-            = (double *) malloc(precord->nova * sizeof(double))) || NULL
-            == (pPeakIndex = (unsigned int *) malloc(
+    if (NULL == (pcharData = (char *) malloc(precord->noa * sizeof(short)))
+            || NULL == (prawData = (short *) malloc(
+                    precord->noa * sizeof(short))) || NULL == (pfillPattern
+            = (double *) malloc(precord->noa * sizeof(double))) || NULL
+            == (pvoltData = (double *) malloc(precord->nova * sizeof(double)))
+            || NULL == (pPeakIndex = (unsigned int *) malloc(
                     precord->nova * sizeof(unsigned int))))
     {
         printf("out of memory: acqirisAsubInit \n");
@@ -95,7 +97,7 @@ acqirisAsubProcess(aSubRecord *precord)
     int module = 0;
     acqiris_driver_t *ad = NULL;
     unsigned int nSamples = 0;
-    char *pcharData = NULL;
+    //char *pcharData = NULL;
 
     /*input links: raw integer waveform data, input range, range offset,
      * peak search threshold,number of samples for integral, etc.
@@ -112,8 +114,9 @@ acqirisAsubProcess(aSubRecord *precord)
 
     if (8 == ad->NbrADCBits)
     {
-        precord->fta = 1;
-        pcharData = (char *)precord->a;
+        //precord->fta = 1;
+        //pcharData = (char *) precord->a;
+        memcpy(pcharData, precord->a, precord->noa * sizeof(short));
     }
     else
     {
