@@ -17,6 +17,8 @@
 #include "dbAddr.h"
 #include "dbCommon.h"
 #include "waveformRecord.h"
+#include "longoutRecord.h"
+#include "errlog.h"
 
 #include "acqiris_drv.hh"
 #include "acqiris_dev.hh" //acqiris_record_t; for 'realTrigRate'
@@ -62,9 +64,43 @@ acqirisAsubInit(aSubRecord *precord, processMethod process)
     return (0);
 }
 
+//basic processing: max, min, sum/integral, mean, std; called by processWf()
+void
+processBasic(const double *pData, unsigned startPoint, unsigned endPoint,
+             double *max, double *min, double *sum, double *ave, double *std)
+{
+    //*max = pData[0];
+    //*min = pData[0];
+    *max = pData[startPoint];
+    *min = pData[startPoint];
+    *sum = 0.0;
+    *ave = 0.0;
+    *std = 0.0;
+    unsigned int i = 0;
+
+    //base data processing: max, min, sum/integral, mean, std
+    for (i = startPoint; i < endPoint; i++)
+    {
+        if (pData[i] > *max)
+            *max = pData[i];
+        if (pData[i] < *min)
+            *min = pData[i];
+        *sum += pData[i];
+    }
+    *ave = (*sum) / (endPoint - startPoint);
+    //calculate standard deviation (RMS noise: Delta = sqrt[(Xi-Xmean)^2)]
+    for (i = startPoint; i < endPoint; i++)
+    {
+        *std += (pData[i] - (*ave)) * (pData[i] - (*ave));
+    }
+    *std = sqrt((*std) / (endPoint - startPoint));
+
+    return;
+}
+
 /*This routine is called whenever the DAQ is done: see AcqrsD1_readData()
- * acqiris_daq.cpp ${PREFIX}RawData-Wf_ (I/O Intr):
- * field(FLNK,"${PREFIX}VoltWf-ASub_")
+ * acqiris_daq.cpp ${MON}Raw-Wf (I/O Intr):
+ * field(FLNK,"${MON}Raw-aSub_")
  * */
 static long
 acqirisAsubProcess(aSubRecord *precord)
@@ -87,6 +123,11 @@ acqirisAsubProcess(aSubRecord *precord)
     double sum = 0.0;
     double ave = 0.0;
     double std = 0.0;
+    double maxROI = 0.0;
+    double minROI = 0.0;
+    double sumROI = 0.0;
+    double aveROI = 0.0;
+    double stdROI = 0.0;
     double b2BMaxVar = 0.0;
     double maxSum = 0.0;
     double minSum = 0.0;
@@ -169,7 +210,7 @@ acqirisAsubProcess(aSubRecord *precord)
             pvoltData[i] -= zeroingOffset;
         }
     }
-    /* field (OUTA, "${PREFIX}V-Wf PP"):
+    /* field (OUTA, "${MON}V-Wf PP"):
      * final voltage waveform data, only copy effective number of samples
      * */
     memcpy((double *) precord->vala, pvoltData, pwf->nelm * sizeof(double));
@@ -181,25 +222,46 @@ acqirisAsubProcess(aSubRecord *precord)
     paddr = (DBADDR *) plink->value.pv_link.pvt;
     pwf = (waveformRecord *) paddr->precord;//pwf is now associated with OUTA
     pwf->nelm = nSamples;
+    pwf->nord = nSamples;
 
-    //Max, Min, ave, std(RMS noise): sum is not DC component
-    max = pvoltData[0];
-    min = pvoltData[0];
-    for (i = 0; i < pwf->nelm; i++)
+    unsigned int *startP = (unsigned int *) precord->i;
+    unsigned int *endP = (unsigned int *) precord->j;
+    //reset starP and endP longout records; plink is INPI/INPJ now
+    longoutRecord *plongout;
+    if (*endP > pwf->nord)
     {
-        sum += pvoltData[i];
-        if (pvoltData[i] > max)
-            max = pvoltData[i];
-        if (pvoltData[i] < min)
-            min = pvoltData[i];
+        *endP = pwf->nord;
+        plink = &precord->inpj;
+        assert((plink != NULL) && (DB_LINK == plink->type));
+        paddr = (DBADDR *) plink->value.pv_link.pvt;
+        plongout = (longoutRecord *) paddr->precord;
+        plongout->val = *endP;
+        //plongout->proc = 1;//can't cause the record to be processed
+        errlogPrintf("endPoint should <= pwf->nord (%d), reset \n", pwf->nord);
     }
-    ave = sum / pwf->nelm;
-    for (i = 0; i < pwf->nelm; i++)
+    if (*startP >= *endP)
     {
-        std += (pvoltData[i] - ave) * (pvoltData[i] - ave);
+        *startP = 0;
+        plink = &precord->inpi;
+        assert((plink != NULL) && (DB_LINK == plink->type));
+        paddr = (DBADDR *) plink->value.pv_link.pvt;
+        plongout = (longoutRecord *) paddr->precord;
+        plongout->val = *startP;
+        errlogPrintf("startPoint should < endPoint, reset \n");
     }
-    std = sqrt(std / pwf->nelm);
-    //printf("RMS noise of %s: %f \n", pwf->name, std);
+
+    //calculate max, min, sum/integral, mean, std in the whole waveform
+    processBasic(pvoltData, 0, pwf->nord, &max, &min, &sum, &ave, &std);
+    //data analysis on part of the waveform (ROI, region of interest)
+    processBasic(pvoltData, *startP, *endP, &maxROI, &minROI, &sumROI, &aveROI,
+            &stdROI);
+
+    //charge Q = V*T
+    sum *= sampleInterval;
+    sumROI *= sampleInterval;
+    //ROI length: ns
+    unsigned int ROISamples = *endP - *startP;
+    *(double *) precord->valu = ROISamples * sampleInterval;
 
     /*search positive or negative pulse peaks: number of bunches,
      * normalized fill pattern, Max variation, individual bunch charge, etc.
@@ -290,11 +352,65 @@ acqirisAsubProcess(aSubRecord *precord)
     memcpy((int *) precord->valm, &pPeakIndex[0], MAX_NUM_BUNCH * sizeof(int));
     memcpy((double *) precord->valn, &ad->realTrigRate,
             precord->novn * sizeof(double));
+    //sum and sumROI is charge: sum of volts * sampleInterval
+    memcpy((double *) precord->valo, &sum, precord->novo * sizeof(double));
+    memcpy((double *) precord->valp, &aveROI, precord->novp * sizeof(double));
+    memcpy((double *) precord->valq, &maxROI, precord->novq * sizeof(double));
+    memcpy((double *) precord->valr, &minROI, precord->novr * sizeof(double));
+    memcpy((double *) precord->vals, &sumROI, precord->novs * sizeof(double));
+    memcpy((double *) precord->valt, &stdROI, precord->novt * sizeof(double));
     //printf("end of %s in acqirisAsubProcess()\n",precord->name);
     return (0);
 }
 
-/*see "${PREFIX}TimeAxis-ASub_" in acqiris_module.db for INP/OUT links*/
+/*see acqiris_hannel.db for INP/OUT fields
+ * process buffered data: 60 samples (1-minute data for 1Hz injection)
+ * */
+static long
+processBuf(aSubRecord *precord)
+{
+    assert(precord != NULL);
+
+    unsigned j = 0;
+    double sum = 0.0;
+    double ave = 0.0;
+    double std = 0.0;
+
+    unsigned int nbrShots = *(unsigned int *) precord->b;
+    //printf("nbrShots: %d \n", nbrShots);
+    unsigned *pShots = (unsigned *) precord->c;
+    double *pbufQ = (double *) precord->valc;
+    if (*pShots < nbrShots)
+    {
+        //((double *) precord->valc)[*pShots] = *(double *) precord->a;
+        pbufQ[*pShots] = *(double *) precord->a;
+        (*pShots)++;
+        //printf("*pShots is %d \n", *pShots);
+    }
+    else
+    {
+        *pShots = 0;
+        for (j = 0; j < nbrShots; j++)
+        {
+            //sum += ((double *) precord->valc)[j];
+            sum += pbufQ[j];
+        }
+        ave = sum / nbrShots;
+        //printf("sum: %f, ave is %f \n", sum, ave);
+        for (j = 0; j < nbrShots; j++)
+        {
+            std += (pbufQ[j] - ave) * (pbufQ[j] - ave);
+        }
+        std = sqrt(std / nbrShots);
+        //printf("rmsNoise is %f \n", std);
+        //OUTA, "${MON}StdVROIOverINOS-I PP"
+        *(double *) precord->vala = std;
+    }
+
+    return (0);
+}
+
+/*see "${MON}TimeAxis-ASub_" in acqiris_module.db for INP/OUT links*/
 static long
 timeAxisAsubInit(aSubRecord *precord, processMethod process)
 {
@@ -353,6 +469,8 @@ timeAxisAsubProcess(aSubRecord *precord)
 epicsRegisterFunction(acqirisAsubInit)
 ;
 epicsRegisterFunction(acqirisAsubProcess)
+;
+epicsRegisterFunction(processBuf)
 ;
 epicsRegisterFunction(timeAxisAsubInit)
 ;

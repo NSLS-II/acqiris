@@ -20,7 +20,7 @@ record(waveform,"${MON}Raw-Wf")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
    field(INP,"@M${MODULE} C${CHANNEL} WRAW")
-   field(FLNK,"${MON}VoltWf-ASub_")
+   field(FLNK,"${MON}Raw-aSub_")
 }
 
 record(ao,"${MON}FullScale-SP")
@@ -72,7 +72,7 @@ record(ao,"${MON}PeakThreshold-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-#coefficient for calculation of absolute bunch charge of WCM, etc.  
+#coefficient for calculation of absolute bunch charge of WCM, FC, etc.  
 record(ao,"${MON}CoefBunchQ-SP")
 {
    field(DESC,"Coefficient")
@@ -134,11 +134,47 @@ record(longout,"${MON}AcqTimeout-SP")
    info(autosaveFields_pass0, "VAL")
  }
 
+#StartPoint and EndPoint are changed in ${MON}Raw-aSub_; 
+#need scanning to get processed again
+record(fanout, "${MON}Scan-Fout_")
+{
+    field(SCAN, "2 second")
+    field(LNK1,"${MON}StartPoint-SP")
+    field(LNK2,"${MON}EndPoint-SP")
+}
+
+#Selected region of interest (ROI): start, end 
+record(longout,"${MON}StartPoint-SP")
+{
+   field(DESC,"start sample point of selected region")
+   field(PINI,"YES")
+   field(DRVH, "${NELM}")
+   field(DRVL, "0")
+   field(HOPR, "${NELM}")
+   field(LOPR, "0")
+   field(VAL, "0")   
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK,"${MON}ROISamples-I")
+}
+
+record(longout,"${MON}EndPoint-SP")
+{
+   field(DESC,"end sample point of selected region")
+   field(PINI,"YES")
+   field(DRVH, "${NELM}")
+   field(DRVL, "1")
+   field(HOPR, "${NELM}")
+   field(LOPR, "1")
+   field(VAL, "${NELM}")    
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK,"${MON}ROISamples-I")
+}
+ 
 ## see acqiris_asub_process.cpp: process the waveform record: voltage, 
 #max, min, ave, std, number of bunches(peaks/pulse counts), 
 #filling pattern(integral, normalization, etc.), 
 #individual bunch charge calibrated against ICT;
-record(aSub,"${MON}VoltWf-ASub_")
+record(aSub,"${MON}Raw-aSub_")
 {
     field(DESC,"process raw waveform data")
     field (INAM,"acqirisAsubInit")
@@ -146,7 +182,7 @@ record(aSub,"${MON}VoltWf-ASub_")
     #get raw data (integer) from the waveform record above
     field (INPA, "${MON}Raw-Wf")
     #FTA by default is SHORT. 
-    #FTA is changed to CHAR for 8-bit digitizer in acqiris_asub_process.cpp
+    #don't change FTA to CHAR for 8-bit digitizer in acqiris_asub_process.cpp
     field (FTA, "SHORT")
     field (NOA, "${NELM}")
     #get input range (Full scale)   
@@ -178,6 +214,14 @@ record(aSub,"${MON}VoltWf-ASub_")
     field (INPH, "${MON}AcqTimeout-SP")
     field (FTH, "LONG")
     field (NOH, "1")
+    #get start sample point of selected region   
+    field (INPI, "${MON}StartPoint-SP")
+    field (FTI, "ULONG")
+    field (NOI, "1")    
+    #get end sample point of selected region   
+    field (INPJ, "${MON}EndPoint-SP")
+    field (FTJ, "ULONG")
+    field (NOJ, "1")   
     #voltage waveform data converted from raw data (8-, 12-, or 16-bit)           
     field (OUTA, "${MON}V-Wf PP")
     field (FTVA, "DOUBLE")
@@ -234,6 +278,29 @@ record(aSub,"${MON}VoltWf-ASub_")
     field (OUTN, "${MON}TrigRate-I PP")
     field (FTVN, "DOUBLE")
     field (NOVN, "1")
+    #data processing results: mean, max, min, sum, std, etc.   
+    #over part of the waveform (selected region) and within the whole waveform
+    field (OUTO, "${MON}SumV-I PP")
+    field (FTVO, "DOUBLE")
+    field (NOVO, "1")    
+    field (OUTP, "${MON}AveVROI-I PP")
+    field (FTVP, "DOUBLE")
+    field (NOVP, "1")
+    field (OUTQ, "${MON}MaxVROI-I PP")
+    field (FTVQ, "DOUBLE")
+    field (NOVQ, "1")
+    field (OUTR, "${MON}MinVROI-I PP")
+    field (FTVR, "DOUBLE")
+    field (NOVR, "1")
+    field (OUTS, "${MON}SumVROI-I PP")
+    field (FTVS, "DOUBLE")
+    field (NOVS, "1")
+    field (OUTT, "${MON}StdVROI-I PP")
+    field (FTVT, "DOUBLE")
+    field (NOVT, "1")    
+    field (OUTU, "${MON}ROILength-I PP")
+    field (FTVU, "DOUBLE")
+    field (NOVU, "1") 
 }
 
 record(waveform,"${MON}V-Wf")
@@ -242,7 +309,7 @@ record(waveform,"${MON}V-Wf")
    field(DESC,"voltage waveform data by aSub")
    field(NELM,"${NELM}")
    field(FTVL,"DOUBLE")
-   field(INP,"${MON}VoltWf-ASub_.VALA")
+   field(INP,"${MON}Raw-aSub_.VALA")
    field(PREC,"6")
    field(EGU,"V")
 }
@@ -264,7 +331,7 @@ record(subArray,"${MON}VoltData-SubAr_")
 record(ai,"${MON}MaxV-I")
 {
    field(DESC,"Max value")
-   field(INP,"${MON}VoltWf-ASub_.VALB")
+   field(INP,"${MON}Raw-aSub_.VALB")
    field(PREC,"6")
    field(EGU,"V")
 }
@@ -272,7 +339,7 @@ record(ai,"${MON}MaxV-I")
 record(ai,"${MON}MinV-I")
 {
    field(DESC,"Min value")
-   field(INP,"${MON}VoltWf-ASub_.VALC")
+   field(INP,"${MON}Raw-aSub_.VALC")
    field(PREC,"6")
    field(EGU,"V")
 }
@@ -280,7 +347,7 @@ record(ai,"${MON}MinV-I")
 record(ai,"${MON}AveV-I")
 {
    field(DESC,"Averaged DC")
-   field(INP,"${MON}VoltWf-ASub_.VALD")
+   field(INP,"${MON}Raw-aSub_.VALD")
    field(PREC,"6")
    field(EGU,"Volts")
 }
@@ -288,7 +355,7 @@ record(ai,"${MON}AveV-I")
 record(ai,"${MON}StdV-I")
 {
    field(DESC,"RMS noise")
-   field(INP,"${MON}VoltWf-ASub_.VALE")
+   field(INP,"${MON}Raw-aSub_.VALE")
    field(PREC,"6")
    field(EGU,"V")
 }
@@ -296,7 +363,7 @@ record(ai,"${MON}StdV-I")
 record(longin,"${MON}NbrBunches-I")
 {
    field(DESC,"Number of bunches")
-   field(INP,"${MON}VoltWf-ASub_.VALF")
+   field(INP,"${MON}Raw-aSub_.VALF")
    field(EGU,"bunches")
    field(FLNK,"${MON}SaveWf-Calc_")
 }
@@ -337,7 +404,7 @@ record(waveform,"${MON}VoltDataSaved-Wf_")
 record(waveform,"${MON}FillPattern-Wf")
 {
    field(DESC,"normalized filling pattern")
-   field(INP,"${MON}VoltWf-ASub_.VALG")
+   field(INP,"${MON}Raw-aSub_.VALG")
    field(NELM,"150")
    field(FTVL,"DOUBLE")
    field(PREC,"4")
@@ -346,7 +413,7 @@ record(waveform,"${MON}FillPattern-Wf")
 record(ai,"${MON}B2BMaxVar-I")
 {
    field(DESC,"bunch-to-bunch max. variation")
-   field(INP,"${MON}VoltWf-ASub_.VALH")
+   field(INP,"${MON}Raw-aSub_.VALH")
    field(PREC,"4")
 }
 
@@ -354,7 +421,7 @@ record(ai,"${MON}B2BMaxVar-I")
 record(waveform,"${MON}BunchQCalib-Wf")
 {
    field(DESC,"Calibrated bunch charge")
-   field(INP,"${MON}VoltWf-ASub_.VALI")
+   field(INP,"${MON}Raw-aSub_.VALI")
    field(NELM,"150")
    field(FTVL,"DOUBLE")
    field(PREC,"4")
@@ -364,13 +431,13 @@ record(waveform,"${MON}BunchQCalib-Wf")
 record(longin,"${MON}MaxQBunchNbr-I")
 {
    field(DESC,"No# highest charge")
-   field(INP,"${MON}VoltWf-ASub_.VALJ")
+   field(INP,"${MON}Raw-aSub_.VALJ")
 }
 
 record(longin,"${MON}MinQBunchNbr-I")
 {
    field(DESC,"No# lowest charge")
-   field(INP,"${MON}VoltWf-ASub_.VALK")
+   field(INP,"${MON}Raw-aSub_.VALK")
 }
 
 #calculate bunch charge by integrating samples: wall current monitor 
@@ -378,7 +445,7 @@ record(waveform,"${MON}BunchQ-Wf")
 {
    #field(DESC,"IntegralValueOfEachBunch")
    field(DESC,"ChargeOfEachBunch")
-   field(INP,"${MON}VoltWf-ASub_.VALL")
+   field(INP,"${MON}Raw-aSub_.VALL")
    field(NELM,"150")
    field(FTVL,"DOUBLE")
    field(PREC,"4")
@@ -408,7 +475,7 @@ record(ai,"${MON}Bunch1Q-I")
 record(waveform,"${MON}PeakIndex-Wf")
 {
    field(DESC,"index of peaks")
-   field(INP,"${MON}VoltWf-ASub_.VALM")
+   field(INP,"${MON}Raw-aSub_.VALM")
    field(NELM,"150")
    field(FTVL,"LONG")
 }
@@ -432,9 +499,166 @@ record(longin,"${MON}FirstPeakPos-I")
 record(ai,"${MON}TrigRate-I")
 {
    field(DESC,"precise trigRate")
-   field(INP,"${MON}VoltWf-ASub_.VALN")
+   field(INP,"${MON}Raw-aSub_.VALN")
    field(PREC,"3")
    field(EGU,"Hz")
+}
+
+record(ai,"${MON}SumV-I")
+{
+   field(DESC,"sum voltage")
+   field(INP,"${MON}Raw-aSub_.VALO")
+   field(PREC,"6")
+   #field(EGU,"V")
+   field(EGU,"nC")
+}
+
+#processed data over ROI (region of interest)
+record(ai,"${MON}AveVROI-I")
+{
+   field(DESC,"ROI averaged voltage")
+   field(INP,"${MON}Raw-aSub_.VALP")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ai,"${MON}MaxVROI-I")
+{
+   field(DESC,"ROI max. voltage")
+   field(INP,"${MON}Raw-aSub_.VALQ")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ai,"${MON}MinVROI-I")
+{
+   field(DESC,"ROI min. voltage")
+   field(INP,"${MON}Raw-aSub_.VALR")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+#integral V*T (ns.V=nC) over ROI is for FC charge
+record(ai,"${MON}SumVROI-I")
+{
+   field(DESC,"ROI sum voltage")
+   field(INP,"${MON}Raw-aSub_.VALS")
+   field(PREC,"6")
+   field(EGU,"nC")
+   field(FLNK,"${MON}Q-Calc_")
+}
+
+record(calcout,"${MON}Q-Calc_")
+{
+   field(DESC,"Beam charge calc")
+   field(INPA,"${MON}SumVROI-I")
+   #${MON}CoefBunchQ-SP is 1/50=0.02 for Faraday Cup
+   field(INPB,"${MON}CoefBunchQ-SP")
+   field(CALC,"A*B")
+   field(OUT, "${MON}Q-I PP")
+   field(PREC,"6")
+   field(EGU,"nC")
+}
+
+record(ai,"${MON}Q-I")
+{
+   field(DESC,"Beam charge measured by FC")
+   field(PREC,"6")
+   field(EGU,"nC")
+   field(FLNK,"${MON}Buffer-aSub_")
+}
+
+record(ai,"${MON}StdVROI-I")
+{
+   field(DESC,"ROI std voltage")
+   field(INP,"${MON}Raw-aSub_.VALT")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ai,"${MON}ROILength-I")
+{
+   field(DESC,"ROI length: ms")
+   field(INP,"${MON}Raw-aSub_.VALU")
+   field(PREC,"1")
+   field(EGU,"ns")
+}
+
+record(calc,"${MON}ROISamples-I")
+{
+   field(DESC,"Length of ROI")
+   field(INPA,"${MON}StartPoint-SP")
+   field(INPB,"${MON}EndPoint-SP")
+   field(CALC,"B-A")
+   field(PREC,"0")
+   field(EGU,"samples")
+}
+
+record(longin,"${MON}Shots-I")
+{
+   field(DESC,"shots changed in aSub")
+   field(VAL,"0")
+   field(INP,"${MON}Buffer-aSub_.C")
+}
+
+#averaging every interested number of shots(INOS)
+#averaged Q over INOS is calculated from ${MON}AveQROIOverINOS-I
+record(compress,"${MON}AveQOverINOS-I")
+{
+	field(DESC, "average Q over INOS")
+	#INP is scalar
+	field(INP,"${MON}Q-I CP")
+	field(ALG,"N to 1 Average")
+	field(NSAM,"1")
+	#N can't be DB_LINK, must be constant
+	#N can be changed to the interested number of shots at run-time
+	field(N,"10")
+	field(PREC,"6")
+	field(EGU,"nC")
+	info(autosaveFields_pass0, "N")
+}
+alias("${MON}AveQOverINOS-I","${MON}AveVROIOverINOS-I")
+
+#see acqiris_asub_process.cpp: process INOS buffered data.
+record(aSub,"${MON}Buffer-aSub_")
+{
+    field (DESC,"process buffered data")
+    field (SNAM,"processBuf")
+    field (INPA, "${MON}Q-I")
+    field (FTA, "DOUBLE")
+    field (NOA, "1")
+    #N is the interested number of shots
+    field (INPB, "${MON}AveQOverINOS-I.N")
+    field (FTB, "ULONG")
+    field (NOB, "1")
+    field (INPC, "${MON}Shots-I PP")
+    field (FTC, "ULONG")
+    field (NOC, "1")
+    #${MON}StdQOverINOS-I is calculate from ${MON}StdVROIOverINOS-I
+    field (OUTA, "${MON}StdQOverINOS-I PP")
+    field (FTVA, "DOUBLE")
+    field (NOVA, "1")
+    field (OUTB, "${MON}Q-Buf_ PP")
+    field (FTVB, "DOUBLE")
+    field (NOVB, "60")
+}
+
+record(ai,"${MON}StdQOverINOS-I")
+{
+   field(DESC,"std charge over INOS")
+   field(INP,"${MON}Buffer-aSub_.VALA")
+   field(PREC,"6")
+   field(EGU,"nC")
+}
+
+record(waveform,"${MON}Q-Buf_")
+{
+   field(DESC,"Q buffer")
+   field(INP,"${MON}Buffer-aSub_.VALB")
+   field(NELM,"60")
+   field(FTVL,"DOUBLE")
+   field(PREC,"6")
+   field(EGU,"nC")
 }
 
 record(mbbo,"${MON}Coupling-Sel")
