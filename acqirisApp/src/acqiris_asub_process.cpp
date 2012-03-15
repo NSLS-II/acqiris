@@ -131,6 +131,7 @@ acqirisAsubProcess(aSubRecord *precord)
     double b2BMaxVar = 0.0;
     double maxSum = 0.0;
     double minSum = 0.0;
+    double qSum = 0.0;
     long numBunch = 0;
     long maxQBunchNum = 0;
     long minQBunchNum = 0;
@@ -308,7 +309,11 @@ acqirisAsubProcess(aSubRecord *precord)
     //put integral (absolute bunch charge, 150-bunch for NSLS-2) into OUTL
     memcpy((double *) precord->vall, &pfillPattern[0],
             MAX_NUM_BUNCH * sizeof(double));
-
+    //add up individual bunch charge to get the total charge of the bunch-train
+    for (i = 0; i < numBunch; i++)
+    {
+        qSum += pfillPattern[i];
+    }
     //Normalized filling pattern
     maxSum = pfillPattern[0];
     minSum = pfillPattern[0];
@@ -359,6 +364,11 @@ acqirisAsubProcess(aSubRecord *precord)
     memcpy((double *) precord->valr, &minROI, precord->novr * sizeof(double));
     memcpy((double *) precord->vals, &sumROI, precord->novs * sizeof(double));
     memcpy((double *) precord->valt, &stdROI, precord->novt * sizeof(double));
+    //above: *(double *) precord->valu = ROISamples * sampleInterval;
+    //aSub only has fields from A to U: use unused INP* instead of ONT*
+    memcpy((double *) precord->k, &maxSum, precord->nok * sizeof(double));
+    memcpy((double *) precord->l, &minSum, precord->nol * sizeof(double));
+    memcpy((double *) precord->m, &qSum, precord->nom * sizeof(double));
     //printf("end of %s in acqirisAsubProcess()\n",precord->name);
     return (0);
 }

@@ -222,6 +222,18 @@ record(aSub,"${MON}Raw-aSub_")
     field (INPJ, "${MON}EndPoint-SP")
     field (FTJ, "ULONG")
     field (NOJ, "1")   
+    ## aSub only has fields from A to U: use unused INP* instead of ONT*
+    #Max/Min single bunch charge within the bunch-train
+    field (INPK, "${MON}MaxQ-I PP")
+    field (FTK, "DOUBLE")
+    field (NOK, "1") 
+    field (INPL, "${MON}MinQ-I PP")
+    field (FTL, "DOUBLE")
+    field (NOL, "1")    
+    #the whole bunch-train charge by summing individual bunch charge
+    field (INPM, "${MON}SumQ-I PP")
+    field (FTM, "DOUBLE")
+    field (NOM, "1")   
     #voltage waveform data converted from raw data (8-, 12-, or 16-bit)           
     field (OUTA, "${MON}V-Wf PP")
     field (FTVA, "DOUBLE")
@@ -301,6 +313,7 @@ record(aSub,"${MON}Raw-aSub_")
     field (OUTU, "${MON}ROILength-I PP")
     field (FTVU, "DOUBLE")
     field (NOVU, "1") 
+    ## aSub only has fields from A to U: use unused INP* instead of ONT*  
 }
 
 record(waveform,"${MON}V-Wf")
@@ -594,6 +607,7 @@ record(calc,"${MON}ROISamples-I")
    field(EGU,"samples")
 }
 
+#Buffer-aSub_ fits for FC
 record(longin,"${MON}Shots-I")
 {
    field(DESC,"shots changed in aSub")
@@ -661,6 +675,100 @@ record(waveform,"${MON}Q-Buf_")
    field(EGU,"nC")
 }
 
+#SumQBuffer-aSub_ for FCT and WCM
+record(longin,"${MON}SumQShots-I")
+{
+   field(DESC,"shots changed in aSub")
+   field(VAL,"0")
+   field(INP,"${MON}SumQBuffer-aSub_.C")
+}
+
+#averaging every interested number of shots(INOS)
+#averaged sumQ over INOS is calculated from ${MON}AveSumQROIOverINOS-I
+record(compress,"${MON}AveSumQOverINOS-I")
+{
+	field(DESC, "average SumQ over INOS")
+	#INP is scalar
+	field(INP,"${MON}SumQ-I CP")
+	field(ALG,"N to 1 Average")
+	field(NSAM,"1")
+	#N can't be DB_LINK, must be constant
+	#N can be changed to the interested number of shots at run-time
+	field(N,"10")
+	field(PREC,"6")
+	field(EGU,"nC")
+	info(autosaveFields_pass0, "N")
+}
+alias("${MON}AveSumQOverINOS-I","${MON}AveSumVROIOverINOS-I")
+
+#see acqiris_asub_process.cpp: process INOS buffered data.
+record(aSub,"${MON}SumQBuffer-aSub_")
+{
+    field (DESC,"process buffered data")
+    field (SNAM,"processBuf")
+    field (INPA, "${MON}SumQ-I")
+    field (FTA, "DOUBLE")
+    field (NOA, "1")
+    #N is the interested number of shots
+    field (INPB, "${MON}AveSumQOverINOS-I.N")
+    field (FTB, "ULONG")
+    field (NOB, "1")
+    field (INPC, "${MON}SumQShots-I PP")
+    field (FTC, "ULONG")
+    field (NOC, "1")
+    #${MON}StdQOverINOS-I is calculate from ${MON}StdVROIOverINOS-I
+    field (OUTA, "${MON}StdSumQOverINOS-I PP")
+    field (FTVA, "DOUBLE")
+    field (NOVA, "1")
+    field (OUTB, "${MON}SumQ-Buf_ PP")
+    field (FTVB, "DOUBLE")
+    field (NOVB, "60")
+}
+
+record(ai,"${MON}StdSumQOverINOS-I")
+{
+   field(DESC,"std sumQ charge over INOS")
+   field(INP,"${MON}SumQBuffer-aSub_.VALA")
+   field(PREC,"6")
+   field(EGU,"nC")
+}
+
+record(waveform,"${MON}SumQ-Buf_")
+{
+   field(DESC,"sumQ buffer")
+   field(INP,"${MON}SumQBuffer-aSub_.VALB")
+   field(NELM,"60")
+   field(FTVL,"DOUBLE")
+   field(PREC,"6")
+   field(EGU,"nC")
+}
+
+record(ai,"${MON}MaxQ-I")
+{
+   field(DESC,"Max bunch charge within bunch-train")
+   field(INP,"${MON}Raw-aSub_.K")
+   field(PREC,"3")
+   field(EGU,"nC")
+}
+
+record(ai,"${MON}MinQ-I")
+{
+   field(DESC,"Min bunch charge within bunch-train")
+   field(INP,"${MON}Raw-aSub_.L")
+   field(PREC,"3")
+   field(EGU,"nC")
+}
+
+record(ai,"${MON}SumQ-I")
+{
+   field(DESC,"bunch-train charge of FCT")
+   field(INP,"${MON}Raw-aSub_.M")
+   field(PREC,"3")
+   field(EGU,"nC")
+}
+
+
+###
 record(mbbo,"${MON}Coupling-Sel")
 {
    field(DESC,"Channel Coupling")
