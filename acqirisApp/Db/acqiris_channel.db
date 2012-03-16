@@ -772,6 +772,7 @@ record(ai,"${MON}SumQ-I")
    field(INP,"${MON}Raw-aSub_.M")
    field(PREC,"3")
    field(EGU,"nC")
+   field(MDEL,"-1")
 }
 
 
