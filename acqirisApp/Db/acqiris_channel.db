@@ -224,14 +224,15 @@ record(aSub,"${MON}Raw-aSub_")
     field (NOJ, "1")   
     ## aSub only has fields from A to U: use unused INP* instead of ONT*
     #Max/Min single bunch charge within the bunch-train
-    field (INPK, "${MON}MaxQ-I PP")
+    #field (INPK, "${MON}MaxQ-I PP")
+    field (INPK, "${MON}MaxQ-I")
     field (FTK, "DOUBLE")
     field (NOK, "1") 
-    field (INPL, "${MON}MinQ-I PP")
+    field (INPL, "${MON}MinQ-I")
     field (FTL, "DOUBLE")
     field (NOL, "1")    
     #the whole bunch-train charge by summing individual bunch charge
-    field (INPM, "${MON}SumQ-I PP")
+    field (INPM, "${MON}SumQ-I")
     field (FTM, "DOUBLE")
     field (NOM, "1")   
     #voltage waveform data converted from raw data (8-, 12-, or 16-bit)           
@@ -314,6 +315,7 @@ record(aSub,"${MON}Raw-aSub_")
     field (FTVU, "DOUBLE")
     field (NOVU, "1") 
     ## aSub only has fields from A to U: use unused INP* instead of ONT*  
+    field(FLNK,"${MON}MaxQ-I")
 }
 
 record(waveform,"${MON}V-Wf")
@@ -695,9 +697,11 @@ record(compress,"${MON}AveSumQOverINOS-I")
 	#N can't be DB_LINK, must be constant
 	#N can be changed to the interested number of shots at run-time
 	field(N,"10")
-	field(PREC,"6")
+	field(PREC,"3")
 	field(EGU,"nC")
 	info(autosaveFields_pass0, "N")
+	#FLNK won't work: if 1Hz & N=2, StdSumQOverINOS-I will update at 1/6 Hz
+	#field(FLNK,"${MON}SumQBuffer-aSub_")
 }
 alias("${MON}AveSumQOverINOS-I","${MON}AveSumVROIOverINOS-I")
 
@@ -706,7 +710,7 @@ record(aSub,"${MON}SumQBuffer-aSub_")
 {
     field (DESC,"process buffered data")
     field (SNAM,"processBuf")
-    field (INPA, "${MON}SumQ-I")
+    field (INPA, "${MON}SumQ-I CP")
     field (FTA, "DOUBLE")
     field (NOA, "1")
     #N is the interested number of shots
@@ -729,7 +733,7 @@ record(ai,"${MON}StdSumQOverINOS-I")
 {
    field(DESC,"std sumQ charge over INOS")
    field(INP,"${MON}SumQBuffer-aSub_.VALA")
-   field(PREC,"6")
+   field(PREC,"3")
    field(EGU,"nC")
 }
 
@@ -739,16 +743,18 @@ record(waveform,"${MON}SumQ-Buf_")
    field(INP,"${MON}SumQBuffer-aSub_.VALB")
    field(NELM,"60")
    field(FTVL,"DOUBLE")
-   field(PREC,"6")
+   field(PREC,"3")
    field(EGU,"nC")
 }
 
 record(ai,"${MON}MaxQ-I")
 {
    field(DESC,"Max bunch charge within bunch-train")
+   #CP doesn't work here for aSub.field
    field(INP,"${MON}Raw-aSub_.K")
    field(PREC,"3")
    field(EGU,"nC")
+   field(FLNK,"${MON}MinQ-I")
 }
 
 record(ai,"${MON}MinQ-I")
@@ -757,6 +763,7 @@ record(ai,"${MON}MinQ-I")
    field(INP,"${MON}Raw-aSub_.L")
    field(PREC,"3")
    field(EGU,"nC")
+   field(FLNK,"${MON}SumQ-I")
 }
 
 record(ai,"${MON}SumQ-I")
