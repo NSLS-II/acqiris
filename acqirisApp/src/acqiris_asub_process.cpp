@@ -31,10 +31,6 @@ static double *pvoltData;
 static double *pfillPattern;
 static double *ptimeAxis;
 static char *pcharData = NULL;
-/*sampleInterval: calculated in timeAxisAsubProcess(), used in
- * acqirisAsubProcess() for computing absolute charge of each bunch
- * */
-static double sampleInterval;
 static unsigned int *pPeakIndex;
 
 typedef long
@@ -258,11 +254,13 @@ acqirisAsubProcess(aSubRecord *precord)
             &stdROI);
 
     //charge Q = V*T
-    sum *= sampleInterval;
-    sumROI *= sampleInterval;
+    //sum *= sampleInterval;
+    //sumROI *= sampleInterval;
+    sum *= (1e9*ad->sampleInterval);
+    sumROI *= (1e9*ad->sampleInterval);
     //ROI length: ns
     unsigned int ROISamples = *endP - *startP;
-    *(double *) precord->valu = ROISamples * sampleInterval;
+    *(double *) precord->valu = ROISamples * (1e9*ad->sampleInterval);
 
     /*search positive or negative pulse peaks: number of bunches,
      * normalized fill pattern, Max variation, individual bunch charge, etc.
@@ -299,7 +297,8 @@ acqirisAsubProcess(aSubRecord *precord)
                     pfillPattern[numBunch] += pvoltData[i + j];
                 }
                 //absolute charge of each bunch
-                pfillPattern[numBunch] *= (coefBunchQ * sampleInterval);
+                pfillPattern[numBunch] *= (coefBunchQ * (1e9
+                        * ad->sampleInterval));
                 numBunch++;
                 pPeakIndex[k++] = i;
             }
@@ -357,14 +356,14 @@ acqirisAsubProcess(aSubRecord *precord)
     memcpy((int *) precord->valm, &pPeakIndex[0], MAX_NUM_BUNCH * sizeof(int));
     memcpy((double *) precord->valn, &ad->realTrigRate,
             precord->novn * sizeof(double));
-    //sum and sumROI is charge: sum of volts * sampleInterval
+    //sum and sumROI is charge: sum of volts * (1e9*ad->sampleInterval)
     memcpy((double *) precord->valo, &sum, precord->novo * sizeof(double));
     memcpy((double *) precord->valp, &aveROI, precord->novp * sizeof(double));
     memcpy((double *) precord->valq, &maxROI, precord->novq * sizeof(double));
     memcpy((double *) precord->valr, &minROI, precord->novr * sizeof(double));
     memcpy((double *) precord->vals, &sumROI, precord->novs * sizeof(double));
     memcpy((double *) precord->valt, &stdROI, precord->novt * sizeof(double));
-    //above: *(double *) precord->valu = ROISamples * sampleInterval;
+    //above: *(double *) precord->valu = ROISamples * (1e9*ad->sampleInterval);
     //aSub only has fields from A to U: use unused INP* instead of ONT*
     memcpy((double *) precord->k, &maxSum, precord->nok * sizeof(double));
     memcpy((double *) precord->l, &minSum, precord->nol * sizeof(double));
@@ -440,7 +439,8 @@ timeAxisAsubInit(aSubRecord *precord, processMethod process)
     return (0);
 }
 
-/*This routine is called only when nSamples or sampleLength is changed*/
+/*This routine is called only when nSamples or sampleLength is changed,
+ *  see acqiris_module.db*/
 static long
 timeAxisAsubProcess(aSubRecord *precord)
 {
@@ -450,6 +450,7 @@ timeAxisAsubProcess(aSubRecord *precord)
     DBLINK *plink;
     DBADDR *paddr;
     waveformRecord *pwf;
+    double sampleInterval;
 
     //input links: number of samples(data points), sample length (N ns)
     memcpy(&nSample, (long *) precord->a, precord->noa * sizeof(long));

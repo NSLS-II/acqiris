@@ -53,7 +53,7 @@ record(ao,"${DIG}SampFreq-SP")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(calc,"${DIG}SampFreq-Calc_")
+record(calcout,"${DIG}SampFreq-Calc_")
 {
    field(SCAN,"Passive")
    field(DESC,"calc sampInterval")
@@ -62,16 +62,16 @@ record(calc,"${DIG}SampFreq-Calc_")
    field(CALC, "(A < 100)?100:(1.0/A)")
    #the expression below seems OK
    #field(CALC, "1.0/A")
-   #field(OUT, "${DIG}SampInterval-SP PP")
-   field(FLNK,"${DIG}SampInterval-SP")
+   field(OUT, "${DIG}SampInterval-SP PP")
+   #field(FLNK,"${DIG}SampInterval-SP")
 }
 
 record(ao,"${DIG}SampInterval-SP")
 {
    field(DESC,"sampInterval")
    field(DTYP,"acqiris")
-   field(DOL,"${DIG}SampFreq-Calc_")
-   field(OMSL,"closed_loop")
+   #field(DOL,"${DIG}SampFreq-Calc_")
+   #field(OMSL,"closed_loop")
    field(OUT,"@M${MODULE} MSMIN")
    #field(PINI,"YES")
    field(SCAN,"Passive")
@@ -79,6 +79,7 @@ record(ao,"${DIG}SampInterval-SP")
    field(PREC,"4")
    #use 'VAL' instead of 'RVAL'
    #info(autosaveFields_pass0, "VAL")
+   field(FLNK,"${DIG}SampLength-I")
 }
 
 record(longout,"${DIG}NbrSamples-SP")
@@ -104,7 +105,7 @@ record(calc,"${DIG}SampLength-I")
 {
    field(DESC,"Sample length:ns")
    field(SCAN,"Passive")
-   field(INPA,"${DIG}SampInterval-SP CP")
+   field(INPA,"${DIG}SampInterval-SP")
    field(INPB,"${DIG}NbrSamples-SP CP")
    field(CALC, "A*B*(1e+09)")  
    field(EGU,"ns")

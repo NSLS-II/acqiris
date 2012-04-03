@@ -138,7 +138,11 @@ static int
 rao_MSampInterval(rec_t* rec, ad_t* ad, double* val)
 {
     double delayTime;
-    return AcqrsD1_getHorizontal(ad->id, val, &delayTime);
+    int status = AcqrsD1_getHorizontal(ad->id, val, &delayTime);
+    //04-03-2012, yhu: set global sampleInterval
+    ad->sampleInterval = *val;
+    return status;
+    //return AcqrsD1_getHorizontal(ad->id, val, &delayTime);
 }
 
 static int
@@ -149,6 +153,8 @@ wao_MSampInterval(rec_t* rec, ad_t* ad, double val)
     if (SUCCESS(status))
     {
         status = AcqrsD1_configHorizontal(ad->id, val, delayTime);
+        //04-03-2012, yhu: set global sampleInterval
+        //ad->sampleInterval = val;
     }
     return status;
 }

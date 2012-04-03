@@ -58,6 +58,7 @@ extern "C"
         long acqTimeout;
         //the index of the first valid data
         int indexFirstPoint;
+        double sampleInterval;
     };
     typedef struct acqiris_driver_t ad_t;
 

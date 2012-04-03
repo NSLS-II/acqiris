@@ -222,7 +222,7 @@ record(aSub,"${MON}Raw-aSub_")
     field (INPJ, "${MON}EndPoint-SP")
     field (FTJ, "ULONG")
     field (NOJ, "1")   
-    ## aSub only has fields from A to U: use unused INP* instead of ONT*
+    ## aSub only has fields from A to U: use unused INP* instead of OUT*
     #Max/Min single bunch charge within the bunch-train
     #field (INPK, "${MON}MaxQ-I PP")
     field (INPK, "${MON}MaxQ-I")
@@ -569,7 +569,7 @@ record(calcout,"${MON}Q-Calc_")
    field(INPA,"${MON}SumVROI-I")
    #${MON}CoefBunchQ-SP is 1/50=0.02 for Faraday Cup
    field(INPB,"${MON}CoefBunchQ-SP")
-   field(CALC,"A*B")
+   field(CALC,"ABS(A*B)")
    field(OUT, "${MON}Q-I PP")
    field(PREC,"6")
    field(EGU,"nC")
@@ -577,7 +577,7 @@ record(calcout,"${MON}Q-Calc_")
 
 record(ai,"${MON}Q-I")
 {
-   field(DESC,"Beam charge measured by FC")
+   field(DESC,"Beam charge based on ROI")
    field(PREC,"6")
    field(EGU,"nC")
    field(FLNK,"${MON}Buffer-aSub_")
@@ -593,7 +593,7 @@ record(ai,"${MON}StdVROI-I")
 
 record(ai,"${MON}ROILength-I")
 {
-   field(DESC,"ROI length: ms")
+   field(DESC,"ROI length: ns")
    field(INP,"${MON}Raw-aSub_.VALU")
    field(PREC,"1")
    field(EGU,"ns")
