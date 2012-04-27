@@ -167,6 +167,9 @@ acqirisAsubProcess(aSubRecord *precord)
     memcpy(&coefBunchQ, (double *) precord->f, precord->nof * sizeof(double));
     memcpy(&zeroingOffset, (double *) precord->g, precord->nog * sizeof(double));
     memcpy(&ad->acqTimeout, (long *) precord->h, precord->noh * sizeof(long));
+
+    unsigned int *startP = (unsigned int *) precord->i;
+    unsigned int *endP = (unsigned int *) precord->j;
     //printf("nbrSampleForSum: %d \n", nbrSampleForSum);
     //printf("threshold for peak searching is %f \n", peakThreshold);
 
@@ -175,38 +178,44 @@ acqirisAsubProcess(aSubRecord *precord)
      * */
     //printf("number of effective samples(samples/ch): %d \n", pwf->nelm);
     //convert raw data(8-bit or 16-bit) to voltages: [-off-fs/2, -off+fs/2]
-    if (10 == ad->NbrADCBits)
+    for (i = 0; i < pwf->nelm; i++)
     {
-        for (i = 0; i < pwf->nelm; i++)
+        if (10 == ad->NbrADCBits)
         {
             //10-bit raw ADC data as 16-bit in the range [-32768, 32704]
             pvoltData[i] = fullScale * ((prawData[i] + 32768.0) / (32704.0
                     + 32768.0)) + (-rangeOffset - fullScale / 2.0);
-
-            pvoltData[i] -= zeroingOffset;
         }
-    }
-    else if (12 == ad->NbrADCBits)
-    {
-        for (i = 0; i < pwf->nelm; i++)
+        else if (12 == ad->NbrADCBits)
         {
             //12-bit raw ADC data as 16-bit in the range [-32768, 32752]
             pvoltData[i] = fullScale * ((prawData[i] + 32768.0) / (32752.0
                     + 32768.0)) + (-rangeOffset - fullScale / 2.0);
-
-            pvoltData[i] -= zeroingOffset;
         }
-    }
-    else //8-bit: [-128,+127]
-    {
-        for (i = 0; i < pwf->nelm; i++)
+        else
         {
+            //8-bit: [-128,+127]
             pvoltData[i] = fullScale * ((pcharData[i] + 128.0)
                     / (127.0 + 128.0)) + (-rangeOffset - fullScale / 2.0);
-
-            pvoltData[i] -= zeroingOffset;
         }
     }
+
+    //get the zeroing offset (background noise) from ave[0, *startP]
+    //field (INPN, "${MON}AutoZeroing-Sel.RVAL")
+    if (1 == *(short *) precord->n)
+    {
+        processBasic(pvoltData, 0, *startP, &maxROI, &minROI, &sumROI, &aveROI,
+                &stdROI);
+        zeroingOffset = aveROI;
+        *(double *) precord->o = aveROI;
+        //printf("autoZeroingOffset: %f \n", zeroingOffset);
+    }
+
+    for (i = 0; i < pwf->nelm; i++)
+    {
+        pvoltData[i] -= zeroingOffset;
+    }
+
     /* field (OUTA, "${MON}V-Wf PP"):
      * final voltage waveform data, only copy effective number of samples
      * */
@@ -221,8 +230,8 @@ acqirisAsubProcess(aSubRecord *precord)
     pwf->nelm = nSamples;
     pwf->nord = nSamples;
 
-    unsigned int *startP = (unsigned int *) precord->i;
-    unsigned int *endP = (unsigned int *) precord->j;
+    //unsigned int *startP = (unsigned int *) precord->i;
+    //unsigned int *endP = (unsigned int *) precord->j;
     //reset starP and endP longout records; plink is INPI/INPJ now
     longoutRecord *plongout;
     if (*endP > pwf->nord)
@@ -256,11 +265,11 @@ acqirisAsubProcess(aSubRecord *precord)
     //charge Q = V*T
     //sum *= sampleInterval;
     //sumROI *= sampleInterval;
-    sum *= (1e9*ad->sampleInterval);
-    sumROI *= (1e9*ad->sampleInterval);
+    sum *= (1e9 * ad->sampleInterval);
+    sumROI *= (1e9 * ad->sampleInterval);
     //ROI length: ns
     unsigned int ROISamples = *endP - *startP;
-    *(double *) precord->valu = ROISamples * (1e9*ad->sampleInterval);
+    *(double *) precord->valu = ROISamples * (1e9 * ad->sampleInterval);
 
     /*search positive or negative pulse peaks: number of bunches,
      * normalized fill pattern, Max variation, individual bunch charge, etc.
@@ -275,6 +284,7 @@ acqirisAsubProcess(aSubRecord *precord)
     //memset(pfillPattern, 0, precord->noa * sizeof(double));
     memset(pfillPattern, 0, pwf->nelm * sizeof(double));
     for (i = 0; i < pwf->nord; i++) // nord == nelm: see acqiris_drv_wf.cpp
+
     {
         if (pvoltData[i] < 0.0)
             pvoltData[i] = (-pvoltData[i]);
@@ -364,7 +374,7 @@ acqirisAsubProcess(aSubRecord *precord)
     memcpy((double *) precord->vals, &sumROI, precord->novs * sizeof(double));
     memcpy((double *) precord->valt, &stdROI, precord->novt * sizeof(double));
     //above: *(double *) precord->valu = ROISamples * (1e9*ad->sampleInterval);
-    //aSub only has fields from A to U: use unused INP* instead of ONT*
+    //aSub only has fields from A to U: use unused INP* instead of OUT*
     memcpy((double *) precord->k, &maxSum, precord->nok * sizeof(double));
     memcpy((double *) precord->l, &minSum, precord->nol * sizeof(double));
     memcpy((double *) precord->m, &qSum, precord->nom * sizeof(double));

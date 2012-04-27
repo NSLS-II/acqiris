@@ -106,11 +106,29 @@ record(calc,"${MON}NbrSamplesForSum-Calc_")
 #Why need ZeroingOffset?
 #there might be DC offset between the FCT and the digitizer without real beam
 #ZeroingOffset-SP == AveVolt-I
+record(bo,"${MON}AutoZeroing-Sel")
+{
+   field(DESC,"auto zeroing offset")
+   field(PINI,"YES")
+   field(ZNAM,"NoAutoZero")
+   field(ONAM,"AutoZero")
+   info(autosaveFields_pass0, "VAL")
+}
+
+#StartPoint, EndPoint are changed in ${MON}Raw-aSub_; 
+#need scanning to get processed again
+record(fanout, "${MON}Scan-Fout_")
+{
+    field(SCAN, "2 second")
+    field(LNK1,"${MON}StartPoint-SP")
+    field(LNK2,"${MON}EndPoint-SP")
+}
+
 record(ao,"${MON}ZeroingOffset-SP")
 {
-   field(DESC,"Offset for zeroing noise")
+   field(DESC,"Manually zeroing noise")
    field(PINI,"YES")
-   field(SCAN,"Passive")
+   #field(INP,"${MON}Raw-aSub_.G")
    field(DRVH,"5.0")
    field(DRVL,"-5.0")
    field(HOPR,"5.0")
@@ -118,6 +136,16 @@ record(ao,"${MON}ZeroingOffset-SP")
    field(EGU,"V")
    field(PREC,"4")
    info(autosaveFields_pass0, "VAL")
+   #field(FLNK,"${MON}StartPoint-SP")
+}
+
+#${MON}SumQ-I --> FLNK --> ${MON}AutoZeroingOffset-I
+record(ai,"${MON}AutoZeroingOffset-I")
+{
+   field(DESC,"automatically zeroing offset")
+   field(INP,"${MON}Raw-aSub_.O")  
+   field(EGU,"V")
+   field(PREC,"6")
 }
 
 record(longout,"${MON}AcqTimeout-SP")
@@ -134,27 +162,19 @@ record(longout,"${MON}AcqTimeout-SP")
    info(autosaveFields_pass0, "VAL")
  }
 
-#StartPoint and EndPoint are changed in ${MON}Raw-aSub_; 
-#need scanning to get processed again
-record(fanout, "${MON}Scan-Fout_")
-{
-    field(SCAN, "2 second")
-    field(LNK1,"${MON}StartPoint-SP")
-    field(LNK2,"${MON}EndPoint-SP")
-}
-
 #Selected region of interest (ROI): start, end 
 record(longout,"${MON}StartPoint-SP")
 {
    field(DESC,"start sample point of selected region")
    field(PINI,"YES")
    field(DRVH, "${NELM}")
-   field(DRVL, "0")
+   field(DRVL, "1")
    field(HOPR, "${NELM}")
-   field(LOPR, "0")
-   field(VAL, "0")   
+   field(LOPR, "1")
+   field(VAL, "1")   
    info(autosaveFields_pass0, "VAL")
    field(FLNK,"${MON}ROISamples-I")
+   #field(FLNK,"${MON}EndPoint-SP")
 }
 
 record(longout,"${MON}EndPoint-SP")
@@ -162,9 +182,9 @@ record(longout,"${MON}EndPoint-SP")
    field(DESC,"end sample point of selected region")
    field(PINI,"YES")
    field(DRVH, "${NELM}")
-   field(DRVL, "1")
+   field(DRVL, "2")
    field(HOPR, "${NELM}")
-   field(LOPR, "1")
+   field(LOPR, "2")
    field(VAL, "${NELM}")    
    info(autosaveFields_pass0, "VAL")
    field(FLNK,"${MON}ROISamples-I")
@@ -206,7 +226,7 @@ record(aSub,"${MON}Raw-aSub_")
     field (INPF, "${MON}CoefBunchQ-SP")
     field (FTF, "DOUBLE")
     field (NOF, "1")
-    #get offset for zeroing noise   
+    #manually set offset for zeroing noise   
     field (INPG, "${MON}ZeroingOffset-SP")
     field (FTG, "DOUBLE")
     field (NOG, "1")
@@ -235,6 +255,11 @@ record(aSub,"${MON}Raw-aSub_")
     field (INPM, "${MON}SumQ-I")
     field (FTM, "DOUBLE")
     field (NOM, "1")   
+    #manually setup zeroing offset or automatically calculated? 
+    field (INPN, "${MON}AutoZeroing-Sel.RVAL")
+    field (FTN, "SHORT")
+    field (NON, "1")
+    #INPO is reserved for ${MON}AutoZeroingOffset-I
     #voltage waveform data converted from raw data (8-, 12-, or 16-bit)           
     field (OUTA, "${MON}V-Wf PP")
     field (FTVA, "DOUBLE")
@@ -563,13 +588,23 @@ record(ai,"${MON}SumVROI-I")
    field(FLNK,"${MON}Q-Calc_")
 }
 
+record(ao,"${MON}QOffset-SP")
+{
+   field(DESC,"Charge offset")
+   field(PREC,"3")
+   field(EGU,"nC")
+   field(FLNK,"${MON}Q-Calc_")
+   info(autosaveFields_pass0, "VAL")
+}
+
 record(calcout,"${MON}Q-Calc_")
 {
    field(DESC,"Beam charge calc")
    field(INPA,"${MON}SumVROI-I")
    #${MON}CoefBunchQ-SP is 1/50=0.02 for Faraday Cup
    field(INPB,"${MON}CoefBunchQ-SP")
-   field(CALC,"ABS(A*B)")
+   field(INPC,"${MON}QOffset-SP")
+   field(CALC,"(ABS(A*B))-C")
    field(OUT, "${MON}Q-I PP")
    field(PREC,"6")
    field(EGU,"nC")
@@ -578,7 +613,7 @@ record(calcout,"${MON}Q-Calc_")
 record(ai,"${MON}Q-I")
 {
    field(DESC,"Beam charge based on ROI")
-   field(PREC,"6")
+   field(PREC,"3")
    field(EGU,"nC")
    field(FLNK,"${MON}Buffer-aSub_")
 }
@@ -629,7 +664,7 @@ record(compress,"${MON}AveQOverINOS-I")
 	#N can't be DB_LINK, must be constant
 	#N can be changed to the interested number of shots at run-time
 	field(N,"10")
-	field(PREC,"6")
+	field(PREC,"3")
 	field(EGU,"nC")
 	info(autosaveFields_pass0, "N")
 }
@@ -663,7 +698,7 @@ record(ai,"${MON}StdQOverINOS-I")
 {
    field(DESC,"std charge over INOS")
    field(INP,"${MON}Buffer-aSub_.VALA")
-   field(PREC,"6")
+   field(PREC,"3")
    field(EGU,"nC")
 }
 
@@ -773,6 +808,7 @@ record(ai,"${MON}SumQ-I")
    field(PREC,"3")
    field(EGU,"nC")
    field(MDEL,"-1")
+   field(FLNK,"${MON}AutoZeroingOffset-I")
 }
 
 
