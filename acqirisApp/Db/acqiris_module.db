@@ -263,6 +263,10 @@ record(longin,"${DIG}Temperature_m-RB")
    field(PINI,"YES")
    field(SCAN,"2 second")
    field(EGU,"degC")
+   field(HIHI, "55")
+   field(HIGH, "45")
+   field(HHSV, "MAJOR")
+   field(HSV, "MINOR")
 }
 
 record(longout,"${DIG}UsedChannels-SP")
@@ -338,6 +342,10 @@ record(longin,"${DIG}ReadErrors-RB")
    field(INP,"@M${MODULE} MRDER")
    field(PINI,"YES")
    field(SCAN,"1 second")
+   field(HIHI, "100")
+   field(HIGH, "1")
+   field(HHSV, "MAJOR")
+   field(HSV, "MINOR")
 }
 
 record(longin,"${DIG}Truncated-RB")
