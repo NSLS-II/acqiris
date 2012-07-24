@@ -137,11 +137,33 @@ acqiris_find_devices(int calibration)
             errlogPrintf(
                     "Init failed (%x) for instrument %s with options(%s) \n",
                     (unsigned) status, name, options);
-            //if one board can't be initialized, just return nbr of initialized
-            return module;
+            /*in some cases, one board can't be initialized with calibration,
+             * try to re-initialize it without calibration
+             */
+            //return module;
+            //ViString optionsTemp = "cal=0 dma=0";
+            status = Acqrs_InitWithOptions(name, VI_FALSE, VI_FALSE,
+                    "cal=0 dma=0", (ViSession*) &ad->id);
+            if (VI_SUCCESS != status)
+            {
+                errlogPrintf(
+                        "Init failed (%x) again for %s even without calibration\n",
+                        (unsigned) status, name);
+                return module;
+            }
+            else
+            {
+                errlogPrintf(
+                        "re-initialized %s without calibration: status:0x%x\n",
+                        name, (unsigned) status);
+            }
         }
-        printf("Initialized module(%s) with options(%s): status:0x%x\n", name,
-                options, (unsigned) status);
+        else
+        {
+            errlogPrintf(
+                    "Initialized module(%s) with options(%s): status:0x%x\n",
+                    name, options, (unsigned) status);
+        }
 
         status = Acqrs_getNbrChannels(ad->id, (ViInt32*) &ad->nchannels);
         status = Acqrs_getInstrumentInfo(ad->id, "MaxSamplesPerChannel",
