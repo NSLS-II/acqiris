@@ -28,8 +28,8 @@ DB += acqiris_trigger.db
 DB += acqiris_module.db
 #DB += iocStats.db
 
-#DB_INSTALLS += $(EPICS_BASE)/db/iocAdminSoft.db
-#DB_INSTALLS += $(EPICS_BASE)/db/save_restoreStatus.db
+DB_INSTALLS += $(EPICS_BASE)/db/iocAdminSoft.db
+DB_INSTALLS += $(EPICS_BASE)/db/save_restoreStatus.db
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

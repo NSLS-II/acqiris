@@ -116,12 +116,12 @@ acqiris_find_devices(int calibration)
 
     if (0 == calibration)
     {
-        options = "cal=0 dma=0";
+        options = "cal=0 dma=1";
         printf("No calibration during power-up \n");
     }
     else
     {
-        options = "cal=1 dma=0";
+        options = "cal=1 dma=1";
         printf("Calibration in progress, Wait... \n");
     }
 
@@ -143,7 +143,7 @@ acqiris_find_devices(int calibration)
             //return module;
             //ViString optionsTemp = "cal=0 dma=0";
             status = Acqrs_InitWithOptions(name, VI_FALSE, VI_FALSE,
-                    "cal=0 dma=0", (ViSession*) &ad->id);
+                    "cal=0 dma=1", (ViSession*) &ad->id);
             if (VI_SUCCESS != status)
             {
                 errlogPrintf(
