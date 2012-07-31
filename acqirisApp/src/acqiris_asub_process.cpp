@@ -22,7 +22,10 @@
 
 #include "acqiris_drv.hh"
 #include "acqiris_dev.hh" //acqiris_record_t; for 'realTrigRate'
-const int MAX_NUM_BUNCH = 150;
+int MAX_NUM_BUNCH = 150;
+/* More samples for data processing, higher CPU load and slower IOC update rate
+ * default max samples to be processed: 80K --> at least 80KS/(8GS/s) = 10 us*/
+int maxSampleForProc = 80000;
 
 static bool acqirisAsubInitialized = FALSE;
 static bool timeAxisAsubInitialized = FALSE;
@@ -42,12 +45,12 @@ acqirisAsubInit(aSubRecord *precord, processMethod process)
     if (acqirisAsubInitialized)
         return (0);
     if (NULL == (pcharData = (char *) malloc(precord->noa * sizeof(short)))
-            || NULL == (prawData = (short *) malloc(
-                    precord->noa * sizeof(short))) || NULL == (pfillPattern
+            || NULL == (prawData = (short *) malloc(precord->noa
+                    * sizeof(short))) || NULL == (pfillPattern
             = (double *) malloc(precord->noa * sizeof(double))) || NULL
             == (pvoltData = (double *) malloc(precord->nova * sizeof(double)))
-            || NULL == (pPeakIndex = (unsigned int *) malloc(
-                    precord->nova * sizeof(unsigned int))))
+            || NULL == (pPeakIndex = (unsigned int *) malloc(precord->nova
+                    * sizeof(unsigned int))))
     {
         printf("out of memory: acqirisAsubInit \n");
         return -1;
@@ -134,7 +137,7 @@ acqirisAsubProcess(aSubRecord *precord)
     acqiris_record_t *arc = NULL;
     int module = 0;
     acqiris_driver_t *ad = NULL;
-    unsigned int nSamples = 0;
+    unsigned int nSamples = 0;//limit max samples to be processed
     //char *pcharData = NULL;
 
     /*input links: raw integer waveform data, input range, range offset,
@@ -178,7 +181,14 @@ acqirisAsubProcess(aSubRecord *precord)
      * */
     //printf("number of effective samples(samples/ch): %d \n", pwf->nelm);
     //convert raw data(8-bit or 16-bit) to voltages: [-off-fs/2, -off+fs/2]
-    for (i = 0; i < pwf->nelm; i++)
+
+    nSamples = precord->noa;//limit max samples to be processed
+    if (nSamples > maxSampleForProc)
+    {
+        nSamples = maxSampleForProc;
+    }
+
+    for (i = 0; i < nSamples; i++)
     {
         if (10 == ad->NbrADCBits)
         {
@@ -211,17 +221,17 @@ acqirisAsubProcess(aSubRecord *precord)
         //printf("autoZeroingOffset: %f \n", zeroingOffset);
     }
 
-    for (i = 0; i < pwf->nelm; i++)
+    for (i = 0; i < nSamples; i++)
     {
         pvoltData[i] -= zeroingOffset;
     }
 
     /* field (OUTA, "${MON}V-Wf PP"):
-     * final voltage waveform data, only copy effective number of samples
+     * final voltage waveform data, only copy nSamples
      * */
-    memcpy((double *) precord->vala, pvoltData, pwf->nelm * sizeof(double));
+    memcpy((double *) precord->vala, pvoltData, nSamples * sizeof(double));
     //dynamically change NELM field of '${PREFIX}VoltData-Wf'(OUTA)
-    nSamples = pwf->nelm;//number of effective samples from INPA
+    //nSamples = pwf->nelm;//number of effective samples from INPA
     plink = &precord->outa;
     if (DB_LINK != plink->type)
         return -1;
@@ -282,7 +292,7 @@ acqirisAsubProcess(aSubRecord *precord)
 
     //memset consumes lots of CPU load (~100%) if using noa=1000000
     //memset(pfillPattern, 0, precord->noa * sizeof(double));
-    memset(pfillPattern, 0, pwf->nelm * sizeof(double));
+    memset(pfillPattern, 0, nSamples * sizeof(double));
     for (i = 0; i < pwf->nord; i++) // nord == nelm: see acqiris_drv_wf.cpp
 
     {
@@ -290,7 +300,7 @@ acqirisAsubProcess(aSubRecord *precord)
             pvoltData[i] = (-pvoltData[i]);
     }
     //nbrSampleForSum is odd and >= 5: see ${PREFIX}NbrSamplesForSum-Calc_
-    for (i = (nbrSampleForSum - 1) / 2; i < (pwf->nelm - (nbrSampleForSum - 1)
+    for (i = (nbrSampleForSum - 1) / 2; i < (nSamples - (nbrSampleForSum - 1)
             / 2); i++)
     {
         if (fabs(pvoltData[i]) > fabs(peakThreshold))
@@ -316,8 +326,8 @@ acqirisAsubProcess(aSubRecord *precord)
     }//for (i=(nbrSampleForSum-1)/2; i<(pwf->nelm -(nbrSampleForSum-1)/2); i++)
 
     //put integral (absolute bunch charge, 150-bunch for NSLS-2) into OUTL
-    memcpy((double *) precord->vall, &pfillPattern[0],
-            MAX_NUM_BUNCH * sizeof(double));
+    memcpy((double *) precord->vall, &pfillPattern[0], MAX_NUM_BUNCH
+            * sizeof(double));
     //add up individual bunch charge to get the total charge of the bunch-train
     for (i = 0; i < numBunch; i++)
     {
@@ -356,16 +366,16 @@ acqirisAsubProcess(aSubRecord *precord)
     memcpy((double *) precord->vald, &ave, precord->novd * sizeof(double));
     memcpy((double *) precord->vale, &std, precord->nove * sizeof(double));
     memcpy((long *) precord->valf, &numBunch, precord->novf * sizeof(long));
-    memcpy((double *) precord->valg, &pfillPattern[0],
-            MAX_NUM_BUNCH * sizeof(double));
+    memcpy((double *) precord->valg, &pfillPattern[0], MAX_NUM_BUNCH
+            * sizeof(double));
     memcpy((double *) precord->valh, &b2BMaxVar, precord->novh * sizeof(double));
     //not: memcpy((double *)precord->vali,&BunchQCalib,...);
     memcpy((long *) precord->valj, &maxQBunchNum, precord->novj * sizeof(long));
     memcpy((long *) precord->valk, &minQBunchNum, precord->novk * sizeof(long));
     //above:memcpy((double *)precord->vall,&pfillPattern[0], ...);
     memcpy((int *) precord->valm, &pPeakIndex[0], MAX_NUM_BUNCH * sizeof(int));
-    memcpy((double *) precord->valn, &ad->realTrigRate,
-            precord->novn * sizeof(double));
+    memcpy((double *) precord->valn, &ad->realTrigRate, precord->novn
+            * sizeof(double));
     //sum and sumROI is charge: sum of volts * (1e9*ad->sampleInterval)
     memcpy((double *) precord->valo, &sum, precord->novo * sizeof(double));
     memcpy((double *) precord->valp, &aveROI, precord->novp * sizeof(double));
@@ -454,7 +464,7 @@ timeAxisAsubInit(aSubRecord *precord, processMethod process)
 static long
 timeAxisAsubProcess(aSubRecord *precord)
 {
-    long nSample;
+    long nSample;//limit max samples to be processed
     double sampleLength;
     long i = 0;
     DBLINK *plink;
@@ -467,6 +477,11 @@ timeAxisAsubProcess(aSubRecord *precord)
     memcpy(&sampleLength, (double *) precord->b, precord->nob * sizeof(double));
     //sampleInterval is used for charge calculation in acqirisAsubProcess()
     sampleInterval = sampleLength / nSample;
+
+    if (nSample > maxSampleForProc)
+    {
+        nSample = maxSampleForProc;
+    }
     /*get effective number of samples('NELM') in the waveform
      * instead of 'NOA'(max. samples/ch) for data analysis
      * */
@@ -479,7 +494,8 @@ timeAxisAsubProcess(aSubRecord *precord)
     //printf("number of effective samples(samples/ch): %d \n", pwf->nelm)
     for (i = 0; i < pwf->nelm; i++)
     {
-        ptimeAxis[i] = i * (sampleLength / nSample);
+        //ptimeAxis[i] = i * (sampleLength / nSample);
+        ptimeAxis[i] = i * sampleInterval;
     }
     memcpy((double *) precord->vala, ptimeAxis, pwf->nelm * sizeof(double));
 
@@ -496,4 +512,8 @@ epicsRegisterFunction(processBuf)
 epicsRegisterFunction(timeAxisAsubInit)
 ;
 epicsRegisterFunction(timeAxisAsubProcess)
+;
+epicsExportAddress(int, maxSampleForProc)
+;
+epicsExportAddress(int, MAX_NUM_BUNCH)
 ;

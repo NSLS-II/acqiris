@@ -90,9 +90,10 @@ record(longout,"${DIG}NbrSamples-SP")
    field(PINI,"YES")
    field(SCAN,"Passive")
    #Max. number of samples <= NELM of waveform in acqiris_channel.db
-   field(DRVH,"${NELM}")
+   #field(DRVH,"${NELM}")
+   field(DRVH,"${MAXS}")
    field(DRVL,"1")
-   field(HOPR,"${NELM}")
+   field(HOPR,"${MAXS}")
    field(LOPR,"1")
 #initial NbrSamples: 1000
    field(VAL,"1000")

@@ -31,7 +31,7 @@ acqiris_daq_thread(void *arg)
 
     acqiris_driver_t* ad = reinterpret_cast<acqiris_driver_t*> (arg);
 
-    ad->acqTimeout = 2000;
+    ad->acqTimeout = 10000;
     long timeout = ad->acqTimeout;
 
     int extra = ad->extra;
@@ -90,6 +90,7 @@ acqiris_daq_thread(void *arg)
             }
 
             //printf("card#%d AcqTimeout is:%d ms\n",ad->module,timeout);
+            timeout = ad->acqTimeout;
             status = AcqrsD1_waitForEndOfAcquisition(id, timeout);
 
             //compute ioc update rate: should be here or below (if ... else)?

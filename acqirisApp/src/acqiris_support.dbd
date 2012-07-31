@@ -11,5 +11,7 @@ function(acqirisAsubProcess)
 function(timeAxisAsubInit)
 function(timeAxisAsubProcess)
 function(processBuf)
+variable(maxSampleForProc)
+variable(MAX_NUM_BUNCH)
 
 
