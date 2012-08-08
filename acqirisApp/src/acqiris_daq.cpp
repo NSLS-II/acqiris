@@ -43,7 +43,7 @@ acqiris_daq_thread(void *arg)
     //int size = (ad->maxsamples + ad->extra) * sizeof(short);
     //void* buffer = new char[size];
 
-    epicsMutexId acqiris_dma_mutex = epicsMutexMustCreate();
+    //epicsMutexId acqiris_dma_mutex = epicsMutexMustCreate();
 
     //for 8-bit digitizer, dataType is 0. ReadInt16 for 10- or 12-bit
     if (8 == ad->NbrADCBits)
@@ -120,7 +120,7 @@ acqiris_daq_thread(void *arg)
                  * of channels.Or AcqrsD1_readData will return without success
                  */
                 //ad->effectiveChs is set in acqiris_drv_lo.cpp
-                //epicsMutexLock(ad->daq_mutex);
+                epicsMutexLock(ad->daq_mutex);
                 for (int channel = 0; channel < ad->effectiveChs; channel++)
                 {
                     void *buffer = ad->data[channel].buffer;
@@ -165,7 +165,7 @@ acqiris_daq_thread(void *arg)
                         ad->readerrors++;
                     }
                 }//for (int channel=0; channel<nchannels; channel++)
-                //epicsMutexUnlock(ad->daq_mutex);
+                epicsMutexUnlock(ad->daq_mutex);
 
                 ad->count++;
 

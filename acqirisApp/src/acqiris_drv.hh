@@ -62,8 +62,12 @@ extern "C"
     };
     typedef struct acqiris_driver_t ad_t;
 
-    //global var: array of acqiris driver structure: each element for one card
+    /*global variable:
+     * *array of acqiris driver structure: each element for one card;
+     * A mutex is required if multiple boards use DMA to read data
+    */
     extern acqiris_driver_t acqiris_drivers[MAX_DEV];
+    extern epicsMutexId acqiris_dma_mutex;
 
 #ifdef __cplusplus 
 }

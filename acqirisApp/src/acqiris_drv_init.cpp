@@ -25,6 +25,7 @@ namespace
 
 //global variable
 acqiris_driver_t acqiris_drivers[MAX_DEV];
+epicsMutexId acqiris_dma_mutex;
 
 static int nbr_acqiris_drivers = 0;
 
@@ -50,6 +51,8 @@ acqirisInit(int calibration)
         errlogPrintf("*** Could not find any acqiris device\n");
         return -1;
     }
+
+    acqiris_dma_mutex = epicsMutexMustCreate();
 
     for (int module = 0; module < nbr_acqiris_drivers; module++)
     {
