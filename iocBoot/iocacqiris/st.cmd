@@ -27,9 +27,9 @@ acqirisInit(0)
 #CHANNEL: the first channel of the card is 0;
 #NELM: max. number of samples/channel;
 #DIG:WCM: the DIGitizer for several WCMs;
-dbLoadRecords ("db/acqiris_channel.db", "MON=LN-BI{WCM:1},MODULE=0,CHANNEL=0,NELM=4000")
-#dbLoadRecords ("db/acqiris_channel.db", "MON=LN-BI{WCM:2},MODULE=0,CHANNEL=1,NELM=4000")
-dbLoadRecords ("db/acqiris_module.db",  "DIG=LN-BI{DIG:WCM},MODULE=0,NELM=4000")
+dbLoadRecords ("db/acqiris_channel.db", "MON=LN-BI{WCM:1},MODULE=0,CHANNEL=0,NELM=4000,MAXS=4000")
+#dbLoadRecords ("db/acqiris_channel.db", "MON=LN-BI{WCM:2},MODULE=0,CHANNEL=1,NELM=4000,MAXS=4000")
+dbLoadRecords ("db/acqiris_module.db",  "DIG=LN-BI{DIG:WCM},MODULE=0,NELM=4000,MAXS=4000")
 dbLoadRecords ("db/acqiris_trigger.db", "DIG=LN-BI{DIG:WCM},MODULE=0")
 
 #uncomment the following if you want iocStats and autosave stuff
