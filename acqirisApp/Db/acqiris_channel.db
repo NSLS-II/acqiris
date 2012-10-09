@@ -605,7 +605,7 @@ record(calcout,"${MON}Q-Calc_")
    #${MON}CoefBunchQ-SP is 1/50=0.02 for Faraday Cup
    field(INPB,"${MON}CoefBunchQ-SP")
    field(INPC,"${MON}QOffset-SP")
-   field(CALC,"(ABS(A*B))-C")
+   field(CALC,"ABS((ABS(A*B))-C)")
    field(OUT, "${MON}Q-I PP")
    field(PREC,"6")
    field(EGU,"nC")
