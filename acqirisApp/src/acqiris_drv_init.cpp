@@ -63,6 +63,7 @@ acqirisInit(int calibration)
         //Acqrs_calibrateCancel(ad->id);
         ad->run_semaphore = epicsEventMustCreate(epicsEventEmpty);
         ad->daq_mutex = epicsMutexMustCreate();
+        ad->dma_mutex = epicsMutexMustCreate();
         ad->count = 0;
         for (channel = 0; channel < ad->nchannels; channel++)
         {

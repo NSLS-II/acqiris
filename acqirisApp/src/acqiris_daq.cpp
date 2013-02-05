@@ -123,12 +123,13 @@ acqiris_daq_thread(void *arg)
                 epicsMutexLock(ad->daq_mutex);
                 for (int channel = 0; channel < ad->effectiveChs; channel++)
                 {
-                    void *buffer = ad->data[channel].buffer;
-
+                    //void *buffer = ad->data[channel].buffer;
                     epicsMutexLock(acqiris_dma_mutex);
+                    //epicsMutexLock(ad->dma_mutex);
                     status = AcqrsD1_readData(id, channel + 1, &readParams,
-                            buffer, &wfDesc, &segDesc);
+                            ad->data[channel].buffer, &wfDesc, &segDesc);
                     epicsMutexUnlock(acqiris_dma_mutex);
+                    //epicsMutexUnlock(ad->dma_mutex);
 
                     if (SUCCESSREAD(status))
                     {

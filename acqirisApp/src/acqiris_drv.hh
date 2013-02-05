@@ -11,6 +11,9 @@
 #include <epicsMutex.h>
 #include <epicsEvent.h>
 
+#include "AcqirisD1Import.h"
+#include "AcqirisImport.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -18,6 +21,7 @@ extern "C"
 
     const int MAX_CHANNEL = 4;
     const int MAX_DEV = 10;
+    const int nbrSegments = 1;
 #define SUCCESS(x) (((x)&0x80000000) == 0)
 
     struct acqiris_data_t
@@ -59,6 +63,11 @@ extern "C"
         //the index of the first valid data
         int indexFirstPoint;
         double sampleInterval;
+        epicsMutexId dma_mutex;//seems not working
+        //no difference: put these three here or in acqiris_daq.cpp
+        AqReadParameters readParams;
+        AqDataDescriptor wfDesc;
+        AqSegmentDescriptor segDesc[nbrSegments];
     };
     typedef struct acqiris_driver_t ad_t;
 

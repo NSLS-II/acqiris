@@ -82,6 +82,7 @@ record(ao,"${DIG}SampInterval-SP")
    field(FLNK,"${DIG}SampLength-I")
 }
 
+#be careful of this settings which gives most trouble
 record(longout,"${DIG}NbrSamples-SP")
 {
    field(DESC,"Number of Samples")
