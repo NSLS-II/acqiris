@@ -1,0 +1,1140 @@
+## 1) configure individual channel: input range, offset, triggering, raw waveform data, etc. 
+## 2) configure the board for all channels: start/stop DAQ, converters per channel
+##### Sample interval, sample length, trigger source, diagnostics info, etc.
+## 3) configure external triggering: trigger level, scale, coupling, etc.
+
+## MON		- beam Monitor (or prefix for individual channel)
+## DIG		- Digitizer	(the board)
+## CHANNEL  -	#channel of the board(MODULE); "0" refers to the first channel  
+## MODULE   -	"0" is the first digitizer found during initialization.
+## NELM     -	(max.) number of elements of waveform record 
+
+## 1) configure individual channel: input range, offset, triggering, raw waveform data, etc. 
+#raw waveform data: 8-bit (DC265) or 16-bit (10- or 12-bit digitizer)
+#FTVL by default is SHORT. 
+#FTVL is changed to CHAR for 8-bit digitizer in acqiris_drv_wf.cpp
+record(waveform,"${MON}Raw-Wf")
+{
+   field(SCAN,"I/O Intr")
+   field(DESC,"Raw waveform data")
+   field(DTYP,"acqiris")
+   field(NELM,"${NELM}")
+   field(FTVL,"SHORT")
+   field(INP,"@M${MODULE} C${CHANNEL} WRAW")
+   field(FLNK,"${MON}TotalOffset-Calc_")
+}
+
+record(calc,"${MON}TotalOffset-Calc_")
+{
+   field(INPA, "${MON}FullScale-SP")
+   field(INPB, "${MON}RangeOffset-SP")
+   field(CALC,"-B-(A/2.0)")
+   field(PREC,"6")
+   field(EGU,"V")
+   field(FLNK,"${MON}V-acalcout_")
+}
+
+record(acalcout,"${MON}V-acalcout_")
+{
+   field(DESC, "Voltages")
+   field(NELM, "${NELM}")
+   field(NUSE, "${NELM}")   
+   field(INAA, "${MON}Raw-Wf")
+   field(INPA, "${DIG}NbrADCBits-RB")
+   field(INPB, "${MON}FullScale-SP")
+   field(INPC, "32768.0")
+   #32768.0 + 32704.0
+   field(INPD, "65472")
+   #32768.0 + 32752.0
+   field(INPE, "65520")
+   field(INPF, "128.0")
+   #128 + 127
+   field(INPG, "255.0")
+   field(INPH, "${MON}TotalOffset-Calc_")
+   field(CALC, "A=10?B*(AA+C)/D+H:A=12?B*(AA+C)/E+H:B*(AA+F)/G+H")
+   field(PREC, "6")
+   field(EGU,  "V")
+   field(OUT,  "${MON}V-Wf_ PP")
+}
+
+record(waveform,"${MON}V-Wf_")
+{
+   field(DESC,"voltage waveform data")
+   field(NELM,"${NELM}")
+   field(FTVL,"DOUBLE")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ao,"${MON}FullScale-SP")
+{
+   field(DESC,"Input Voltage Range")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CFLSC")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"5.0")
+   field(DRVL,"-5.0")
+   field(HOPR,"5.0")
+   field(LOPR,"-5.0")
+   field(EGU,"V")
+   field(PREC,"3")
+   #seems 'VAL' doesn't work well here. use 'RVAL'
+   #Nov-15-2011: RVAL is long type
+   #info(autosaveFields_pass0, "RVAL")
+   info(autosaveFields_pass1, "VAL")
+}
+
+record(ao,"${MON}RangeOffset-SP")
+{
+   field(DESC,"Offset for Input Range")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} COFFS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"5.0")
+   field(DRVL,"-5.0")
+   field(HOPR,"5.0")
+   field(LOPR,"-5.0")
+   field(EGU,"V")
+   field(PREC,"3")
+    #seems 'VAL' doesn't work well here. use 'RVAL'
+    #info(autosaveFields_pass0, "RVAL")
+    info(autosaveFields_pass1, "VAL")
+}
+
+record(mbbo,"${MON}Coupling-Sel")
+{
+   field(DESC,"Channel Coupling")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CCPLN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Ground")
+   field(ONVL,"1")
+   field(ONST,"DC")
+   field(TWVL,"2")
+   field(TWST,"AC")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${MON}Bandwidth-Sel")
+{
+   field(DESC,"Bandwidth")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CBNDW")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"No_Limit")
+   field(ONVL,"1")
+   field(ONST,"25Mhz")
+   field(TWVL,"2")
+   field(TWST,"700MHz")
+   field(THVL,"3")
+   field(THST,"200Mhz")
+   field(FRVL,"4")
+   field(FRST,"20Mhz")
+   field(FVVL,"5")
+   field(FVST,"35Mhz")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${MON}TrigCoupling-Sel")
+{
+   field(DESC,"Channel TrigCoupling")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CTRCP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"DC")
+   field(ONVL,"1")
+   field(ONST,"AC")
+   field(TWVL,"2")
+   field(TWST,"HF_Reject")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${MON}TrigSlope-Sel")
+{
+   field(DESC,"Channel TrigSlope")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CTRSL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Positive")
+   field(ONVL,"1")
+   field(ONST,"Negative")
+   field(TWVL,"2")
+   field(TWST,"Out_of_Window")
+   field(THVL,"3")
+   field(THST,"Into_Window")
+   field(FRVL,"4")
+   field(FRST,"HF_Divide")
+   field(FVVL,"5")
+   field(FVST,"Spike_Stretcher")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(ao,"${MON}TrigLevel1-SP")
+{
+   field(DESC,"Channel TrigLevel1")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CTRL1")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"50")
+   field(DRVL,"0")
+   field(HOPR,"50")
+   field(LOPR,"0") 
+   field(EGU,"%")
+   #info(autosaveFields_pass0, "RVAL")
+   info(autosaveFields_pass1, "VAL")
+}
+
+record(ao,"${MON}TrigLevel2-SP")
+{
+   field(DESC,"Channel TrigLevel2 for Window TrigSlope")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CTRL2")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"50")
+   field(DRVL,"0")
+   field(HOPR,"50")
+   field(LOPR,"0") 
+   field(EGU,"%")
+   #info(autosaveFields_pass0, "RVAL")
+   info(autosaveFields_pass1, "VAL")
+}
+
+record(stringout, "$(MON)FilePath") 
+{
+   field(DESC, "Data log dir path")
+   field(PINI, "YES")
+   field(VAL, "/home/yhu")
+   info(autosaveFields, "VAL")
+}
+
+#the following records are original version from SLAC
+record(ai,"${MON}TrigLevelRange")
+{
+   field(DESC,"TrigLevelRange")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} C${CHANNEL} CTLRG")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${MON}OverloadStatus")
+{
+   field(DESC,"OverloadStatus")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} C${CHANNEL} COVST")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${MON}DitherRange")
+{
+   field(DESC,"DitherRange")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CDTRN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${MON}FixedSamples")
+{
+   field(DESC,"FixedSamples")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CFXSM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${MON}GateType")
+{
+   field(DESC,"GateType")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CGTTP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ONVL,"1")
+   field(ONST,"User_Gates")
+   field(TWVL,"2")
+   field(TWST,"Threshold_Gates")
+}
+
+record(mbbo,"${MON}HistoTDCEnable")
+{
+   field(DESC,"HistoTDCEnable")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CHTDE")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Disabled")
+   field(ONVL,"1")
+   field(ONST,"Enabled")
+}
+
+record(mbbo,"${MON}InvertData")
+{
+   field(DESC,"InvertData")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CINDT")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"No_Inversion")
+   field(ONVL,"1")
+   field(ONST,"Inversion")
+}
+
+record(longout,"${MON}NbrMaxGates")
+{
+   field(DESC,"NbrMaxGates")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNMXG")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${MON}NbrSamples")
+{
+   field(DESC,"NbrSamples")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNSML")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${MON}NbrSegments")
+{
+   field(DESC,"NbrSegments")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNSGM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${MON}NbrWaveforms")
+{
+   field(DESC,"NbrWaveforms")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNWVF")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${MON}NbrRoundRobins")
+{
+   field(DESC,"NbrRoundRobins")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNRRB")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${MON}NoiseBaseEnable")
+{
+   field(DESC,"NoiseBaseEnable")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNBEN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ao,"${MON}NoiseBase")
+{
+   field(DESC,"NoiseBase")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} C${CHANNEL} CNSBS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+
+## 2) configure the board for all channels: start/stop DAQ, converters per channel
+##### Sample interval, sample length, trigger source, diagnostics info, etc.
+record(mbbo,"${DIG}DAQStatus-Sel")
+{
+   field(DESC,"DAQStatus")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MDQST")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Stopped")
+   field(ONVL,"1")
+   field(ONST,"Running")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(longout,"${DIG}NbrConvertersPerChannel-SP")
+{
+   field(DESC,"nbrConvertersPerChannel")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNCPC")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+#DOL and VAL works: must use one of them to avoid 'Floating point exception'
+   field(DOL, "1")
+   #field(VAL,"1")
+   #info(autosaveFields_pass0, "VAL")
+    info(autosaveFields_pass1, "VAL")
+}
+
+record(ao,"${DIG}SampFreq-SP")
+{
+   field(DESC,"sampFreq")
+   field(PINI,"YES")
+   field(DRVH,"8000000000")
+   field(DRVL,"100")
+   field(HOPR,"8000000000")
+   field(LOPR,"100") 
+#initial sampleRate: 100MHz
+   field(VAL,"100000000")
+   field(EGU,"Hz")
+   field(FLNK,"${DIG}SampFreq-Calc_")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(calcout,"${DIG}SampFreq-Calc_")
+{
+   field(DESC,"calc sampInterval")
+   field(INPA,"${DIG}SampFreq-SP")
+   field(CALC, "(A < 100)?100:(1.0/A)")
+   field(OUT, "${DIG}SampInterval-SP PP")
+}
+
+record(ao,"${DIG}SampInterval-SP")
+{
+   field(DESC,"sampInterval")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MSMIN")
+   field(EGU,"Sec")
+   field(PREC,"4")
+   field(FLNK,"${DIG}SampLength-I")
+}
+
+#be careful of this settings which gives most trouble
+record(longout,"${DIG}NbrSamples-SP")
+{
+   field(DESC,"Number of Samples")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNSMP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(DRVH,"${NELM}")
+   field(DRVL,"1")
+   field(HOPR,"${NELM}")
+   field(LOPR,"1")
+#initial NbrSamples: 1000
+   field(VAL,"1000")
+   field(EGU,"Samples")
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK,"${DIG}SampLength-I")
+ }
+
+record(calc,"${DIG}SampLength-I")
+{
+   field(DESC,"Sample length:ns")
+   field(INPA,"${DIG}SampInterval-SP")
+   field(INPB,"${DIG}NbrSamples-SP")
+   field(CALC, "A*B*(1e+09)")  
+   field(EGU,"ns")
+}
+
+record(acalcout,"${DIG}TimeAxis-acalcout_")
+{
+    field(DESC, "construct time axis")
+    field(NELM, "${NELM}")
+    field(NUSE, "${NELM}")
+    field(INPA, "${DIG}SampInterval-SP CP")
+    #IX:The array (0,1,2,...,NUSE) 
+    field(CALC, "(1e+09)*A*IX")
+    field(OUT,  "${DIG}TimeAxis-Wf PP")
+}
+
+#waveform data for time axis             
+record(waveform,"${DIG}TimeAxis-Wf")
+{
+   field(DESC,"Time axis: ns unit")
+   field(NELM,"${NELM}")
+   field(FTVL,"DOUBLE")
+   field(PREC,"3")
+   field(EGU,"ns")
+}
+
+record(longin,"${DIG}EventCount-RB")
+{
+   field(DESC,"EventCount")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MEVCN")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+   field(FLNK,"${DIG}TrigRate-I_")
+}
+
+record(calc,"${DIG}TrigRate-I_")
+{
+   field(DESC,"calc trigger rate from EventCount")
+   #field(INPA,"${DIG}EventCount-RB")
+   #field(INPB,"${DIG}PreEventCount-I_")
+   field(INPA,"${DIG}TrigRate-I_.B")
+   field(INPB,"${DIG}EventCount-RB")
+   field(CALC, "B-A")
+   field(EGU,"Hz")
+   #field(FLNK,"${DIG}PreEventCount-I_")
+}
+
+record(ai,"${DIG}PreEventCount-I_")
+{
+   field(SCAN,"Passive")
+   field(DESC,"old/previous count")
+   field(INP,"${DIG}TrigRate-I_")
+}
+
+record(longin,"${DIG}TriggerTimeouts-RB")
+{
+   field(DESC,"TriggerTimeouts")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTRTM")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+}
+
+record(longin,"${DIG}CrateNb-RB")
+{
+   field(DESC,"CrateNb")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MCRTN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ai,"${DIG}DelayOffset-RB")
+{
+   field(DESC,"DelayOffset")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MDLOF")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(ai,"${DIG}DelayScale-RB")
+{
+   field(DESC,"DelayScale")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MDLSC")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${DIG}IsPreTriggerRunning-RB")
+{
+   field(DESC,"IsPreTriggerRunning")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MIPTR")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${DIG}MaxSamplesPerChannel-RB")
+{
+   field(DESC,"MaxSamplesPerChannel")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MMSPC")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${DIG}NbrADCBits-RB")
+{
+   field(DESC,"NbrADCBits")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MNADB")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU, "bit")
+}
+
+record(longin,"${DIG}NbrModulesInInstrument-RB")
+{
+   field(DESC,"NbrModulesInInstrument")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MNMII")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${DIG}PosInCrate-RB")
+{
+   field(DESC,"PosInCrate")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MPICR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${DIG}Temperature_m-RB")
+{
+   field(DESC,"Temperature_m")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTMPM")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+   field(EGU,"degC")
+   field(HIHI, "55")
+   field(HIGH, "45")
+   field(HHSV, "MAJOR")
+   field(HSV, "MINOR")
+}
+
+record(longout,"${DIG}UsedChannels-SP")
+{
+   field(DESC,"usedChannels")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MUSCH")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(longout,"${DIG}DelayNbrSamples-SP")
+{
+   field(DESC,"delayNbrSamples")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MDLNS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(ao,"${DIG}DelayTime-SP")
+{
+   field(DESC,"delayTime")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MDLTM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"sec")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${DIG}TrigClass-Sel")
+{
+   field(DESC,"trigClass")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MTRCL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Edge")
+   field(ONVL,"1")
+   field(ONST,"TV_Trigger")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${DIG}TrigSource-Sel")
+{
+   field(DESC,"TriggerSource")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MTRSR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Channel1")
+   field(ONVL,"1")
+   field(ONST,"Channel2")
+   field(TWVL,"2")
+   field(TWST,"Channel3")
+   field(THVL,"3")
+   field(THST,"Channel4")
+   field(FRVL,"4")
+   field(FRST,"External")
+   field(RVAL, "4")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(longin,"${DIG}ReadErrors-RB")
+{
+   field(DESC,"ReadErrors")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MRDER")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+   field(HIHI, "100")
+   field(HIGH, "1")
+   field(HHSV, "MAJOR")
+   field(HSV, "MINOR")
+}
+
+record(longin,"${DIG}Truncated-RB")
+{
+   field(DESC,"TruncatedEvents")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTREV")
+   field(PINI,"YES")
+   field(SCAN,"1 second")
+}
+
+record(longin,"${DIG}ASBusBusNb")
+{
+   field(DESC,"ASBusBusNb")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABBN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${DIG}ASBusIsMaster")
+{
+   field(DESC,"ASBusIsMaster")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABIM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${DIG}ASBusPosInCrate")
+{
+   field(DESC,"ASBusPosInCrate")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABPI")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${DIG}ASBusSerialNb")
+{
+   field(DESC,"ASBusSerialNb")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABSR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${DIG}ASBusSlotNb")
+{
+   field(DESC,"ASBusSlotNb")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MABSN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ai,"${DIG}ExtCkRatio")
+{
+   field(DESC,"ExtCkRatio")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MEXCR")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${DIG}HasTrigVeto")
+{
+   field(DESC,"HasTrigVeto")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MHHTV")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${DIG}LogDevDataLinks")
+{
+   field(DESC,"LogDevDataLinks")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MLDDL")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${DIG}NbrExternalTriggers")
+{
+   field(DESC,"NbrExternalTriggers")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MNEXT")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longin,"${DIG}NbrInternalTriggers")
+{
+   field(DESC,"NbrInternalTriggers")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MNINT")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ai,"${DIG}SSRTimeStamp")
+{
+   field(DESC,"SSRTimeStamp")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MSSTS")
+   field(PINI,"YES")
+   field(SCAN,"2 second")
+}
+
+record(longin,"${DIG}TbSegmentPad")
+{
+   field(DESC,"TbSegmentPad")
+   field(DTYP,"acqiris")
+   field(INP,"@M${MODULE} MTBSP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${DIG}Signal")
+{
+   field(DESC,"signal")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MSIGN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${DIG}ClockType")
+{
+   field(DESC,"clockType")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MCLTP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Internal")
+   field(ONVL,"1")
+   field(ONST,"ExtCont")
+   field(TWVL,"2")
+   field(TWST,"Ext10Mhz")
+   field(THVL,"3")
+   field(THST,"ExtStartStop ")
+}
+
+record(ao,"${DIG}InputThreshold")
+{
+   field(DESC,"inputThreshold")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MINTH")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ao,"${DIG}InputFrequency")
+{
+   field(DESC,"inputFrequency")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MINFR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"Hz")
+}
+
+record(ao,"${DIG}SampFrequency")
+{
+   field(DESC,"sampFrequency")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MSMFR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"Hz")
+}
+
+record(longout,"${DIG}FcntChannel")
+{
+   field(DESC,"fcntChannel")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MFCCH")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${DIG}Type")
+{
+   field(DESC,"type")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MTYPE")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Frequency")
+   field(ONVL,"1")
+   field(ONST,"Period")
+   field(TWVL,"2")
+   field(TWST,"TotByTime")
+   field(THVL,"3")
+   field(THST,"TotByGate")
+}
+
+record(ao,"${DIG}TargetValue")
+{
+   field(DESC,"targetValue")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MTRVL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(ao,"${DIG}ApertureTime")
+{
+   field(DESC,"apertureTime")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MAPTM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${DIG}FcntFlags")
+{
+   field(DESC,"fcntFlags")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MFCFL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${DIG}NbrMemSegments")
+{
+   field(DESC,"nbrMemSegments")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNMMS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${DIG}NbrSegments")
+{
+   field(DESC,"nbrSegments")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNSGM")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(longout,"${DIG}NbrBanks")
+{
+   field(DESC,"nbrBanks")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MNBNK")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${DIG}Memflags")
+{
+   field(DESC,"memflags")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MMMFL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Default")
+   field(ONVL,"1")
+   field(ONST,"ForceInternal ")
+}
+
+record(mbbo,"${DIG}Mode")
+{
+   field(DESC,"mode")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MMODE")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Normal_DAQ")
+   field(ONVL,"1")
+   field(ONST,"AC/SC")
+   field(TWVL,"2")
+   field(TWST,"Averaging")
+   field(THVL,"3")
+   field(THST,"Buffered_DAQ")
+   field(FVVL,"5")
+   field(FVST,"Peak_TDC")
+   field(SXVL,"6")
+   field(SXST,"FreqCounter")
+   field(SVVL,"7")
+   field(SVST,"SSR")
+}
+
+record(longout,"${DIG}Modifier")
+{
+   field(DESC,"modifier")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MMDFR")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+}
+
+record(mbbo,"${DIG}ModeFlags")
+{
+   field(DESC,"modeFlags")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} MMDFL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Normal")
+   field(ONVL,"1")
+   field(ONST,"StartOnTrig")
+   field(TWVL,"2")
+   field(TWST,"Sequence_Wrap")
+}
+
+
+## 3) configure external triggering: trigger level, scale, coupling, etc.
+record(ao,"${DIG}ExTrigLevel1-SP")
+{
+   field(DESC,"External TrigLevel1")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XTRL1")
+   field(SCAN,"Passive")
+   field(EGU,"mV")
+   field(PINI, "YES")
+   field(RVAL, "1000")
+   #field(RVAL, "500")
+   field(DRVH,"5000.0")
+   field(DRVL,"1000.0")
+   field(HOPR,"5000.0")
+   field(LOPR,"1000.0")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(ao,"${DIG}ExTrigFullScale-SP")
+{
+   field(DESC,"External FullScale")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XFLSC")
+   field(SCAN,"Passive")
+   field(EGU,"V")
+   field(PREC,"2")
+   field(PINI, "YES")
+   field(RVAL, "5")
+   field(DRVH,"5.0")
+   field(DRVL,"1.0")
+   field(HOPR,"5.0")
+   field(LOPR,"1.0")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${DIG}ExTrigCoupling-Sel")
+{
+   field(DESC,"External TrigCoupling")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XTRCP")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"DC")
+   field(ONVL,"1")
+   field(ONST,"AC")
+   field(TWVL,"2")
+   field(TWST,"HF_Reject")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${DIG}ExTrigSlope-Sel")
+{
+   field(DESC,"External TrigSlope")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XTRSL")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Positive")
+   field(ONVL,"1")
+   field(ONST,"Negative")
+   field(TWVL,"2")
+   field(TWST,"Out_of_Window")
+   field(THVL,"3")
+   field(THST,"Into_Window")
+   field(FRVL,"4")
+   field(FRST,"HF_Divide")
+   field(FVVL,"5")
+   field(FVST,"Spike_Stretcher")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(ao,"${DIG}ExTrigLevel2-SP")
+{
+   field(DESC,"ExTrigLevel2 for Window TrigSlope")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XTRL2")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"mV")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(ao,"${DIG}ExTrigOffset-SP")
+{
+   field(DESC,"External Offset")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XOFFS")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(EGU,"V")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${DIG}ExTrigBandwidth-Sel")
+{
+   field(DESC,"Bandwidth")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XBNDW")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"No_Limit")
+   field(ONVL,"1")
+   field(ONST,"25Mhz")
+   field(TWVL,"2")
+   field(TWST,"700MHz")
+   field(THVL,"3")
+   field(THST,"200Mhz")
+   field(FRVL,"4")
+   field(FRST,"20Mhz")
+   field(FVVL,"5")
+   field(FVST,"35Mhz")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+record(mbbo,"${DIG}CrateCoupling-Sel")
+{
+   field(DESC,"crate Coupling?")
+   field(DTYP,"acqiris")
+   field(OUT,"@M${MODULE} XCPLN")
+   field(PINI,"YES")
+   field(SCAN,"Passive")
+   field(ZRVL,"0")
+   field(ZRST,"Ground")
+   field(ONVL,"1")
+   field(ONST,"DC")
+   field(TWVL,"2")
+   field(TWST,"AC")
+   field(THVL,"3")
+   field(THST,"DC_50_Ohm")
+   field(FRVL,"4")
+   field(FRST,"AC_50_Ohm")
+   info(autosaveFields_pass0, "RVAL")
+}
+
+

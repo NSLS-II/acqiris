@@ -18,6 +18,10 @@ acqiris_DBD += acqiris_support.dbd
 acqiris_DBD += devIocStats.dbd
 acqiris_DBD += asSupport.dbd
 acqiris_DBD += system.dbd
+#use acalcout to convert raw data to voltages 
+acqiris_DBD += calcSupport.dbd
+#calcSupport.dbd seems to include swaitRecord.dbd by default 
+acqiris_DBD += swaitRecord.dbd
 
 # acqiris_registerRecordDeviceDriver.cpp derives from acqiris.dbd
 acqiris_SRCS += acqiris_registerRecordDeviceDriver.cpp
@@ -53,6 +57,10 @@ acqiris_SYS_LIBS += AqDrv4
 #package: /usr/lib/epics/lib/linux-x86
 acqiris_LIBS += autosave
 acqiris_LIBS += devIocStats 
+#use acalcout to convert raw data to voltages
+acqiris_LIBS += calc
+#calc seems to depend on sscan by default 
+acqiris_LIBS += sscan
 
 #this method doesn't work well for dynamic/shared library(libAqDrv4.so)
 #acqiris_LIBS += acqdrv

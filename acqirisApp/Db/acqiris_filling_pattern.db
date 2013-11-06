@@ -1,63 +1,12 @@
-## configure individual channel: input range, offset, triggering,etc.
-## 	  get raw waveform data, process data by subArray record;
-#MON NSLS2 naming [PSy[:PI]][-SSy[:SI]][-TSy[:TI]]{Dev[:DI]}[SgN[:SgI][-SgD]] 
-#### Psy	-	Primary system
-#### Ssy	-	Secondary system
-#### Dev	-	Device name
-## CHANNEL  -	#channel of the board(MODULE); "0" refers to the first channel  
-## MODULE   -	"0" is the first digitizer found during initialization.
-##       For Acqiris crate and CPU, it's the top slot if there's one digitizer  
-## NELM     -	(max.) number of elements of waveform record 
+#Data processing for single-pass filling pattern measurement by WCM, FCT, etc.
 
-#raw waveform data: 8-bit (DC265) or 16-bit (10- or 12-bit digitizer)
-#FTVL by default is SHORT. 
-#FTVL is changed to CHAR for 8-bit digitizer in acqiris_drv_wf.cpp
-record(waveform,"${MON}Raw-Wf")
+record(waveform,"${MON}RawData-Wf_")
 {
-   field(SCAN,"I/O Intr")
-   field(DESC,"Raw waveform data")
-   field(DTYP,"acqiris")
+   field(DESC,"Raw waveform data_")
    field(NELM,"${NELM}")
    field(FTVL,"SHORT")
-   field(INP,"@M${MODULE} C${CHANNEL} WRAW")
+   field(INP,"${MON}Raw-Wf CP")
    field(FLNK,"${MON}Raw-aSub_")
-}
-
-record(ao,"${MON}FullScale-SP")
-{
-   field(DESC,"Input Voltage Range")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CFLSC")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(DRVH,"5.0")
-   field(DRVL,"-5.0")
-   field(HOPR,"5.0")
-   field(LOPR,"-5.0")
-   field(EGU,"V")
-   field(PREC,"3")
-   #seems 'VAL' doesn't work well here. use 'RVAL'
-   #Nov-15-2011: RVAL is long type
-   #info(autosaveFields_pass0, "RVAL")
-   info(autosaveFields_pass1, "VAL")
-}
-
-record(ao,"${MON}RangeOffset-SP")
-{
-   field(DESC,"Offset for Input Range")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} COFFS")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(DRVH,"5.0")
-   field(DRVL,"-5.0")
-   field(HOPR,"5.0")
-   field(LOPR,"-5.0")
-   field(EGU,"V")
-   field(PREC,"3")
-    #seems 'VAL' doesn't work well here. use 'RVAL'
-    #info(autosaveFields_pass0, "RVAL")
-    info(autosaveFields_pass1, "VAL")
 }
 
 record(ao,"${MON}PeakThreshold-SP")
@@ -189,7 +138,7 @@ record(longout,"${MON}EndPoint-SP")
    info(autosaveFields_pass0, "VAL")
    field(FLNK,"${MON}ROISamples-I")
 }
- 
+
 ## see acqiris_asub_process.cpp: process the waveform record: voltage, 
 #max, min, ave, std, number of bunches(peaks/pulse counts), 
 #filling pattern(integral, normalization, etc.), 
@@ -200,6 +149,7 @@ record(aSub,"${MON}Raw-aSub_")
     field (INAM,"acqirisAsubInit")
     field (SNAM,"acqirisAsubProcess")
     #get raw data (integer) from the waveform record above
+    #CP doesn't work for aSub.INPA?
     field (INPA, "${MON}Raw-Wf")
     #FTA by default is SHORT. 
     #don't change FTA to CHAR for 8-bit digitizer in acqiris_asub_process.cpp
@@ -260,7 +210,8 @@ record(aSub,"${MON}Raw-aSub_")
     field (FTN, "SHORT")
     field (NON, "1")
     #INPO is reserved for ${MON}AutoZeroingOffset-I
-    #voltage waveform data converted from raw data (8-, 12-, or 16-bit)           
+    #voltage waveform data converted from raw data (8-, 10-, or 12-bit)    
+    #${MON}V-Wf_ is calculated by acalcout record in acqiris.db       
     field (OUTA, "${MON}V-Wf PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")
@@ -343,6 +294,7 @@ record(aSub,"${MON}Raw-aSub_")
     field(FLNK,"${MON}MaxQ-I")
 }
 
+#${MON}V-Wf_ is calculated by acalcout record in acqiris.db
 record(waveform,"${MON}V-Wf")
 {
    field(SCAN,"Passive")
@@ -810,270 +762,3 @@ record(ai,"${MON}SumQ-I")
    field(MDEL,"-1")
    field(FLNK,"${MON}AutoZeroingOffset-I")
 }
-
-
-###
-record(mbbo,"${MON}Coupling-Sel")
-{
-   field(DESC,"Channel Coupling")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CCPLN")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"Ground")
-   field(ONVL,"1")
-   field(ONST,"DC")
-   field(TWVL,"2")
-   field(TWST,"AC")
-   field(THVL,"3")
-   field(THST,"DC_50_Ohm")
-   field(FRVL,"4")
-   field(FRST,"AC_50_Ohm")
-   info(autosaveFields_pass0, "RVAL")
-}
-
-record(mbbo,"${MON}Bandwidth-Sel")
-{
-   field(DESC,"Bandwidth")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CBNDW")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"No_Limit")
-   field(ONVL,"1")
-   field(ONST,"25Mhz")
-   field(TWVL,"2")
-   field(TWST,"700MHz")
-   field(THVL,"3")
-   field(THST,"200Mhz")
-   field(FRVL,"4")
-   field(FRST,"20Mhz")
-   field(FVVL,"5")
-   field(FVST,"35Mhz")
-   info(autosaveFields_pass0, "RVAL")
-}
-
-record(mbbo,"${MON}TrigCoupling-Sel")
-{
-   field(DESC,"Channel TrigCoupling")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CTRCP")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"DC")
-   field(ONVL,"1")
-   field(ONST,"AC")
-   field(TWVL,"2")
-   field(TWST,"HF_Reject")
-   field(THVL,"3")
-   field(THST,"DC_50_Ohm")
-   field(FRVL,"4")
-   field(FRST,"AC_50_Ohm")
-   info(autosaveFields_pass0, "RVAL")
-}
-
-record(mbbo,"${MON}TrigSlope-Sel")
-{
-   field(DESC,"Channel TrigSlope")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CTRSL")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"Positive")
-   field(ONVL,"1")
-   field(ONST,"Negative")
-   field(TWVL,"2")
-   field(TWST,"Out_of_Window")
-   field(THVL,"3")
-   field(THST,"Into_Window")
-   field(FRVL,"4")
-   field(FRST,"HF_Divide")
-   field(FVVL,"5")
-   field(FVST,"Spike_Stretcher")
-   info(autosaveFields_pass0, "RVAL")
-}
-
-record(ao,"${MON}TrigLevel1-SP")
-{
-   field(DESC,"Channel TrigLevel1")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CTRL1")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(DRVH,"50")
-   field(DRVL,"0")
-   field(HOPR,"50")
-   field(LOPR,"0") 
-   field(EGU,"%")
-   #info(autosaveFields_pass0, "RVAL")
-   info(autosaveFields_pass1, "VAL")
-}
-
-record(ao,"${MON}TrigLevel2-SP")
-{
-   field(DESC,"Channel TrigLevel2 for Window TrigSlope")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CTRL2")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(DRVH,"50")
-   field(DRVL,"0")
-   field(HOPR,"50")
-   field(LOPR,"0") 
-   field(EGU,"%")
-   #info(autosaveFields_pass0, "RVAL")
-   info(autosaveFields_pass1, "VAL")
-}
-
-record(stringout, "$(MON)FilePath") 
-{
-   field(DESC, "Data log dir path")
-   field(PINI, "YES")
-   field(VAL, "/home/yhu")
-   info(autosaveFields, "VAL")
-}
-
-#the following records are original version from SLAC
-record(ai,"${MON}TrigLevelRange")
-{
-   field(DESC,"TrigLevelRange")
-   field(DTYP,"acqiris")
-   field(INP,"@M${MODULE} C${CHANNEL} CTLRG")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(longin,"${MON}OverloadStatus")
-{
-   field(DESC,"OverloadStatus")
-   field(DTYP,"acqiris")
-   field(INP,"@M${MODULE} C${CHANNEL} COVST")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(longout,"${MON}DitherRange")
-{
-   field(DESC,"DitherRange")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CDTRN")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(longout,"${MON}FixedSamples")
-{
-   field(DESC,"FixedSamples")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CFXSM")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(mbbo,"${MON}GateType")
-{
-   field(DESC,"GateType")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CGTTP")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ONVL,"1")
-   field(ONST,"User_Gates")
-   field(TWVL,"2")
-   field(TWST,"Threshold_Gates")
-}
-
-record(mbbo,"${MON}HistoTDCEnable")
-{
-   field(DESC,"HistoTDCEnable")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CHTDE")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"Disabled")
-   field(ONVL,"1")
-   field(ONST,"Enabled")
-}
-
-record(mbbo,"${MON}InvertData")
-{
-   field(DESC,"InvertData")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CINDT")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-   field(ZRVL,"0")
-   field(ZRST,"No_Inversion")
-   field(ONVL,"1")
-   field(ONST,"Inversion")
-}
-
-record(longout,"${MON}NbrMaxGates")
-{
-   field(DESC,"NbrMaxGates")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CNMXG")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(longout,"${MON}NbrSamples")
-{
-   field(DESC,"NbrSamples")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CNSML")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(longout,"${MON}NbrSegments")
-{
-   field(DESC,"NbrSegments")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CNSGM")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(longout,"${MON}NbrWaveforms")
-{
-   field(DESC,"NbrWaveforms")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CNWVF")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(longout,"${MON}NbrRoundRobins")
-{
-   field(DESC,"NbrRoundRobins")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CNRRB")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(longout,"${MON}NoiseBaseEnable")
-{
-   field(DESC,"NoiseBaseEnable")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CNBEN")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-record(ao,"${MON}NoiseBase")
-{
-   field(DESC,"NoiseBase")
-   field(DTYP,"acqiris")
-   field(OUT,"@M${MODULE} C${CHANNEL} CNSBS")
-   field(PINI,"YES")
-   field(SCAN,"Passive")
-}
-
-

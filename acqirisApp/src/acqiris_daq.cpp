@@ -113,6 +113,7 @@ acqiris_daq_thread(void *arg)
                 //epicsTimeShow(&now, 0);
                 AcqrsD1_stopAcquisition(id);
                 ad->timeouts++;
+                ad->realTrigRate = -1.0;
             }
             else
             {
@@ -164,6 +165,7 @@ acqiris_daq_thread(void *arg)
                                 " AcqrsD1_readData() error on card #%d, status: 0x%X \n",
                                 ad->module, status);
                         ad->readerrors++;
+                        ad->realTrigRate = -1.0;
                     }
                 }//for (int channel=0; channel<nchannels; channel++)
                 epicsMutexUnlock(ad->daq_mutex);
