@@ -1,4 +1,5 @@
-#Data processing for single-pass filling pattern measurement by WCM, FCT, etc.
+#Data processing for single-pass filling pattern measurement by Wall Current Monitor (WCM), etc.
+## or for ROI (Region Of Interest)-based beam charge measurement by Faraday Cup (FC), etc.
 
 record(waveform,"${MON}RawData-Wf_")
 {
