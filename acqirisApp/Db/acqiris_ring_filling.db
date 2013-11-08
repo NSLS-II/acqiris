@@ -1,0 +1,566 @@
+#Booster Ring or Storage Ring filling pattern measurement results
+#Data processed by Python
+
+record(ai, "BR-BI{FCT:1}SampLength-I")
+{
+	field(PINI, "YES")
+	field(INP,  "BR-BI{DIG:FCT}SampLength-I CP")
+	field(EGU,  "ns")
+}
+
+record(ai, "BR-BI{FCT:1}SampInterval-I")
+{
+	field(PINI, "YES")
+	field(INP,  "BR-BI{DIG:FCT}SampInterval-SP CP")
+	field(EGU,  "Sec")
+}
+
+record(calc, "BR-BI{FCT:1}SampFreq-I")
+{
+	field(DESC, "Sampling rate")
+	field(INPA, "BR-BI{DIG:FCT}SampFreq-SP CP")
+	field(CALC, "A/1e9")
+	field(EGU,  "GHz")
+}
+
+record(ai, "BR-BI{FCT:1}NbrSamples-I")
+{
+	field(DESC, "Number of samples")
+	field(INP,  "BR-BI{DIG:FCT}NbrSamples-SP CP")
+	field(EGU,  "samples")
+}
+
+#Selected the first sample
+record(longout,"${MON}StartPoint-SP")
+{
+   field(DESC,"reference data point")
+   field(PINI,"YES")
+   field(VAL, "1")   
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK, "${MON}NbrTurns-Calc_")
+}
+
+record(ao, "${MON}RevPeriod-SP")
+{
+   field(DESC, "Revolution Period")
+   field(PINI, "YES")
+   field(VAL,  "528")
+   field(EGU,  "ns")
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK, "${MON}NbrTurns-Calc_")
+}
+
+record(calcout,"${MON}NbrTurns-Calc_")
+{
+   field(DESC, "Number of turns")
+   field(INPA, "${MON}SampLength-I CP")
+   field(INPB, "${MON}StartPoint-SP")
+   field(INPC, "${MON}SampInterval-I CP")
+   field(INPD, "${MON}RevPeriod-SP")
+   field(CALC, "FLOOR((A-B*C*(1e+09))/D)")
+   field(OUT,  "${MON}NbrTurns-I PP")
+}
+
+record(longin, "${MON}NbrTurns-I")
+{
+   field(DESC, "Number of turns")
+   field(EGU,  "Turns")
+}
+
+record(longout, "${MON}MaxNbrBunches-SP")
+{
+   field(DESC, "Max. number of bunches")
+   field(PINI, "YES")
+   field(VAL,  "150")
+   field(EGU,  "bunches")
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK, "${MON}SamplesPerTrain-Calc_")
+}
+
+record(calcout,"${MON}SamplesPerTrain-Calc_")
+{
+   field(DESC, "Samples per bunch-train")
+   field(INPA, "${MON}MaxNbrBunches-SP")
+   #RF = 500MHz: 2 ns per bunch
+   field(INPB, "2")
+   field(INPC, "${MON}SampInterval-I CP")
+   field(CALC, "CEIL(A*B/(C*(1e+09)))")
+   field(OUT,  "${MON}SamplesPerTrain-I PP")
+}
+
+record(longin, "${MON}SamplesPerTrain-I")
+{
+   field(DESC, "Max. Samples per train")
+   field(EGU,  "samples")
+}
+
+record(calcout,"${MON}SamplesPerTurn-Calc_")
+{
+   field(DESC, "Samples per turn")
+   field(INPA, "${MON}RevPeriod-SP CP")
+   field(INPB, "${MON}SampInterval-I CP")
+   field(CALC, "CEIL(A/(B*(1e+09)))")
+   field(OUT,  "${MON}SamplesPerTurn-I PP")
+}
+
+record(longin, "${MON}SamplesPerTurn-I")
+{
+   field(DESC, "Samples per turn")
+   field(EGU,  "samples")
+}
+
+record(longout, "${MON}Turn-SP")
+{
+   field(DESC, "user selected turn")
+   field(VAL,  "1")
+}
+
+record(waveform,"${MON}TTQ-Wf")
+{
+   field(DESC,"Turn-by-turn beam current")
+   field(NELM,"${TURN}")
+   field(FTVL,"DOUBLE")
+   field(EGU,  "mA")
+   field(PREC, "3")
+}
+
+record(longout,"${MON}NbrSamplesForSum-SP")
+{
+   field(DESC,"NumberOfSamplesForIntegral")
+   field(PINI,"YES")
+   field(VAL,"7")
+   field(EGU,"Samples")
+   info(autosaveFields_pass0, "VAL")
+   field(FLNK,"${MON}NbrSamplesForSum-Calc_")
+ }
+
+record(calc,"${MON}NbrSamplesForSum-Calc_")
+{
+   field(DESC,"NumberShouldBeOdd")
+   field(INPA,"${MON}NbrSamplesForSum-SP")
+   field(CALC,"(A%2 = 0) ? (A+1):A")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(ao,"${MON}PeakThreshold-SP")
+{
+   field(DESC,"Threshold for searching peak")
+   field(DRVH,"5.0")
+   field(DRVL,"-5.0")
+   field(HOPR,"5.0")
+   field(LOPR,"-5.0")
+   field(EGU,"V")
+   field(PREC,"4")
+   info(autosaveFields_pass0, "VAL")
+}
+
+#coefficient for calculation of absolute bunch charge of WCM, FC, etc.  
+record(ao,"${MON}CoefBunchQ-SP")
+{
+   field(DESC,"Coefficient")
+   field(PINI,"YES")
+   field(VAL, "1.0")
+   field(PREC,"4")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(longin,"${MON}NbrBunches-I")
+{
+   field(DESC,"Number of bunches")
+   field(EGU,"bunches")
+}
+
+record(waveform,"${MON}FillPattern-Wf")
+{
+   field(DESC,"normalized filling pattern")
+   field(NELM,"${BUCKET}")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+}
+
+#calculate bunch current by integrating samples
+record(waveform,"${MON}BunchQ-Wf")
+{
+   #field(DESC,"IntegralValueOfEachBunch")
+   field(DESC,"ChargeOfEachBunch")
+   field(NELM,"${BUCKET}")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+   field(EGU,"mA")
+}
+
+record(ai,"${MON}B2BMaxVar-I")
+{
+   field(DESC,"bunch-to-bunch max. variation")
+   field(PREC,"4")
+}
+
+record(ai,"${MON}MaxQ-I")
+{
+   field(DESC,"Max bunch current within bunch-train")
+   #CP doesn't work here for aSub.field
+   field(PREC,"3")
+   field(EGU,"mA")
+   field(FLNK,"${MON}MinQ-I")
+}
+
+record(ai,"${MON}MinQ-I")
+{
+   field(DESC,"Min bunch current within bunch-train")
+   field(PREC,"3")
+   field(EGU,"mA")
+   field(FLNK,"${MON}SumQ-I")
+}
+
+record(ai,"${MON}SumQ-I")
+{
+   field(DESC,"bunch-train current of FCT")
+   field(PREC,"3")
+   field(EGU,"mA")
+   field(MDEL,"-1")
+   field(FLNK,"${MON}AutoZeroingOffset-I")
+}
+
+record(longin,"${MON}MaxQBunchNbr-I")
+{
+   field(DESC,"No# highest charge")
+}
+
+record(longin,"${MON}MinQBunchNbr-I")
+{
+   field(DESC,"No# lowest charge")
+}
+
+#individual bunch charge (Q) calibrated against nearby ICT
+record(waveform,"${MON}BunchQCalib-Wf")
+{
+   field(DESC,"Calibrated bunch charge")
+   field(NELM,"${BUCKET}")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+   field(EGU,"mA")
+}
+
+#Why need ZeroingOffset?
+#there might be DC offset between the FCT and the digitizer without real beam
+#ZeroingOffset-SP == AveVolt-I
+record(bo,"${MON}AutoZeroing-Sel")
+{
+   field(DESC,"auto zeroing offset")
+   field(PINI,"YES")
+   field(ZNAM,"NoAutoZero")
+   field(ONAM,"AutoZero")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(ao,"${MON}ZeroingOffset-SP")
+{
+   field(DESC,"Manually zeroing noise")
+   field(PINI,"YES")
+   #field(INP,"${MON}Raw-aSub_.G")
+   field(DRVH,"5.0")
+   field(DRVL,"-5.0")
+   field(HOPR,"5.0")
+   field(LOPR,"-5.0")  
+   field(EGU,"V")
+   field(PREC,"4")
+   info(autosaveFields_pass0, "VAL")
+}
+
+#${MON}SumQ-I --> FLNK --> ${MON}AutoZeroingOffset-I
+record(ai,"${MON}AutoZeroingOffset-I")
+{
+   field(DESC,"automatically zeroing offset")
+   #field(INP,"${MON}Raw-aSub_.O")  
+   field(EGU,"V")
+   field(PREC,"6")
+}
+
+record(ai,"${MON}MaxV-I")
+{
+   field(DESC,"Max value")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ai,"${MON}MinV-I")
+{
+   field(DESC,"Min value")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ai,"${MON}AveV-I")
+{
+   field(DESC,"Averaged DC")
+   field(PREC,"6")
+   field(EGU,"Volts")
+}
+
+record(ai,"${MON}StdV-I")
+{
+   field(DESC,"RMS noise")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(subArray,"${MON}Bunch1Q-SubAr")
+{
+   field(DESC,"ChargeOfTheFirstBunch-subArray")
+   field(INP,"${MON}BunchQ-Wf CPP")
+   field(MALM,"${BUCKET}")
+   field(INDX,"0")
+   field(NELM,"1")
+   field(FTVL,"DOUBLE")
+   field(PREC,"4")
+   field(EGU,"nC")
+}
+
+record(ai,"${MON}Bunch1Q-I")
+{
+   field(DESC,"ChargeOfTheFirstBunch")
+   field(INP,"${MON}Bunch1Q-SubAr CPP")
+   field(PREC,"4")
+   field(EGU,"nC")
+}
+
+record(waveform,"${MON}PeakIndex-Wf")
+{
+   field(DESC,"index of peaks")
+   field(NELM,"${BUCKET}")
+   field(FTVL,"LONG")
+}
+
+record(subArray,"${MON}FirstPeakPos-SubAr")
+{
+   field(DESC,"position of the first peak")
+   field(INP,"${MON}PeakIndex-Wf CPP")
+   field(MALM,"${BUCKET}")
+   field(INDX,"0")
+   field(NELM,"1")
+   field(FTVL,"LONG")
+}
+
+record(longin,"${MON}FirstPeakPos-I")
+{
+   field(DESC,"position of the first peak")
+   field(INP,"${MON}FirstPeakPos-SubAr CPP")
+}
+
+record(ai,"${MON}TrigRate-I")
+{
+   field(DESC,"precise trigRate")
+   #field(INP,"${MON}Raw-aSub_.VALN")
+   field(PREC,"3")
+   field(EGU,"Hz")
+}
+
+record(ai,"${MON}SumV-I")
+{
+   field(DESC,"sum voltage")
+   field(PREC,"6")
+   #field(EGU,"V")
+   field(EGU,"nC")
+}
+
+#processed data over ROI (region of interest)
+record(ai,"${MON}AveVROI-I")
+{
+   field(DESC,"ROI averaged voltage")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ai,"${MON}MaxVROI-I")
+{
+   field(DESC,"ROI max. voltage")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ai,"${MON}MinVROI-I")
+{
+   field(DESC,"ROI min. voltage")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+#integral V*T (ns.V=nC) over ROI is for FC charge
+record(ai,"${MON}SumVROI-I")
+{
+   field(DESC,"ROI sum voltage")
+   field(PREC,"6")
+   field(EGU,"nC")
+   field(FLNK,"${MON}Q-Calc_")
+}
+
+record(ao,"${MON}QOffset-SP")
+{
+   field(DESC,"Charge offset")
+   field(PREC,"3")
+   field(EGU,"nC")
+   info(autosaveFields_pass0, "VAL")
+}
+
+
+record(ai,"${MON}Q-I")
+{
+   field(DESC,"Beam charge based on ROI")
+   field(PREC,"3")
+   field(EGU,"nC")
+   field(FLNK,"${MON}Buffer-aSub_")
+}
+
+record(ai,"${MON}StdVROI-I")
+{
+   field(DESC,"ROI std voltage")
+   field(PREC,"6")
+   field(EGU,"V")
+}
+
+record(ai,"${MON}ROILength-I")
+{
+   field(DESC,"ROI length: ns")
+   field(PREC,"1")
+   field(EGU,"ns")
+}
+
+
+#Buffer-aSub_ fits for FC
+record(longin,"${MON}Shots-I")
+{
+   field(DESC,"shots changed in aSub")
+   field(VAL,"0")
+   field(INP,"${MON}Buffer-aSub_.C")
+}
+
+#averaging every interested number of shots(INOS)
+#averaged Q over INOS is calculated from ${MON}AveQROIOverINOS-I
+record(compress,"${MON}AveQOverINOS-I")
+{
+	field(DESC, "average Q over INOS")
+	#INP is scalar
+	field(INP,"${MON}Q-I CP")
+	field(ALG,"N to 1 Average")
+	field(NSAM,"1")
+	#N can't be DB_LINK, must be constant
+	#N can be changed to the interested number of shots at run-time
+	field(N,"10")
+	field(PREC,"3")
+	field(EGU,"nC")
+	info(autosaveFields_pass0, "N")
+}
+alias("${MON}AveQOverINOS-I","${MON}AveVROIOverINOS-I")
+
+#see acqiris_asub_process.cpp: process INOS buffered data.
+record(aSub,"${MON}Buffer-aSub_")
+{
+    field (DESC,"process buffered data")
+    field (SNAM,"processBuf")
+    field (INPA, "${MON}Q-I")
+    field (FTA, "DOUBLE")
+    field (NOA, "1")
+    #N is the interested number of shots
+    field (INPB, "${MON}AveQOverINOS-I.N")
+    field (FTB, "ULONG")
+    field (NOB, "1")
+    field (INPC, "${MON}Shots-I PP")
+    field (FTC, "ULONG")
+    field (NOC, "1")
+    #${MON}StdQOverINOS-I is calculate from ${MON}StdVROIOverINOS-I
+    field (OUTA, "${MON}StdQOverINOS-I PP")
+    field (FTVA, "DOUBLE")
+    field (NOVA, "1")
+    field (OUTB, "${MON}Q-Buf_ PP")
+    field (FTVB, "DOUBLE")
+    field (NOVB, "60")
+}
+
+record(ai,"${MON}StdQOverINOS-I")
+{
+   field(DESC,"std charge over INOS")
+   field(INP,"${MON}Buffer-aSub_.VALA")
+   field(PREC,"3")
+   field(EGU,"nC")
+}
+
+record(waveform,"${MON}Q-Buf_")
+{
+   field(DESC,"Q buffer")
+   field(INP,"${MON}Buffer-aSub_.VALB")
+   field(NELM,"60")
+   field(FTVL,"DOUBLE")
+   field(PREC,"6")
+   field(EGU,"nC")
+}
+
+#SumQBuffer-aSub_ for FCT and WCM
+record(longin,"${MON}SumQShots-I")
+{
+   field(DESC,"shots changed in aSub")
+   field(VAL,"0")
+   field(INP,"${MON}SumQBuffer-aSub_.C")
+}
+
+#averaging every interested number of shots(INOS)
+#averaged sumQ over INOS is calculated from ${MON}AveSumQROIOverINOS-I
+record(compress,"${MON}AveSumQOverINOS-I")
+{
+	field(DESC, "average SumQ over INOS")
+	#INP is scalar
+	field(INP,"${MON}SumQ-I CP")
+	field(ALG,"N to 1 Average")
+	field(NSAM,"1")
+	#N can't be DB_LINK, must be constant
+	#N can be changed to the interested number of shots at run-time
+	field(N,"10")
+	field(PREC,"3")
+	field(EGU,"nC")
+	info(autosaveFields_pass0, "N")
+	#FLNK won't work: if 1Hz & N=2, StdSumQOverINOS-I will update at 1/6 Hz
+	#field(FLNK,"${MON}SumQBuffer-aSub_")
+}
+alias("${MON}AveSumQOverINOS-I","${MON}AveSumVROIOverINOS-I")
+
+#see acqiris_asub_process.cpp: process INOS buffered data.
+record(aSub,"${MON}SumQBuffer-aSub_")
+{
+    field (DESC,"process buffered data")
+    field (SNAM,"processBuf")
+    field (INPA, "${MON}SumQ-I CP")
+    field (FTA, "DOUBLE")
+    field (NOA, "1")
+    #N is the interested number of shots
+    field (INPB, "${MON}AveSumQOverINOS-I.N")
+    field (FTB, "ULONG")
+    field (NOB, "1")
+    field (INPC, "${MON}SumQShots-I PP")
+    field (FTC, "ULONG")
+    field (NOC, "1")
+    #${MON}StdQOverINOS-I is calculate from ${MON}StdVROIOverINOS-I
+    field (OUTA, "${MON}StdSumQOverINOS-I PP")
+    field (FTVA, "DOUBLE")
+    field (NOVA, "1")
+    field (OUTB, "${MON}SumQ-Buf_ PP")
+    field (FTVB, "DOUBLE")
+    field (NOVB, "60")
+}
+
+record(ai,"${MON}StdSumQOverINOS-I")
+{
+   field(DESC,"std sumQ charge over INOS")
+   field(INP,"${MON}SumQBuffer-aSub_.VALA")
+   field(PREC,"3")
+   field(EGU,"nC")
+}
+
+record(waveform,"${MON}SumQ-Buf_")
+{
+   field(DESC,"sumQ buffer")
+   field(INP,"${MON}SumQBuffer-aSub_.VALB")
+   field(NELM,"60")
+   field(FTVL,"DOUBLE")
+   field(PREC,"3")
+   field(EGU,"nC")
+}
+
