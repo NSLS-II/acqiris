@@ -15,11 +15,18 @@ record(ai, "BR-BI{FCT:1}SampInterval-I")
 	field(EGU,  "Sec")
 }
 
-record(calc, "BR-BI{FCT:1}SampFreq-I")
+record(calcout, "BR-BI{FCT:1}SampFreq-Calc_")
 {
+    field(PINI, "YES")
 	field(DESC, "Sampling rate")
 	field(INPA, "BR-BI{DIG:FCT}SampFreq-SP CP")
 	field(CALC, "A/1e9")
+	field(OUT,  "BR-BI{FCT:1}SampFreq-I PP")
+}
+
+record(ai, "BR-BI{FCT:1}SampFreq-I")
+{
+	field(DESC, "Sampling rate")
 	field(EGU,  "GHz")
 }
 
@@ -36,6 +43,10 @@ record(longout,"${MON}StartPoint-SP")
    field(DESC,"reference data point")
    field(PINI,"YES")
    field(VAL, "1")   
+   field(DRVH,"1000")
+   field(DRVL,"0")
+   field(HOPR,"1000")
+   field(LOPR,"0")
    info(autosaveFields_pass0, "VAL")
    field(FLNK, "${MON}NbrTurns-Calc_")
 }
@@ -47,6 +58,20 @@ record(ao, "${MON}RevPeriod-SP")
    field(VAL,  "528")
    field(EGU,  "ns")
    info(autosaveFields_pass0, "VAL")
+   field(FLNK, "${MON}RFBuckets-Calc_")
+}
+
+record(calcout, "${MON}RFBuckets-Calc_")
+{
+   field(DESC, "RF buckets in the ring")
+   field(INPA, "${MON}RevPeriod-SP")
+   field(CALC, "A/2")
+   field(OUT,  "${MON}RFBuckets-I PP")
+}
+
+record(longin, "${MON}RFBuckets-I")
+{
+   field(DESC, "RF buckets in the ring")
    field(FLNK, "${MON}NbrTurns-Calc_")
 }
 
@@ -67,20 +92,19 @@ record(longin, "${MON}NbrTurns-I")
    field(EGU,  "Turns")
 }
 
-record(longout, "${MON}MaxNbrBunches-SP")
+record(longin, "${MON}MaxNbrBunches-I")
 {
    field(DESC, "Max. number of bunches")
    field(PINI, "YES")
-   field(VAL,  "150")
+   field(VAL,  "${BUNCH}")
    field(EGU,  "bunches")
-   info(autosaveFields_pass0, "VAL")
    field(FLNK, "${MON}SamplesPerTrain-Calc_")
 }
 
 record(calcout,"${MON}SamplesPerTrain-Calc_")
 {
    field(DESC, "Samples per bunch-train")
-   field(INPA, "${MON}MaxNbrBunches-SP")
+   field(INPA, "${MON}MaxNbrBunches-I")
    #RF = 500MHz: 2 ns per bunch
    field(INPB, "2")
    field(INPC, "${MON}SampInterval-I CP")
@@ -112,12 +136,68 @@ record(longin, "${MON}SamplesPerTurn-I")
 record(longout, "${MON}Turn-SP")
 {
    field(DESC, "user selected turn")
-   field(VAL,  "1")
+   field(VAL,  "0")
+   field(DRVH,"${TURN}")
+   field(DRVL,"0")
+   field(HOPR,"${TURN}")
+   field(LOPR,"0")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(longout, "${MON}StartTurn-SP")
+{
+   field(DESC, "ROI: start turn")
+   field(VAL,  "0")
+   field(DRVH,"${TURN}")
+   field(DRVL,"0")
+   field(HOPR,"${TURN}")
+   field(LOPR,"0")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(longout, "${MON}EndTurn-SP")
+{
+   field(DESC, "ROI: end turn")
+   field(VAL,  "0")
+   field(DRVH,"${TURN}")
+   field(DRVL,"0")
+   field(HOPR,"${TURN}")
+   field(LOPR,"0")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(longout, "${MON}Bunch-SP")
+{
+   field(DESC, "user selected bunch")
+   field(VAL,  "0")
+   field(DRVH,"${BUCKET}")
+   field(DRVL,"0")
+   field(HOPR,"${BUCKET}")
+   field(LOPR,"0")
+   info(autosaveFields_pass0, "VAL")
 }
 
 record(waveform,"${MON}TTQ-Wf")
 {
    field(DESC,"Turn-by-turn beam current")
+   field(NELM,"${TURN}")
+   field(FTVL,"DOUBLE")
+   field(EGU,  "mA")
+   field(PREC, "3")
+}
+
+record(waveform,"${MON}ROIV-Wf")
+{
+   field(DESC,"ROI voltage waveform")
+   field(NELM,"${NELM}")
+   field(FTVL,"DOUBLE")
+   field(EGU,  "V")
+   field(PREC, "6")
+}
+
+record(waveform,"${MON}BunchCurTrend-Wf")
+{
+   field(DESC,"bunch current trend")
    field(NELM,"${TURN}")
    field(FTVL,"DOUBLE")
    field(EGU,  "mA")
