@@ -186,6 +186,14 @@ record(waveform,"${MON}TTQ-Wf")
    field(PREC, "3")
 }
 
+record(waveform,"${MON}TTNumBunch-Wf")
+{
+   field(DESC,"number of bunches in each turn")
+   field(NELM,"${TURN}")
+   field(FTVL,"SHORT")
+   field(EGU,  "bunches")
+}
+
 record(waveform,"${MON}ROIV-Wf")
 {
    field(DESC,"ROI voltage waveform")
