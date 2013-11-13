@@ -201,6 +201,13 @@ record(waveform,"${MON}ROIV-Wf")
    field(FTVL,"DOUBLE")
    field(EGU,  "V")
    field(PREC, "6")
+   field(FLNK, "${MON}ROIVWfNord-I")
+}
+
+record(longin, "${MON}ROIVWfNord-I")
+{
+   field(DESC, "update NORD of wf")
+   field(INP,  "${MON}ROIV-Wf.NORD")
 }
 
 record(waveform,"${MON}BunchCurTrend-Wf")
