@@ -1,39 +1,39 @@
 #Booster Ring or Storage Ring filling pattern measurement results
 #Data processed by Python
 
-record(ai, "BR-BI{FCT:1}SampLength-I")
+record(ai, "${MON}SampLength-I")
 {
 	field(PINI, "YES")
-	field(INP,  "BR-BI{DIG:FCT}SampLength-I CP")
+	field(INP,  "${DIG}SampLength-I CP")
 	field(EGU,  "ns")
 }
 
-record(ai, "BR-BI{FCT:1}SampInterval-I")
+record(ai, "${MON}SampInterval-I")
 {
 	field(PINI, "YES")
-	field(INP,  "BR-BI{DIG:FCT}SampInterval-SP CP")
+	field(INP,  "${DIG}SampInterval-SP CP")
 	field(EGU,  "Sec")
 }
 
-record(calcout, "BR-BI{FCT:1}SampFreq-Calc_")
+record(calcout, "${MON}SampFreq-Calc_")
 {
-    field(PINI, "YES")
+        field(PINI, "YES")
 	field(DESC, "Sampling rate")
-	field(INPA, "BR-BI{DIG:FCT}SampFreq-SP CP")
+	field(INPA, "${DIG}SampFreq-SP CP")
 	field(CALC, "A/1e9")
-	field(OUT,  "BR-BI{FCT:1}SampFreq-I PP")
+	field(OUT,  "${MON}SampFreq-I PP")
 }
 
-record(ai, "BR-BI{FCT:1}SampFreq-I")
+record(ai, "${MON}SampFreq-I")
 {
 	field(DESC, "Sampling rate")
 	field(EGU,  "GHz")
 }
 
-record(ai, "BR-BI{FCT:1}NbrSamples-I")
+record(ai, "${MON}NbrSamples-I")
 {
 	field(DESC, "Number of samples")
-	field(INP,  "BR-BI{DIG:FCT}NbrSamples-SP CP")
+	field(INP,  "${DIG}NbrSamples-SP CP")
 	field(EGU,  "samples")
 }
 
@@ -296,7 +296,7 @@ record(ai,"${MON}MaxQ-I")
    #CP doesn't work here for aSub.field
    field(PREC,"3")
    field(EGU,"mA")
-   field(FLNK,"${MON}MinQ-I")
+   #field(FLNK,"${MON}MinQ-I")
 }
 
 record(ai,"${MON}MinQ-I")
@@ -304,7 +304,7 @@ record(ai,"${MON}MinQ-I")
    field(DESC,"Min bunch current within bunch-train")
    field(PREC,"3")
    field(EGU,"mA")
-   field(FLNK,"${MON}SumQ-I")
+   #field(FLNK,"${MON}SumQ-I")
 }
 
 record(ai,"${MON}SumQ-I")
@@ -313,7 +313,7 @@ record(ai,"${MON}SumQ-I")
    field(PREC,"3")
    field(EGU,"mA")
    field(MDEL,"-1")
-   field(FLNK,"${MON}AutoZeroingOffset-I")
+   #field(FLNK,"${MON}AutoZeroingOffset-I")
 }
 
 record(longin,"${MON}MaxQBunchNbr-I")
