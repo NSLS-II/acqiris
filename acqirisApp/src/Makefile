@@ -22,6 +22,7 @@ acqiris_DBD += system.dbd
 acqiris_DBD += calcSupport.dbd
 #calcSupport.dbd seems to include swaitRecord.dbd by default 
 acqiris_DBD += swaitRecord.dbd
+acqiris_DBD += caPutLog.dbd
 
 # acqiris_registerRecordDeviceDriver.cpp derives from acqiris.dbd
 acqiris_SRCS += acqiris_registerRecordDeviceDriver.cpp
@@ -61,6 +62,7 @@ acqiris_LIBS += devIocStats
 acqiris_LIBS += calc
 #calc seems to depend on sscan by default 
 acqiris_LIBS += sscan
+acqiris_LIBS += caPutLog
 
 #this method doesn't work well for dynamic/shared library(libAqDrv4.so)
 #acqiris_LIBS += acqdrv
