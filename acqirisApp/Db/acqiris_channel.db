@@ -937,6 +937,24 @@ record(stringout, "$(MON)FilePath")
    info(autosaveFields, "VAL")
 }
 
+record(calc, "$(MON)WriteFile-Cmd")
+{
+   field(DESC, "dump waveform to file")
+   field(INPA, "$(MON)WriteFile-Cmd")
+   field(CALC, "A+1")
+}
+
+record(mbbi,"${MON}SaveStatus-Sts")
+{
+   field(DESC,"wf save status")
+   field(ZRST,"Done")
+   field(ONST,"Can't create dir")
+   field(TWST,"Writing data ...")
+   field(THST,"Can't write data to disk")
+   #field(FRST,"20Mhz")
+   #field(FVST,"35Mhz")
+}
+
 #the following records are original version from SLAC
 record(ai,"${MON}TrigLevelRange")
 {
