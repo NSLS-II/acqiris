@@ -227,6 +227,14 @@ record(stringout, "$(MON)FilePath")
    info(autosaveFields, "VAL")
 }
 
+record(stringin, "$(MON)FileName")
+{
+   field(DESC, "File name")
+   field(PINI, "YES")
+   field(VAL, "/epics/data")
+   info(autosaveFields, "VAL")
+}
+
 record(calc, "$(MON)WriteFile-Cmd")
 {
    field(DESC, "dump waveform to file")
