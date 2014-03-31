@@ -1,6 +1,17 @@
 #Booster Ring or Storage Ring filling pattern measurement results
 #Data processed by Python
 
+record(waveform,"${MON}V-Wf_")
+{
+   field(DESC,"voltage waveform")
+   field(INP,"${MON}V-Wf CP")
+   field(NELM,"${NELM}")
+   field(FTVL,"DOUBLE")
+   field(EGU,  "V")
+   field(PREC, "6")
+}
+
+
 record(ai, "${MON}SampLength-I")
 {
 	field(PINI, "YES")

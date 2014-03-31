@@ -13,6 +13,7 @@
 #raw waveform data: 8-bit (DC265) or 16-bit (10- or 12-bit digitizer)
 #FTVL by default is SHORT. 
 #FTVL is changed to CHAR for 8-bit digitizer in acqiris_drv_wf.cpp
+#${MON}V-Wf is the voltage waveform data  
 record(waveform,"${MON}Raw-Wf")
 {
    field(SCAN,"I/O Intr")
@@ -39,7 +40,7 @@ record(acalcout,"${MON}V-acalcout_")
    field(DESC, "Voltages")
    field(NELM, "${NELM}")
    field(NUSE, "${NELM}")   
-   field(INAA, "${MON}Raw-Wf")
+   field(INAA, "${MON}Raw-Wf CA")
    field(INPA, "${DIG}NbrADCBits-RB")
    field(INPB, "${MON}FullScale-SP")
    field(INPC, "32768.0")
@@ -52,12 +53,35 @@ record(acalcout,"${MON}V-acalcout_")
    field(INPG, "255.0")
    field(INPH, "${MON}TotalOffset-Calc_")
    field(CALC, "A=10?B*(AA+C)/D+H:A=12?B*(AA+C)/E+H:B*(AA+F)/G+H")
+   #field(CALC, "A=10?B*(AA+C)/D+H:A=12?B*(AA+C)/E+H:0")
    field(PREC, "6")
    field(EGU,  "V")
-   field(OUT,  "${MON}V-Wf_ PP")
+   #field(OOPT,  "When Non-zero")
+   field(OUT,  "${MON}V-Wf PP")
 }
 
-record(waveform,"${MON}V-Wf_")
+#record(acalcout,"${MON}V-acalcout8bit_")
+#{
+   #field(DESC, "Voltages")
+   #field(NELM, "${NELM}")
+   #field(NUSE, "${NELM}")
+   #field(INAA, "${MON}Raw-Wf CP")
+   #field(INAA, "LTB-BI{FCT:1}V-Wf CP")
+   #field(INPA, "${DIG}NbrADCBits-RB")
+   #field(INPB, "${MON}FullScale-SP")
+   #field(INPF, "128.0")
+   #field(INPG, "255.0")
+   #field(INPH, "${MON}TotalOffset-Calc_")
+   #CALC string length is limited to 36
+   #field(CALC, "A=8?B*(AA+F)/G+H:0")
+   #field(CALC, "A=8?AA:0")
+   #field(PREC, "6")
+   #field(EGU,  "V")
+   #field(OOPT,  "When Non-zero")
+   #field(OUT,  "${MON}V-Wf PP")
+#}
+
+record(waveform,"${MON}V-Wf")
 {
    field(DESC,"voltage waveform data")
    field(NELM,"${NELM}")

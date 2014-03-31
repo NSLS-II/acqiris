@@ -1,6 +1,6 @@
 #Data processing for single-pass filling pattern measurement by Wall Current Monitor (WCM), etc.
 ## or for ROI (Region Of Interest)-based beam charge measurement by Faraday Cup (FC), etc.
-
+##data processed in C++: acqiris_asub_process.cpp
 record(waveform,"${MON}RawData-Wf_")
 {
    field(DESC,"Raw waveform data_")
@@ -107,7 +107,8 @@ record(longout,"${MON}AcqTimeout-SP")
    field(DRVH,"10000")
    field(DRVL,"2000")
    field(HOPR,"10000")
-   field(LOPR,"2000") 
+   field(LOPR,"2000")
+   field(VAL,"10000") 
    field(EGU,"ms")
    info(autosaveFields_pass0, "VAL")
  }
@@ -212,8 +213,8 @@ record(aSub,"${MON}Raw-aSub_")
     field (NON, "1")
     #INPO is reserved for ${MON}AutoZeroingOffset-I
     #voltage waveform data converted from raw data (8-, 10-, or 12-bit)    
-    #${MON}V-Wf_ is calculated by acalcout record in acqiris.db       
-    field (OUTA, "${MON}V-Wf PP")
+    #${MON}V-Wf is calculated by acalcout record in acqiris.db       
+    field (OUTA, "${MON}V-Wf_ PP")
     field (FTVA, "DOUBLE")
     field (NOVA, "${NELM}")
     #max & min voltages               
@@ -259,7 +260,7 @@ record(aSub,"${MON}Raw-aSub_")
     field (OUTL, "${MON}BunchQ-Wf PP")
     field (FTVL, "DOUBLE")
     field (NOVL, "150")
-    #where are the peaks: position/index in '${MON}V-Wf'
+    #where are the peaks: position/index in '${MON}V-Wf_'
     field (OUTM, "${MON}PeakIndex-Wf PP")
     #LONG equals to int?
     field (FTVM, "LONG")
@@ -295,8 +296,8 @@ record(aSub,"${MON}Raw-aSub_")
     field(FLNK,"${MON}MaxQ-I")
 }
 
-#${MON}V-Wf_ is calculated by acalcout record in acqiris.db
-record(waveform,"${MON}V-Wf")
+#${MON}V-Wf is calculated by acalcout record in acqiris.db
+record(waveform,"${MON}V-Wf_")
 {
    field(SCAN,"Passive")
    field(DESC,"voltage waveform data by aSub")
@@ -310,7 +311,7 @@ record(waveform,"${MON}V-Wf")
 record(subArray,"${MON}VoltData-SubAr_")
 {
    field(DESC,"part of the voltage waveform data")
-   field(INP,"${MON}V-Wf CPP")
+   field(INP,"${MON}V-Wf_ CPP")
    #don't need to set subArray.MALM == waveform.NELM
    #field(MALM,"${NELM}")
    field(MALM,"40")
@@ -389,7 +390,7 @@ record(waveform,"${MON}VoltDataSaved-Wf_")
    field(SDIS,"${MON}SaveWf-Calc_")
    field(NELM,"${NELM}")
    field(FTVL,"FLOAT")
-   field(INP,"${MON}V-Wf")
+   field(INP,"${MON}V-Wf_")
    field(PREC,"6")
    field(EGU,"V")
 }
