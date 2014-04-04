@@ -110,7 +110,6 @@ record(longout,"${MON}AcqTimeout-SP")
    field(LOPR,"2000")
    field(VAL,"10000") 
    field(EGU,"ms")
-   info(autosaveFields_pass0, "VAL")
  }
 
 #Selected region of interest (ROI): start, end 
