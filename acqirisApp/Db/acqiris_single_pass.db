@@ -568,6 +568,7 @@ record(ai,"${MON}Q-I")
    field(DESC,"Beam charge based on ROI")
    field(PREC,"3")
    field(EGU,"nC")
+   field(TSEL, "LTB-TS{EVR:Q1A}EvtGCnt-I.TIME CP")
    field(FLNK,"${MON}Buffer-aSub_")
 }
 
