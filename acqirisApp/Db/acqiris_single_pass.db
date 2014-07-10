@@ -568,7 +568,7 @@ record(ai,"${MON}Q-I")
    field(DESC,"Beam charge based on ROI")
    field(PREC,"3")
    field(EGU,"nC")
-   field(TSEL, "LTB-TS{EVR:Q1A}EvtGCnt-I.TIME CP")
+   field(TSEL, "LTB-TS{EVR:Q1A}EvtGCnt-I.TIME")
    field(FLNK,"${MON}Buffer-aSub_")
 }
 
@@ -763,4 +763,5 @@ record(ai,"${MON}SumQ-I")
    field(EGU,"nC")
    field(MDEL,"-1")
    field(FLNK,"${MON}AutoZeroingOffset-I")
+   field(TSEL, "LTB-TS{EVR:Q1A}EvtGCnt-I.TIME")
 }
