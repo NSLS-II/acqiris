@@ -29,6 +29,7 @@ record(ao,"${MON}CoefBunchQ-SP")
    field(PINI,"YES")
    field(VAL, "1.0")
    field(PREC,"4")
+   field(EGU, "nc/V.ns")
    info(autosaveFields_pass0, "VAL")
 }
 
@@ -532,12 +533,40 @@ record(ai,"${MON}MinVROI-I")
 }
 
 #integral V*T (ns.V=nC) over ROI is for FC charge
-record(ai,"${MON}SumVROI-I")
+record(calc,"${MON}PulseIntegral-I")
+{
+   field(DESC,"integral in v.s")
+   field(INPA,"${MON}SumVROI-I CP")
+   field(CALC,"A/1e+9")
+   field(PREC,"9")
+   field(EGU,"V.S")
+   field(FLNK, "${MON}Q-I_")
+}
+
+record(calc, "${MON}Q-I_")
+{
+    field(INPA, "${MON}PulseIntegral-I")    
+    field(INPB, "${MON}Coeff-I")
+    field(CALC, "A*B")
+    field(EGU,  "nC")
+    field(PREC, "6")    
+}
+
+record(ai, "${MON}Coeff-I")
+{
+    field(EGU,  "nc/V.S")
+    field(PREC, "6")
+    field(VAL,  "1")
+   info(autosaveFields_pass0, "VAL")
+}
+
+record(calc,"${MON}SumVROI-I")
 {
    field(DESC,"ROI sum voltage")
-   field(INP,"${MON}Raw-aSub_.VALS")
+   field(INPA,"${MON}Raw-aSub_.VALS")
+   field(CALC,"ABS(A)")
    field(PREC,"6")
-   field(EGU,"nC")
+   field(EGU,"V.ns")
    field(FLNK,"${MON}Q-Calc_")
 }
 
