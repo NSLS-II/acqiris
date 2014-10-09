@@ -283,7 +283,7 @@ record(aSub,"${MON}Raw-aSub_")
     field (OUTR, "${MON}MinVROI-I PP")
     field (FTVR, "DOUBLE")
     field (NOVR, "1")
-    field (OUTS, "${MON}SumVROI-I PP")
+    field (OUTS, "${MON}SumVROI-Calc_ PP")
     field (FTVS, "DOUBLE")
     field (NOVS, "1")
     field (OUTT, "${MON}StdVROI-I PP")
@@ -560,11 +560,21 @@ record(ai, "${MON}Coeff-I")
    info(autosaveFields_pass0, "VAL")
 }
 
-record(calc,"${MON}SumVROI-I")
+record(calc,"${MON}SumVROI-Calc_")
 {
    field(DESC,"ROI sum voltage")
    field(INPA,"${MON}Raw-aSub_.VALS")
    field(CALC,"ABS(A)")
+   field(PREC,"6")
+   field(EGU,"V.ns")
+   field(MDEL, "-1")
+   field(FLNK,"${MON}SumVROI-I")
+}
+
+record(ai,"${MON}SumVROI-I")
+{
+   field(DESC,"ROI sum voltage")
+   field(INP,"${MON}SumVROI-Calc_")
    field(PREC,"6")
    field(EGU,"V.ns")
    field(FLNK,"${MON}Q-Calc_")
@@ -597,7 +607,7 @@ record(ai,"${MON}Q-I")
    field(DESC,"Beam charge based on ROI")
    field(PREC,"3")
    field(EGU,"nC")
-   field(TSEL, "LTB-TS{EVR:Q1A}EvtGCnt-I.TIME")
+   #field(TSEL, "LTB-TS{EVR:Q1A}EvtGCnt-I.TIME")
    field(FLNK,"${MON}Buffer-aSub_")
 }
 
@@ -792,5 +802,5 @@ record(ai,"${MON}SumQ-I")
    field(EGU,"nC")
    field(MDEL,"-1")
    field(FLNK,"${MON}AutoZeroingOffset-I")
-   field(TSEL, "LTB-TS{EVR:Q1A}EvtGCnt-I.TIME")
+   #field(TSEL, "LTB-TS{EVR:Q1A}EvtGCnt-I.TIME")
 }
