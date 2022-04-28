@@ -69,6 +69,13 @@ acqirisInit(int calibration)
         {
             size = (ad->maxsamples + ad->extra) * sizeof(short);
             ad->data[channel].nsamples = 0;
+            //SN 20227, DC252HF: 2-ch, 536870912 samples/channel, 10-bit.
+            //one old-style digitizer has 536M samples/ch. So limit it to 20Mpts...
+            if (size > 40000000) 
+            {
+                printf("Max. samples: %d; limit to 20M\n", size/2);
+                size = 40000000;
+            }
             ad->data[channel].buffer = new char[size];
         }
 
