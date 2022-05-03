@@ -35,7 +35,7 @@ acqiris_daq_thread(void *arg)
     long timeout = ad->acqTimeout;
 
     int extra = ad->extra;
-    int nbrSamples = ad->maxsamples;
+    int nbrSamples = ((ad->maxsamples>MAX_SAMPLES) ? MAX_SAMPLES : ad->maxsamples);
     //printf("extra: %d;nbrSamples: %d \n", ad->extra, ad->maxsamples );
     /** bug fix: using the following 'void * buffer' will produce identical
      * data for all channels, i.e. DC252: Ch1 has the data which is from Ch2
@@ -139,6 +139,7 @@ acqiris_daq_thread(void *arg)
                          */
                         ad->data[channel].nsamples
                                 = wfDesc.returnedSamplesPerSeg;
+                        //printf("%d samples\n", ad->data[channel].nsamples);
                         /*bugs fix:
                          * 1. fix "waveform display jitter:
                          *		use DataArray[indexFirstPoint,

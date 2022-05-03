@@ -19,10 +19,11 @@ extern "C"
 {
 #endif
 
+    const unsigned MAX_SAMPLES = 20000000;
     const int MAX_CHANNEL = 4;
     const int MAX_DEV = 10;
     const int nbrSegments = 1;
-#define SUCCESS(x) (((x)&0x80000000) == 0)
+    #define SUCCESS(x) (((x)&0x80000000) == 0)
 
     struct acqiris_data_t
     {
